@@ -1,4 +1,4 @@
-import java.util.*;
+package app.service;
 
 public class InventoryService {
 	
