@@ -13,7 +13,7 @@ public class UserService {
 
     private List<User> users = new ArrayList<>();
 
-    public User findUser(String id, String pw) {
+    public User findUser(String id, String password) {
 		return users.get(0); // TODO
 	}
 

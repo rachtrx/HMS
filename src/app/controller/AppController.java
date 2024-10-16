@@ -39,8 +39,8 @@ public class AppController {
 		}
 	}
 
-	public void login(String id, String pw) {
-		User currentUser = userService.findUser(id, pw);
+	public void login(String id, String password) {
+		User currentUser = userService.findUser(id, password);
 		if(currentUser != null) {
 			currentUser.displayUserMenu(); // TODO CONVERT THESE TO THEIR OWN CONTROLLERS?
 		}
