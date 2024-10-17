@@ -13,21 +13,52 @@ public class Medication {
     private static int uuid = 1;
     private final int id = Medication.uuid++;
     private int stock;
-    private String name;
+    private final String name;
+    private int lowAlertLevel;
 
-    public Medication(int stock, String name) {
+    /**
+     * @param stock
+     * @param name
+     * @param lowAlertLevel
+     */
+    public Medication(int stock, String name, int lowAlertLevel) {
         this.stock = stock;
         this.name = name;
+        this.lowAlertLevel = lowAlertLevel;
     }
 
+    /**
+     * @return
+     */
     public int getId() {
         return this.id;
     }
 
+    /**
+     * @return
+     */
     public int getStock() {
         return this.stock;
     }
 
+    /**
+     * @return
+     */
+    public int getLowAlertLevel() {
+        return lowAlertLevel;
+    }
+
+    /**
+     * @param lowAlertLevel
+     */
+    public void setLowAlertLevel(int lowAlertLevel) {
+        this.lowAlertLevel = lowAlertLevel;
+    }
+
+    /**
+     * @param stock
+     * @throws NonNegativeException
+     */
     public void setStock(int stock) throws NonNegativeException {
         if (this.stock < 0) {
             throw new NonNegativeException("Stock cannot be less than 0");
@@ -35,11 +66,10 @@ public class Medication {
         this.stock = stock;
     }
 
+    /**
+     * @return
+     */
     public String getName() {
         return this.name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
     }
 }

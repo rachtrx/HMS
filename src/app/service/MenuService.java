@@ -3,6 +3,7 @@ package app.service;
 import app.constants.exceptions.ExitApplication;
 import app.constants.exceptions.ItemNotFoundException;
 import app.model.user_input.menus.BaseMenu;
+import app.model.users.User;
 
 import java.util.Scanner;
 
@@ -22,6 +23,10 @@ public class MenuService {
 
     public BaseMenu getCurrentMenu() {
         return currentMenu;
+    }
+
+    public BaseMenu getInitialMenu(User user) {
+        
     }
 
     public void setCurrentMenu(BaseMenu currentMenu) {

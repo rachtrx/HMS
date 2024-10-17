@@ -76,6 +76,38 @@ public abstract class User {
         this.password = password;
     }
 
+    /**
+     * Get name
+     * @return
+     */
+    public String getName() {
+        return this.name;
+    }
+
+    /**
+     * Set name
+     * @param name
+     */
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    /**
+     * Get gender
+     * @return
+     */
+    public Gender getGender() {
+        return this.gender;
+    }
+
+    /**
+     * Set gender
+     * @param gender
+     */
+    public void setGender(Gender gender) {
+        this.gender = gender;
+    }
+
     // TODO: implement
     public void login(String username, String password) {
 

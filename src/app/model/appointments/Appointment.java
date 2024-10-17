@@ -33,8 +33,8 @@ public class Appointment {
     private static int uuid = 1;
     
     private final int id = Appointment.uuid++;
-    private int patientId;
-    private int doctorId;
+    private final int patientId;
+    private final int doctorId;
     private AppointmentStatus appointmentStatus;
     private Timeslot timeslot;
     private AppointmentOutcomeRecord appointmentOutcome;
@@ -53,6 +53,19 @@ public class Appointment {
         this.appointmentOutcome = appointmentOutcome;
     }
 
+    // Pending Appointment
+    public Appointment(
+        int patientId,
+        int doctorId,
+        AppointmentStatus appointmentStatus,
+        Timeslot timeslot
+    ) {
+        this.patientId = patientId;
+        this.doctorId = doctorId;
+        this.appointmentStatus = appointmentStatus;
+        this.timeslot = timeslot;
+    }
+
     public int getId() {
         return this.id;
     }
@@ -61,16 +74,8 @@ public class Appointment {
         return this.patientId;
     }
 
-    public void setPatientId(int patientId) {
-        this.patientId = patientId;
-    }
-
     public int getDoctorId() {
         return this.doctorId;
-    }
-
-    public void setDoctorId(int doctorId) {
-        this.doctorId = doctorId;
     }
 
     public AppointmentStatus getAppointmentStatus() {

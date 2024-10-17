@@ -1,9 +1,14 @@
-package app.model.personal_details;
+package app.model.user_credentials;
 
+import app.constants.exceptions.InvalidLengthException;
 import app.constants.exceptions.InvalidPhoneNumberException;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
+
+import app.model.validators.IntegerValidator;
+import app.model.validators.StringValidator;
+import java.util.stream.Collectors;
 
 /**
 * Phone number validator.
@@ -13,7 +18,7 @@ import java.util.HashMap;
 * @version 1.0
 * @since 2024-10-17
 */
-public class PhoneNumber {
+public final class PhoneNumber extends ValidatedData<Integer, String> implements IntegerValidator, StringValidator {
   // Constants START
   /**
    * All categories of phone numbers.
@@ -51,7 +56,6 @@ public class PhoneNumber {
   // Constants END
 
   // Constructor START
-  private int number;
   private PhoneNumberType type;
   
   /**
@@ -59,8 +63,9 @@ public class PhoneNumber {
    * 
    * @param number Phone number
    */
-  public PhoneNumber(String number) throws InvalidPhoneNumberException {
-    this(number, PhoneNumber.getPhoneNumberTypeFromNumber(number));
+  public PhoneNumber(String number) throws Exception {
+    super(number);
+    setType();
   }
 
   /**
@@ -68,29 +73,9 @@ public class PhoneNumber {
    * 
    * @param number Phone number
    */
-  public PhoneNumber(int number) throws InvalidPhoneNumberException  {
-    this(Integer.toString(number));
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param number Phone number
-   * @param type Phone number type
-   */
-  public PhoneNumber(String number, PhoneNumberType type) throws InvalidPhoneNumberException {
-    this.number = Integer.parseInt(PhoneNumber.validateNumber(number));
-    this.type = type;
-  }
-
-  /**
-   * Constructor
-   * 
-   * @param number Phone number
-   * @param type Phone number type
-   */
-  public PhoneNumber(int number, PhoneNumberType type) throws InvalidPhoneNumberException  {
-    this(Integer.toString(number), type);
+  public PhoneNumber(int number) throws Exception  {
+    super(String.valueOf(number));
+    setType();
   }
   // Constructor END
 
@@ -101,40 +86,41 @@ public class PhoneNumber {
    * @param number Phone number (String)
    * @return 8-digit phone number, if valid
    */
-  private static String validateNumber(String number) throws InvalidPhoneNumberException {
-    Pattern singaporePhoneNumberPattern = Pattern.compile(
-    "^(?:\\+65)?(?<number>[0-9]{8})$",
-    Pattern.CASE_INSENSITIVE
-    );
-    Matcher matcher = singaporePhoneNumberPattern.matcher(number);
-    if (matcher.find()) {
-      if (matcher.group("number") == null) {
-        throw new InvalidPhoneNumberException(String.format(
-          "A Singapore (+65) phone number should begin with one of the following digits: %s",
-          identifierToPhoneNumberType
-            .keySet()
-            .stream()
-            .map(i -> i.toString())
-            .reduce((i, j) -> String.format("%s, %s", i, j))
-        ));
-      } else {
-        return matcher.group("number");
-      }
-    } else {
-      throw new InvalidPhoneNumberException("A Singapore (+65) phone number should contain 8 digits.");
+
+  @Override
+  public Integer validate(String number) throws InvalidPhoneNumberException {
+    this.validateString(number);
+    return Integer.valueOf(number.substring(number.length() - 8));
+  }
+
+  // CALLED IN validateString
+  @Override
+  public void validateInteger(int number) throws InvalidPhoneNumberException {
+    if (!identifierToPhoneNumberType.containsKey(number)) {
+      throw new InvalidPhoneNumberException(String.format(
+        "A Singapore (+65) phone number should begin with one of the following digits: %s",
+        identifierToPhoneNumberType.keySet().stream()
+          .map(String::valueOf)
+          .collect(Collectors.joining(", "))
+      ));
     }
   }
 
-  /**
-   * Gets phone number type based on phone number.
-   * 
-   * @param number Phone number (String)
-   * @return Phone number type
-   */
-  private static PhoneNumberType getPhoneNumberTypeFromNumber(String number) {
-    return PhoneNumber.identifierToPhoneNumberType.get(
-      Integer.valueOf(number.substring(0, 1))
+  @Override
+  public void validateString(String number) throws InvalidPhoneNumberException {
+    Pattern singaporePhoneNumberPattern = Pattern.compile(
+      "^(?:\\+65)?(?<number>[0-9]{8})$",
+      Pattern.CASE_INSENSITIVE
     );
+
+    Matcher matcher = singaporePhoneNumberPattern.matcher(number);
+    if (matcher.find()) {
+        String numberStr = matcher.group("number");
+        int firstDigit = Integer.parseInt(numberStr.substring(0, 1));
+        this.validateInteger(firstDigit);
+    } else {
+      throw new InvalidPhoneNumberException("A Singapore (+65) phone number should contain 8 digits.");
+    }
   }
   // Validation END
 
@@ -145,7 +131,7 @@ public class PhoneNumber {
    * @return Phone number (int)
    */
   public int getNumber() {
-    return this.number;
+    return this.getValue();
   }
 
   /**
@@ -153,8 +139,14 @@ public class PhoneNumber {
    * 
    * @param number
    */
-  public void setNumber(String number) throws InvalidPhoneNumberException {
-    this.number = Integer.parseInt(PhoneNumber.validateNumber(number));
+  public void setNumber(String number) throws Exception {
+    this.setValue(number);
+    setType();
+  }
+
+  public void setNumber(Integer number) throws Exception {
+    this.setValue(String.valueOf(number));
+    setType();
   }
 
   /**
@@ -171,8 +163,9 @@ public class PhoneNumber {
    * 
    * @param type
    */
-  public void setType(PhoneNumberType type) {
-    this.type = type;
+  private void setType() { // IMPT called only whenever phone number changes
+    int firstDigit = Integer.parseInt(String.valueOf(this.getValue()).substring(0, 1));
+    this.type = PhoneNumber.identifierToPhoneNumberType.get(firstDigit);
   }
   // Getters & setters END
 }

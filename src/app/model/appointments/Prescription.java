@@ -1,6 +1,5 @@
 package app.model.appointments;
 
-import app.model.inventory.Medication;
 import app.model.inventory.MedicationOrder;
 import java.util.ArrayList;
 
@@ -27,7 +26,7 @@ public class Prescription {
         }
     }
 
-    private ArrayList<MedicationOrder> medicationOrders;
+    private final ArrayList<MedicationOrder> medicationOrders;
     private PrescriptionStatus status;
 
     public Prescription(ArrayList<MedicationOrder> medicationOrders, PrescriptionStatus status) {
@@ -41,5 +40,16 @@ public class Prescription {
 
     public void setStatus(PrescriptionStatus status) {
         this.status = status;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append("Prescription Status: ").append(status).append("\n");
+        sb.append("Medication Orders:\n");
+        for (MedicationOrder order : medicationOrders) {
+            sb.append(" - ").append(order).append("\n");
+        }
+        return sb.toString();
     }
 }

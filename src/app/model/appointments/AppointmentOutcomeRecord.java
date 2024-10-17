@@ -1,5 +1,6 @@
 package app.model.appointments;
 
+import app.utils.DateTimeUtil;
 import java.time.LocalDate;
 
 /**
@@ -49,5 +50,12 @@ public class AppointmentOutcomeRecord {
 
     public String getNotes() {
         return consultationNotes;
+    }
+
+    public void printDetails() {
+        System.out.println("Appointment Date: " + DateTimeUtil.printShortDate(appointmentDate));
+        System.out.println("Service Type: " + serviceType.toString());
+        System.out.println("Prescription Details: " + prescription.toString());
+        System.out.println("Consultation Notes: " + consultationNotes);
     }
 }

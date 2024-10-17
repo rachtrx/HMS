@@ -12,12 +12,12 @@ import java.util.regex.Pattern;
 * @since 2024-10-17
 */
 public class ExitOption extends BaseOption {
-    public ExitOption() {
+    public ExitOption(String displayText, BaseMenu nextMenu, Function<String, Void> callback) {
         super(
-            String displayText,
+            displayText,
             Pattern.compile("Exit|Exit Application", Pattern.CASE_INSENSITIVE),
-            BaseMenu nextMenu,
-            Function callback
+            nextMenu,
+            callback
         );
     }
 

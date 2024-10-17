@@ -13,7 +13,7 @@ import app.model.validators.StringValidator;
 * @version 1.0
 * @since 2024-10-17
 */
-public class Password extends Credential<String> implements StringValidator, IntegerValidator {
+public final class Password extends ValidatedData<String, String> implements StringValidator, IntegerValidator {
     private final int MIN_LENGTH = 8;
     private final int MAX_LENGTH = 32;
     private final String LOWERCASE_PATTERN = "[a-z]+";
@@ -25,8 +25,8 @@ public class Password extends Credential<String> implements StringValidator, Int
     * 
     * @param password Password
     */
-    public Password(String password) throws InvalidLengthException, MissingCharacterException, InvalidCharacterException {
-        this.setValue(password);
+    public Password(String password) throws Exception {
+        super(password);
     }
     
     /** 
@@ -36,19 +36,21 @@ public class Password extends Credential<String> implements StringValidator, Int
         return this.getValue();
     }
 
+    public void setPassword(String password) throws Exception {
+        this.setValue(password);
+    }
+
     /** 
      * @param password
      * @throws InvalidLengthException
      * @throws MissingCharacterException
      */
-    public final void setPassword(String password) throws InvalidLengthException, MissingCharacterException, InvalidCharacterException {
-        this.setValue(password);
-    }
 
     @Override
-    public final void validate(String password) throws InvalidCharacterException, MissingCharacterException, InvalidLengthException {
+    public String validate(String password) throws InvalidCharacterException, MissingCharacterException, InvalidLengthException {
         validateString(password);
         validateInteger(password.length());
+        return password;
     }
 
     @Override
