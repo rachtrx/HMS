@@ -1,7 +1,5 @@
 package app.model.appointments;
 
-import java.time.LocalDate;
-
 /**
 * Appointment.
 *
@@ -91,12 +89,12 @@ public class Appointment {
         this.appointmentStatus = AppointmentStatus.COMPLETED;
     }
 
-    public LocalDate getAppointmentDateTime() {
-        return this.appointmentDateTime;
+    public Timeslot getTimeslot() {
+        return this.timeslot;
     }
 
-    public void setAppointmentDateTime(LocalDate appointmentDateTime) {
-        this.appointmentDateTime = appointmentDateTime;
+    public void setTimeslot(Timeslot timeslot) {
+        this.timeslot = timeslot;
     }
 
     public AppointmentOutcomeRecord getAppointmentOutcome() {

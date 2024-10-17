@@ -1,13 +1,12 @@
-package app.service;
+package app.model.appointments;
 
 import app.constants.exceptions.InvalidTimeslotException;
 import app.constants.exceptions.ItemNotFoundException;
 import app.constants.exceptions.UserNotFound;
-import app.model.appointments.Appointment;
-import app.model.appointments.Timeslot;
 import app.model.users.Patient;
 import app.model.users.User;
 import app.model.users.staff.Doctor;
+import app.service.Service;
 import app.utils.DateTimeUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -23,7 +22,10 @@ import java.util.stream.Collectors;
 * @version 1.0
 * @since 2024-10-17
 */
-public class AppointmentService extends Service {
+public class AppointmentService extends Service implements IAppointment {
+
+    private AppointmentParse appointmentParse;
+    private AppointmentDisplay appointmentDisplay;
     private ArrayList<Appointment> appointments;
 
     public AppointmentService(
@@ -32,6 +34,8 @@ public class AppointmentService extends Service {
     ) {
         super(user);
         this.appointments = appointments;
+        this.appointmentParse = new AppointmentParse();
+        this.appointmentDisplay = new AppointmentDisplay();
     }
 
     public ArrayList<Appointment> getAppointments() throws UserNotFound {
@@ -39,18 +43,24 @@ public class AppointmentService extends Service {
             return (ArrayList<Appointment>) this.appointments
                 .stream()
                 .filter(appointment -> {
-                    if (this.getUser() instanceof Patient) {
-                        return appointment.getPatientId() == this.getUser().id;
-                    } else if (this.getUser() instanceof Doctor) {
-                        return appointment.getDoctorId() == this.getUser().id;
-                    }
+                    this.userIdMatches(appointment)
                     throw new AssertionError();
                 }).collect(Collectors.toList());
         }
         throw new UserNotFound();
     }
 
-    private Appointment findAppointmentById(int appointmentId) throws ItemNotFoundException, UserNotFound {
+    private boolean userIdMatches(Patient patient, Appointment appointment) {
+        // if (this.getUser() instanceof Patient) {
+            return appointment.getPatientId() == this.getUser().getId();
+        // } else if (this.getUser() instanceof Doctor) {
+            // return appointment.getDoctorId() == this.getUser().id;
+        // }
+    }
+
+
+
+    private Appointment (int appointmentId) throws ItemNotFoundException, UserNotFound {
         Optional<Appointment> result = this.getAppointments()
             .stream()
             .filter(appointment -> appointment.getId() == appointmentId)
@@ -70,7 +80,7 @@ public class AppointmentService extends Service {
         Timeslot nextAvailableTimeslot = new Timeslot(LocalDateTime.of(
             (
                 offsetTime.isAfter(Timeslot.lastSlotStartTime) ?
-                DateTimeUtil.getNextWorkingDay(dateTimeNow) :
+                DateTimeUtil.addWorkingDays(dateTimeNow, 1) :
                 dateTimeOffset
             ).toLocalDate(),
             (
@@ -78,6 +88,11 @@ public class AppointmentService extends Service {
                 dateTimeNow.toLocalTime().isAfter(Timeslot.lastSlotStartTime)
             ) ? Timeslot.firstSlotStartTime : dateTimeNow.toLocalTime()
         ));
+        Timeslot lastAvailableTimeslot = new Timeslot(LocalDateTime.of(
+            DateTimeUtil.addWorkingDays(dateTimeNow, 7).toLocalDate(),
+            Timeslot.lastSlotStartTime
+        ));
+        // TODO: list all timeslots -> filter out those that are already booked
     }
 
     public void scheduleAppointment(Appointment appointment) {
@@ -85,7 +100,7 @@ public class AppointmentService extends Service {
     }
 
     public void rescheduleAppointment (int appointmentId) throws ItemNotFoundException, UserNotFound {
-        Appointment appointment = this.findAppointmentById(appointmentId);
+        Appointment appointment = this.(appointmentId);
         
     }
 

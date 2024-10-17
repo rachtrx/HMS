@@ -1,9 +1,9 @@
 package app.model.users;
 
 import app.constants.Gender;
-import app.model.personal_details.BasicPersonalDetails;
 import app.model.user_credentials.Password;
 import app.model.user_credentials.Username;
+import app.model.validators.UsernameValidator;
 
 /**
 * User account
@@ -14,12 +14,14 @@ import app.model.user_credentials.Username;
 * @version 1.0
 * @since 2024-10-17
 */
-public abstract class User extends BasicPersonalDetails {
+public abstract class User {
     
     public abstract void displayUserMenu();
     protected int id;
     protected Username username;
     protected Password password;
+    protected String name;
+    protected Gender gender;
 
     /** 
      * Constructor
@@ -29,29 +31,35 @@ public abstract class User extends BasicPersonalDetails {
      * @param gender
      */
     public User(Username username, Password password, String name, Gender gender) {
-        super(name, gender);
         this.id = this.generateUUID();
         this.username = username;
         this.password = password;
+        this.name = name;
+        this.gender = gender;
     }
 
     protected abstract int generateUUID();
 
-    
+    private int getId() {
+        return this.id;
+    }
+
     /** 
      * @return String
      */
-    public Username getUsername() {
-        return this.username;
+    public String getUsername() {
+        return this.username.getUsername();
     };
 
-    public void setUsername(Username username) { // abstract password into its own class? parent class credentials?
+    public void setUsername(String username) { // abstract password into its own class? parent class credentials?
         /*
          * TODO: username validation --> handle here? or in UserService?
          * 
          * 2. Check for other existing usernames
          * 3. Clean input (escape characters, strip string)
          */
+        UsernameValidator usernameValidator = new UsernameValidator();
+        usernameValidator.validate(username);
         this.username = username;
     }
 

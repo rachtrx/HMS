@@ -15,7 +15,7 @@ public class Patient extends User {
 
     private static int uuid = 1;
 
-    private ArrayList<MedicalRecord> medicalRecords;
+    private MedicalRecord medicalRecord;
     private ArrayList<Appointment> appointmentHistory;
 
     public Patient(
@@ -32,11 +32,11 @@ public class Patient extends User {
         Password password,
         String name,
         Gender gender,
-        ArrayList<MedicalRecord> medicalRecords,
+        MedicalRecord medicalRecord,
         ArrayList<Appointment> appointmentHistory
     ) {
         super(username, password, name, gender);
-        this.medicalRecords = medicalRecords;
+        this.medicalRecord = medicalRecord;
         this.appointmentHistory = appointmentHistory;
     }
 

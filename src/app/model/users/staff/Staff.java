@@ -2,7 +2,7 @@ package app.model.users.staff;
 
 import app.model.users.User;
 
-public abstract class Staff extends User {
+public abstract class Staff extends User implements  {
 
     protected int staffId;
     protected char staffRole;

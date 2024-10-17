@@ -1,7 +1,7 @@
 package app.controller;
 
+import app.model.appointments.AppointmentService;
 import app.model.users.User;
-import app.service.AppointmentService;
 import app.service.CsvReaderService;
 import app.service.InventoryService;
 import app.service.UserService;
@@ -13,10 +13,13 @@ public class AppController {
 	public static final String PATIENT_FILEPATH = "src/resources/Patient_List.csv";
 	public static final String INVENTORY_FILEPATH = "src/resources/Medicine_List.csv";
 
+	private static User currentUser;
+
 	private UserService userService;
 	private InventoryService inventoryService;
 	private AppointmentService appointmentService;
 	private CsvReaderService csvReaderService;
+	private MenuService menuService;
 	// private User currentUser; // IMPT this might not be able to downcast
 	
 	public AppController() {
@@ -50,5 +53,13 @@ public class AppController {
 		// display login
 		// login user
 		// loop (logout, login)
+	}
+
+	private static void setCurrentUser(User user) {
+		AppController.currentUser = user;
+	}
+
+	public static User getCurrentUser() {
+		return AppController.currentUser;
 	}
 }

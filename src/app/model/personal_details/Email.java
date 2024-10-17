@@ -1,7 +1,7 @@
 package app.model.personal_details;
 
 import app.constants.exceptions.InvalidEmailException;
-import app.model.validators.StringValidator;
+import app.model.validators.Validator;
 import java.util.regex.Pattern;
 
 /**
@@ -12,7 +12,7 @@ import java.util.regex.Pattern;
 * @since 2024-10-17
 */
 public class Email {
-    private final StringValidator<InvalidEmailException> validator;
+    private final Validator<InvalidEmailException> validator;
     
     /**
     * Constructor
@@ -20,7 +20,7 @@ public class Email {
     * @param email Email
     */
     public Email(String email) throws InvalidEmailException {
-        this.validator = new StringValidator<>(
+        this.validator = new Validator<>(
             Pattern.compile("^[\\w-\\.]+@([\\w-]+\\.)+[\\w-]{2,4}$"),
             new InvalidEmailException("Please enter a valid email address."),
             email

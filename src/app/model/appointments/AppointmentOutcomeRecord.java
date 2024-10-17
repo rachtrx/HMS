@@ -1,9 +1,6 @@
 package app.model.appointments;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-
-import app.model.inventory.Medication;
 
 /**
 * Appointments' outcome record.
@@ -37,4 +34,20 @@ public class AppointmentOutcomeRecord {
     private ServiceType serviceType;
     private Prescription prescription;
     private String consultationNotes;
+
+    public LocalDate getAppointmentDate() {
+        return appointmentDate;
+    }
+
+    public ServiceType getServiceType() {
+        return serviceType;
+    }
+
+    public Prescription getPrescription(){
+        return prescription;
+    }
+
+    public String getNotes() {
+        return consultationNotes;
+    }
 }

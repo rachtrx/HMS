@@ -2,7 +2,7 @@ package app.model.user_credentials;
 
 import app.constants.exceptions.InvalidCharacterException;
 import app.constants.exceptions.InvalidLengthException;
-import app.model.validators.StringValidator;
+import app.model.validators.Validator;
 import java.util.regex.Pattern;
 
 /**
@@ -13,7 +13,7 @@ import java.util.regex.Pattern;
 * @since 2024-10-17
 */
 public class Username {
-    private final StringValidator<InvalidCharacterException> invalidCharacterValidator;
+    private final Validator<InvalidCharacterException> invalidCharacterValidator;
     private final int MIN_LENGTH = 4;
     private final int MAX_LENGTH = 20;
     
@@ -24,7 +24,7 @@ public class Username {
     */
     public Username(String username) throws InvalidLengthException, InvalidCharacterException {
         this.validateUsernameLength(username);
-        this.invalidCharacterValidator = new StringValidator<>(
+        this.invalidCharacterValidator = new Validator<>(
             Pattern.compile("[0-9A-Za-z_]+"),
             new InvalidCharacterException("Only letters, numbers and underscores (_) are allowed."),
             username

@@ -2,7 +2,7 @@ package app.model.user_credentials;
 
 import app.constants.exceptions.InvalidLengthException;
 import app.constants.exceptions.MissingCharacterException;
-import app.model.validators.StringValidator;
+import app.model.validators.Validator;
 import java.util.regex.Pattern;
 
 /**
@@ -13,9 +13,9 @@ import java.util.regex.Pattern;
 * @since 2024-10-17
 */
 public class Password {
-    private final StringValidator<MissingCharacterException> lowerCharacterValidator;
-    private final StringValidator<MissingCharacterException> upperCharacterValidator;
-    private final StringValidator<MissingCharacterException> specialCharacterValidator;
+    private final Validator<MissingCharacterException> lowerCharacterValidator;
+    private final Validator<MissingCharacterException> upperCharacterValidator;
+    private final Validator<MissingCharacterException> specialCharacterValidator;
     private final int MIN_LENGTH = 8;
     private final int MAX_LENGTH = 32;
     
@@ -26,17 +26,17 @@ public class Password {
     */
     public Password(String password) throws InvalidLengthException, MissingCharacterException {
         this.validatePasswordLength(password);
-        this.lowerCharacterValidator = new StringValidator<>(
+        this.lowerCharacterValidator = new Validator<>(
             Pattern.compile("[a-z]+"),
             new MissingCharacterException("At least one lowercase character is required."),
             password
         );
-        this.upperCharacterValidator = new StringValidator<>(
+        this.upperCharacterValidator = new Validator<>(
             Pattern.compile("[A-Z]+"),
             new MissingCharacterException("At least one lowercase character is required."),
             password
         );
-        this.specialCharacterValidator = new StringValidator<>(
+        this.specialCharacterValidator = new Validator<>(
             Pattern.compile("[!@#$%^&*]+"),
             new MissingCharacterException("At least one special character is required; i.e. !@#$%^&* "),
             password

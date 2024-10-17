@@ -50,12 +50,18 @@ public class DateTimeUtil {
         }
     }
 
-    public static LocalDateTime getNextWorkingDay(LocalDateTime dateTime) {
-        while (true) {
-            dateTime = dateTime.plusDays(1);
-            if (!(dateTime.getDayOfWeek() == DayOfWeek.SATURDAY || dateTime.getDayOfWeek() == DayOfWeek.SUNDAY)) {
-                return dateTime;
+    public static LocalDateTime addWorkingDays(LocalDateTime dateTime, int daysToAdd) {
+        LocalDateTime result = dateTime;
+        int addedDays = 0;
+        while (addedDays < daysToAdd) {
+            result = result.plusDays(1);
+            if (!(
+                result.getDayOfWeek() == DayOfWeek.SATURDAY ||
+                result.getDayOfWeek() == DayOfWeek.SUNDAY
+            )) {
+                addedDays++;
             }
         }
+        return result;
     }
 }
