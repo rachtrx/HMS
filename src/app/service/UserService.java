@@ -7,13 +7,20 @@ import app.model.users.staff.Doctor;
 import app.model.users.staff.Pharmacist;
 import app.utils.DateTimeUtil;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class UserService {
 
     private List<User> users = new ArrayList<>();
+    private List<String> roles = Arrays
+        .asList(Patient.class, Doctor.class)
+        .stream()
+        .map(Class::getSimpleName)
+        .collect(Collectors.toList());
 
-    public User findUser(String id, String pw) {
+    public User findUser(String id, String password) {
 		return users.get(0); // TODO
 	}
 
@@ -51,7 +58,7 @@ public class UserService {
         return patient;
     }
 
-    public User createStaff(String hospitalId, String name, char role, char gender, String age) {
+    public User createStaff(String hospitalId, String name, String role, char gender, String age) {
 
         User user;
 

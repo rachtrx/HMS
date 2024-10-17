@@ -1,5 +1,6 @@
 package app.utils;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -46,6 +47,15 @@ public class DateTimeUtil {
         } catch (DateTimeParseException e) {
             System.err.println("Invalid date format, expected dd/MM/yyyy: " + e.getMessage());
             return null;
+        }
+    }
+
+    public static LocalDateTime getNextWorkingDay(LocalDateTime dateTime) {
+        while (true) {
+            dateTime = dateTime.plusDays(1);
+            if (!(dateTime.getDayOfWeek() == DayOfWeek.SATURDAY || dateTime.getDayOfWeek() == DayOfWeek.SUNDAY)) {
+                return dateTime;
+            }
         }
     }
 }
