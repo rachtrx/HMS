@@ -2,8 +2,8 @@ package app.model.user_credentials;
 
 import app.constants.exceptions.InvalidCharacterException;
 import app.constants.exceptions.InvalidLengthException;
-import app.model.validators.Validator;
-import java.util.regex.Pattern;
+import app.model.validators.IntegerValidator;
+import app.model.validators.StringValidator;
 
 /**
 * Username validator.
@@ -12,53 +12,58 @@ import java.util.regex.Pattern;
 * @version 1.0
 * @since 2024-10-17
 */
-public class Username {
-    private final Validator<InvalidCharacterException> invalidCharacterValidator;
-    private final int MIN_LENGTH = 4;
-    private final int MAX_LENGTH = 20;
-    
+public class Username implements IntegerValidator, StringValidator {
+
+    private String username;
+
+    private static final String USERNAME_PATTERN = "^[a-zA-Z0-9_]+$";
+    private static final int MIN_LENGTH = 4;
+    private static final int MAX_LENGTH = 20;
+
     /**
     * Constructor
     * 
     * @param username Username
     */
-    public Username(String username) throws InvalidLengthException, InvalidCharacterException {
-        this.validateUsernameLength(username);
-        this.invalidCharacterValidator = new Validator<>(
-            Pattern.compile("[0-9A-Za-z_]+"),
-            new InvalidCharacterException("Only letters, numbers and underscores (_) are allowed."),
-            username
-        );
+    public Username(String value) throws InvalidLengthException, InvalidCharacterException {
+        this.setUsername(value);
     }
-    
+
     /** 
      * @return String
      */
     public String getUsername() {
-        return this.invalidCharacterValidator.get();
+        return this.username;
     }
-    
+
     /** 
      * @param username
      * @throws InvalidLengthException
      * @throws InvalidCharacterException
      */
-    public final void setUsername(String username) throws InvalidLengthException, InvalidCharacterException {
-        this.validateUsernameLength(username);
-        this.invalidCharacterValidator.set(username);
+    public final void setUsername(String value) throws InvalidLengthException, InvalidCharacterException {
+        this.validate(value);
+        this.username = value;
     }
-    
-    /** 
-     * @param username
-     * @throws InvalidLengthException
-     */
-    private void validateUsernameLength(String username) throws InvalidLengthException {
-        if (username.length() < this.MIN_LENGTH || username.length() > this.MAX_LENGTH) {
-            throw new InvalidLengthException(String.format(
-                "Username must be %d to %d characters long.",
-                this.MIN_LENGTH,
-                this.MAX_LENGTH
-            ));
+
+    @Override
+    public void validateString(String value) throws InvalidCharacterException {
+        if (!value.matches(USERNAME_PATTERN)) {
+            throw new InvalidCharacterException("Username contains invalid characters.");
         }
     }
+
+    @Override
+    public void validateInteger(int length) throws InvalidLengthException {
+        if (length < MIN_LENGTH || length > MAX_LENGTH) {
+            throw new InvalidLengthException("Username must be " + MIN_LENGTH + " to " + MAX_LENGTH + " characters long.");
+        }
+    }
+
+    public void validate(String value) throws InvalidCharacterException, InvalidLengthException {
+        validateString(value);
+        validateInteger(value.length());
+    }
+    
+    
 }

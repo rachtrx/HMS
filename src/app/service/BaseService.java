@@ -6,6 +6,7 @@ import app.constants.exceptions.ItemNotFoundException;
 * CRUD functionality for appointments.
 *
 * @author Luke Eng (@LEPK02)
+* @author Rachmiel Teo (@rachtrx)
 * @version 1.0
 * @since 2024-10-17
 */

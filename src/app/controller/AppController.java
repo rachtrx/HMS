@@ -1,11 +1,14 @@
 package app.controller;
 
+import app.constants.exceptions.ExitApplication;
 import app.model.appointments.AppointmentService;
 import app.model.users.User;
 import app.service.CsvReaderService;
 import app.service.InventoryService;
+import app.service.MenuService;
 import app.service.UserService;
 import java.io.IOException;
+import java.util.Scanner;
 
 public class AppController {
 
@@ -53,6 +56,17 @@ public class AppController {
 		// display login
 		// login user
 		// loop (logout, login)
+		Scanner scanner = new Scanner(System.in);
+		MenuService menuService = new MenuService();
+		while (true) {
+			try {
+				menuService.getCurrentMenu().display();
+				menuService.handleUserInput(scanner.nextLine());
+			} catch (ExitApplication e) {
+				System.out.println(e.getMessage());
+			}
+		}
+		scanner.close();
 	}
 
 	private static void setCurrentUser(User user) {

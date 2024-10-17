@@ -1,11 +1,7 @@
 package app.model.validators;
 
-import java.util.regex.Pattern;
-import java.util.regex.Matcher;
-import app.constants.exceptions.InvalidCharacterException;
-
 public interface StringValidator {
-    void validateString(String value) throws InvalidCharacterException;
+    void validateString(String value) throws Exception;
 }
 
 

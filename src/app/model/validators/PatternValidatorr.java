@@ -4,7 +4,7 @@ import java.util.regex.Pattern;
 import java.util.regex.Matcher;
 import app.constants.exceptions.InvalidCharacterException;
 
-public abstract class PatternValidatorr<String> implements Validator<String> {
+public abstract class PatternValidator<String> implements Validator<String> {
     protected Pattern validatorPattern;
     protected Exception exception;
 

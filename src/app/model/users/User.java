@@ -58,8 +58,6 @@ public abstract class User {
          * 2. Check for other existing usernames
          * 3. Clean input (escape characters, strip string)
          */
-        UsernameValidator usernameValidator = new UsernameValidator();
-        usernameValidator.validate(username);
         this.username = username;
     }
 
