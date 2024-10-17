@@ -1,12 +1,13 @@
-package app.model.users;
+package app.model.personal_details;
 
 import app.constants.BloodType;
 import app.constants.Gender;
-import app.model.personal_details.BasicPersonalDetails;
-import app.model.personal_details.Email;
-import app.model.personal_details.PhoneNumber;
+import app.constants.exceptions.AppointmentNotFound;
+import app.model.appointments.Appointment;
+import app.model.users.Patient;
 import app.utils.DateTimeUtil;
 import java.time.LocalDate;
+import java.util.ArrayList;
 
 public class MedicalRecord extends BasicPersonalDetails {
 
@@ -19,7 +20,7 @@ public class MedicalRecord extends BasicPersonalDetails {
     private PhoneNumber homeNumber;
     private Email email;
     private LocalDate dateOfBirth;
-    private BloodType bloodType;
+    private final BloodType bloodType;
     // TODO: diagnoses and treatments
 
     public MedicalRecord(
@@ -154,17 +155,8 @@ public class MedicalRecord extends BasicPersonalDetails {
     /** 
      * @return BloodType
      */
-    
      public BloodType getBloodType() {
         return this.bloodType;
-    }
-
-    
-    /** 
-     * @param bloodType
-     */
-    public void setBloodType(BloodType bloodType) {
-        this.bloodType = bloodType;
     }
     // Getters and Setters END
 
@@ -181,10 +173,6 @@ public class MedicalRecord extends BasicPersonalDetails {
             String.format("Blood Type: %s", this.getBloodType())
             // TODO Past Diagnoses and Treatments
         ));
-    }
-
-    public void getTreatmentPlans() {
-        // TODO
     }
 
     public void getDiagnoses() {
