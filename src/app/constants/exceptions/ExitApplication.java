@@ -1,4 +1,7 @@
 package app.constants.exceptions;
+
+import app.constants.AppMetadata;
+
 /**
 * Exit application.
 *
@@ -6,12 +9,12 @@ package app.constants.exceptions;
 * @version 1.0
 * @since 2024-10-17
 */
-public class ExitApplication extends Throwable {
+public class ExitApplication extends Exception {
 
   public ExitApplication() {
     super(String.join(
       "\n",
-      "Thank you and see you again!",
+      String.format("Thank you for using %s!", AppMetadata.APP_FULL_NAME.toString()),
       "_________________________________________",
       "                            __________   |\\",
       "                           |  SC2002  |  | \\",

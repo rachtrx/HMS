@@ -64,7 +64,8 @@ public class AppController {
 				menuService.handleUserInput(scanner.nextLine());
 			} catch (ExitApplication e) {
 				System.out.println(e.getMessage());
-			}
+				break;
+			} catch (Exception e) {}
 		}
 		scanner.close();
 	}

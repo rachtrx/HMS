@@ -1,10 +1,10 @@
 package app.service;
 
 import app.constants.exceptions.ExitApplication;
-import app.constants.exceptions.ItemNotFoundException;
 import app.model.user_input.menus.BaseMenu;
-
-import java.util.Scanner;
+import app.model.user_input.options.BaseOption;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
 * Controls which menus to show (Equivalent to machine in FSM)
@@ -16,12 +16,12 @@ import java.util.Scanner;
 public class MenuService {
     private BaseMenu currentMenu;
 
-    public void handleUserInput(String userInput) {
-        currentMenu.next(userInput);
+    public void handleUserInput(String userInput) throws Exception {
+        this.currentMenu.next(userInput.trim().toLowerCase());
     }
 
     public BaseMenu getCurrentMenu() {
-        return currentMenu;
+        return this.currentMenu;
     }
 
     public void setCurrentMenu(BaseMenu currentMenu) {
@@ -30,5 +30,32 @@ public class MenuService {
 
     public void exitApp() throws ExitApplication {
         throw new ExitApplication();
+    }
+
+    public void next(String userInput) throws Exception {
+        List<BaseOption> matchingOptions = this.currentMenu.getOptions()
+            .stream()
+            .filter(option -> option.isMatch(userInput))
+            .collect(Collectors.toList());
+        if (matchingOptions.size() < 1) {
+            this.currentMenu.display(true);
+        } else if (matchingOptions.size() > 1) {
+            this.currentMenu.display(matchingOptions);
+        } else {
+            BaseOption option = matchingOptions.get(0);
+            try {
+                option.executeCallback();
+                this.setCurrentMenu(option.getNextMenu());
+            } catch (ExitApplication e) {
+                throw e;
+            } catch (Exception e) {
+                return;
+            } catch (Error e) {
+                System.err.println("Something went wrong. Please contact your administrator and try again.");
+                System.err.println("Exiting application...");
+                throw new ExitApplication();
+            }
+            this.currentMenu.display();
+        }
     }
 }
