@@ -1,14 +1,11 @@
 package app.controller;
 
-import app.constants.exceptions.ExitApplication;
-import app.model.appointments.AppointmentService;
+import app.model.user_input.menus_test.TestMenuService;
 import app.model.users.User;
 import app.service.CsvReaderService;
 import app.service.InventoryService;
-import app.service.MenuService;
 import app.service.UserService;
 import java.io.IOException;
-import java.util.Scanner;
 
 public class AppController {
 
@@ -20,15 +17,14 @@ public class AppController {
 
 	private UserService userService;
 	private InventoryService inventoryService;
-	private AppointmentService appointmentService;
+	// private AppointmentService appointmentService;
 	private CsvReaderService csvReaderService;
-	private MenuService menuService;
 	// private User currentUser; // IMPT this might not be able to downcast
 	
 	public AppController() {
 		userService = new UserService();
-		inventoryService = new InventoryService();
-		appointmentService = new AppointmentService();
+		// inventoryService = new InventoryService();
+		// appointmentService = new AppointmentService();
 		csvReaderService = new CsvReaderService();
 	}
 
@@ -36,7 +32,7 @@ public class AppController {
 
 		try {
 			userService.loadPatients(csvReaderService.loadData(PATIENT_FILEPATH));
-			userService.loadStaff(csvReaderService.loadData(STAFF_FILEPATH));
+			// userService.loadStaff(csvReaderService.loadData(STAFF_FILEPATH));
 			// inventoryService.addMedicine(csvReaderService.read(INVENTORY_FILEPATH));
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -45,34 +41,51 @@ public class AppController {
 		}
 	}
 
-	public void login(String id, String password) {
-		User currentUser = userService.findUser(id, password);
-		if(currentUser != null) {
-			menuService.setCurrentMenu(currentUser); // TODO CONVERT THESE TO THEIR OWN CONTROLLERS?
-		}
+	public User login(String id, String password) {
+		return userService.findUser(id, password);
 	}
 
 	public void logout() {
 
 	}
 
-	public void start() {
-		// display login
-		// login user
-		// loop (logout, login)
-		Scanner scanner = new Scanner(System.in);
-		MenuService menuService = new MenuService();
-		while (true) {
-			try {
-				menuService.getCurrentMenu().display();
-				menuService.handleUserInput(scanner.nextLine());
-			} catch (ExitApplication e) {
-				System.out.println(e.getMessage());
-				break;
-			} catch (Exception e) {}
-		}
-		scanner.close();
+	public void testStart() {
+		TestMenuService menuService = new TestMenuService();
+		menuService.run();
 	}
+
+	// public void start() {
+	// 	// display login
+	// 	// login user
+	// 	// loop (logout, login)
+	// 	// TODO Should scanner be passed into menuService?
+	// 	MenuService menuService = new MenuService();
+	// 	BaseMenu loginMenu = new BaseMenu(, );
+	// 	menuService.start();
+	// 	while (currentUser == null) {
+			
+	// 		System.out.print("Enter your user ID: ");
+    //         String id = scanner.nextLine();
+            
+    //         System.out.print("Enter your password: ");
+    //         String password = scanner.nextLine();
+    //         currentUser = login(id, password);
+
+	// 		while (true) {
+	// 			try {
+	// 				menuService.getCurrentMenu().display();
+	// 				menuService.handleUserInput(scanner.nextLine());
+	// 			} catch (ExitApplication e) {
+	// 				System.out.println(e.getMessage());
+	// 				break;
+	// 			} catch (Exception e) {}
+	// 		}
+	// 		scanner.close();
+	// 	}
+	// 	Scanner scanner = new Scanner(System.in);
+	// 	MenuService menuService = new MenuService();
+		
+	// }
 
 	private static void setCurrentUser(User user) {
 		AppController.currentUser = user;

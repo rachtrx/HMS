@@ -41,49 +41,51 @@ public class Patient extends User {
     // IMPT medical record is built from patient's appointmentHistory
 
     public Patient(
-        Username username,
-        Password password,
+        String username,
+        String password,
+        String patientId,
         String name,
-        Gender gender,
-        PhoneNumber mobileNumber,
-        PhoneNumber homeNumber,
-        Email email,
-        LocalDate dateOfBirth,
-        BloodType bloodType,
-        ArrayList<Appointment> appointments, // UPON appointment COMPLETED, push into appointment history
-        ArrayList<AppointmentOutcomeRecord> appointmentHistory
-    ) {
+        String gender,
+        String mobileNumber,
+        String homeNumber,
+        String email,
+        String dateOfBirth,
+        String bloodType,
+        ArrayList<Appointment> appointments // UPON appointment COMPLETED, push into appointment history
+    ) throws Exception {
         super(username, password, name, gender);
-        this.mobileNumber = mobileNumber;
-        this.homeNumber = homeNumber;
-        this.email = email;
-        this.dateOfBirth = dateOfBirth;
-        this.bloodType = bloodType;
-        this.appointments = appointments;
-        this.medicalRecord = new MedicalRecord(this, appointmentHistory);
-    }
-
-    public Patient(
-        Username username,
-        Password password,
-        String name,
-        Gender gender,
-        PhoneNumber mobileNumber,
-        PhoneNumber homeNumber,
-        Email email,
-        LocalDate dateOfBirth,
-        BloodType bloodType,
-        ArrayList<Appointment> appointments
-    ) {
-        super(username, password, name, gender);
-        this.mobileNumber = mobileNumber;
-        this.homeNumber = homeNumber;
-        this.email = email;
-        this.dateOfBirth = dateOfBirth;
-        this.bloodType = bloodType;
+        this.mobileNumber = new PhoneNumber(mobileNumber);
+        this.homeNumber = new PhoneNumber(homeNumber);
+        this.email = new Email(email);
+        this.dateOfBirth = DateTimeUtil.parseShortDate(dateOfBirth);
+        this.bloodType = BloodType.A_MINUS; // TODO
         this.appointments = appointments;
         this.medicalRecord = new MedicalRecord(this, new ArrayList<>());
     }
+
+    // public Patient(
+    //     String username,
+    //     String password,
+    //     String name,
+    //     String patientId,
+    //     String gender,
+    //     String mobileNumber,
+    //     String homeNumber,
+    //     String email,
+    //     String dateOfBirth,
+    //     String bloodType,
+    //     ArrayList<Appointment> appointments,
+    //     ArrayList<AppointmentOutcomeRecord> appointmentHistory
+    // ) {
+    //     super(username, password, name, gender);
+    //     this.mobileNumber = mobileNumber;
+    //     this.homeNumber = homeNumber;
+    //     this.email = email;
+    //     this.dateOfBirth = dateOfBirth;
+    //     this.bloodType = bloodType;
+    //     this.appointments = appointments;
+    //     this.medicalRecord = new MedicalRecord(this, appointmentHistory);
+    // }
 
     @Override
     protected int generateUUID() {
@@ -102,11 +104,19 @@ public class Patient extends User {
         this.mobileNumber.setNumber(mobileNumber);
     }
 
+    public void setMobileNumber(String mobileNumber) throws Exception {
+        this.mobileNumber.setNumber(mobileNumber);
+    }
+
     public int getHomeNumber() {
         return homeNumber.getNumber();
     }
 
     public void setHomeNumber(Integer homeNumber) throws Exception {
+        this.homeNumber.setNumber(homeNumber);
+    }
+
+    public void setHomeNumber(String homeNumber) throws Exception {
         this.homeNumber.setNumber(homeNumber);
     }
 
@@ -141,9 +151,9 @@ public class Patient extends User {
         return medicalRecord;
     }
 
-    public void addAppointmentRecord(AppointmentOutcomeRecord appointmentRecord) {
-        this.medicalRecord.addAppointmentRecord(appointmentRecord);
-    }
+    // public void addAppointmentRecord(AppointmentOutcomeRecord appointmentRecord) {
+    //     this.medicalRecord.addAppointmentRecord(appointmentRecord);
+    // }
 
     public void print() {
         System.out.println(String.join(

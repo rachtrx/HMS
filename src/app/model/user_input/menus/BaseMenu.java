@@ -3,6 +3,7 @@ package app.model.user_input.menus;
 import app.model.user_input.options.BaseOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 /**
@@ -13,8 +14,14 @@ import java.util.stream.IntStream;
 * @since 2024-10-17
 */
 public abstract class BaseMenu {
+    // Static Scanner instance, shared across all child classes
+    protected static Scanner scanner = new Scanner(System.in);
+
     private List<BaseOption> options;
     private final String title;
+
+    private ArrayList<State> states;
+
 
     public BaseMenu(List<BaseOption> options, String title) {
         this.setOptions(options);

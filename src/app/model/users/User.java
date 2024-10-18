@@ -3,7 +3,6 @@ package app.model.users;
 import app.constants.Gender;
 import app.model.user_credentials.Password;
 import app.model.user_credentials.Username;
-import app.model.validators.UsernameValidator;
 
 /**
 * User account
@@ -16,7 +15,7 @@ import app.model.validators.UsernameValidator;
 */
 public abstract class User {
     
-    public abstract void displayUserMenu();
+    // public abstract void displayUserMenu();
     protected int id;
     protected Username username;
     protected Password password;
@@ -30,12 +29,12 @@ public abstract class User {
      * @param name
      * @param gender
      */
-    public User(Username username, Password password, String name, Gender gender) {
+    public User(String username, String password, String name, String gender) throws Exception {
         this.id = this.generateUUID();
-        this.username = username;
-        this.password = password;
+        this.username = new Username(username);
+        this.password = new Password(password);
         this.name = name;
-        this.gender = gender;
+        this.gender = Gender.FEMALE;
     }
 
     protected abstract int generateUUID();
@@ -44,74 +43,74 @@ public abstract class User {
         return this.id;
     }
 
-    /** 
-     * @return String
-     */
+    // /** 
+    //  * @return String
+    //  */
     public String getUsername() {
         return this.username.getUsername();
     };
 
-    public void setUsername(String username) { // abstract password into its own class? parent class credentials?
-        /*
-         * TODO: username validation --> handle here? or in UserService?
-         * 
-         * 2. Check for other existing usernames
-         * 3. Clean input (escape characters, strip string)
-         */
-        this.username = username;
-    }
-
-    // Who should be able to access this?
-    // public String getPassword() {
-    //     return this.getPassword();
+    // public void setUsername(String username) { // abstract password into its own class? parent class credentials?
+    //     /*
+    //      * TODO: username validation --> handle here? or in UserService?
+    //      * 
+    //      * 2. Check for other existing usernames
+    //      * 3. Clean input (escape characters, strip string)
+    //      */
+    //     this.username = username;
     // }
 
-    public void setPassword(Password password) { // abstract password into its own class? parent class credentials?
-        /*
-         * TODO: password validation --> handle here? or in UserService?
-         * 1. Username rules (e.g. min length, allowed characters [A-Za-z0-9],
-         * special characters, min lower min upper, etc.)
-         * 2. Clean input (escape characters, strip string)
-         */
-        this.password = password;
+    // Who should be able to access this?
+    public String getPassword() {
+        return this.password.getPassword();
     }
 
-    /**
-     * Get name
-     * @return
-     */
+    // public void setPassword(Password password) { // abstract password into its own class? parent class credentials?
+    //     /*
+    //      * TODO: password validation --> handle here? or in UserService?
+    //      * 1. Username rules (e.g. min length, allowed characters [A-Za-z0-9],
+    //      * special characters, min lower min upper, etc.)
+    //      * 2. Clean input (escape characters, strip string)
+    //      */
+    //     this.password = password;
+    // }
+
+    // /**
+    //  * Get name
+    //  * @return
+    //  */
     public String getName() {
         return this.name;
     }
 
-    /**
-     * Set name
-     * @param name
-     */
-    public void setName(String name) {
-        this.name = name;
+    // /**
+    //  * Set name
+    //  * @param name
+    //  */
+    // public void setName(String name) {
+    //     this.name = name;
+    // }
+
+    // /**
+    //  * Get gender
+    //  * @return
+    //  */
+    public String getGender() {
+        return this.gender.toString();
     }
 
-    /**
-     * Get gender
-     * @return
-     */
-    public Gender getGender() {
-        return this.gender;
-    }
+    // /**
+    //  * Set gender
+    //  * @param gender
+    //  */
+    // public void setGender(Gender gender) {
+    //     this.gender = gender;
+    // }
 
-    /**
-     * Set gender
-     * @param gender
-     */
-    public void setGender(Gender gender) {
-        this.gender = gender;
-    }
+    // // TODO: implement
+    // public void login(String username, String password) {
 
-    // TODO: implement
-    public void login(String username, String password) {
-
-    }
+    // }
 
     // @Override
     // public boolean equals(Object o) {

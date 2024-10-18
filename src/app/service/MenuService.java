@@ -3,6 +3,8 @@ package app.service;
 import app.constants.exceptions.ExitApplication;
 import app.model.user_input.menus.BaseMenu;
 import app.model.user_input.options.BaseOption;
+import app.model.users.User;
+
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -14,7 +16,26 @@ import java.util.stream.Collectors;
 * @since 2024-10-17
 */
 public class MenuService {
+    
     private BaseMenu currentMenu;
+
+    // Constructor to start with the login menu
+    public MenuFSM() {
+        this.currentMenu = new LoginMenu();
+    }
+
+    // Main loop to run the FSM
+    public void run() {
+        while (currentMenu != null) {
+            currentMenu = currentMenu.run();  // Run the current menu and move to the next one
+        }
+        System.out.println("Exiting...");
+    }
+
+    public static void main(String[] args) {
+        MenuFSM fsm = new MenuFSM();
+        fsm.run();  // Start the FSM
+    }
 
     public void handleUserInput(String userInput) throws Exception {
         this.currentMenu.next(userInput.trim().toLowerCase());

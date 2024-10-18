@@ -16,9 +16,9 @@ import app.model.validators.StringValidator;
 public final class Password extends ValidatedData<String, String> implements StringValidator, IntegerValidator {
     private final int MIN_LENGTH = 8;
     private final int MAX_LENGTH = 32;
-    private final String LOWERCASE_PATTERN = "[a-z]+";
-    private final String UPPERCASE_PATTERN = "[A-Z]+";
-    private final String CHARACTER_PATTERN = "[!@#$%^&*]+";
+    private final String LOWERCASE_PATTERN = ".*[a-z].*";
+    private final String UPPERCASE_PATTERN = ".*[A-Z].*";
+    private final String CHARACTER_PATTERN = ".*[!@#$%^&*].*";
     
     /**
     * Constructor

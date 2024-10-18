@@ -6,6 +6,6 @@ public class App {
     public static void main(String[] args) {
         AppController appController = new AppController();
         appController.loadData();
-        appController.start();
+        appController.testStart();
     }
 }
