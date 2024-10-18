@@ -1,7 +1,9 @@
 package app.model.user_input.options;
 
 import app.model.user_input.menus.BaseMenu;
-import java.util.function.Function;
+import app.types.ThrowableFunction;
+import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -12,52 +14,38 @@ import java.util.regex.Pattern;
 * @since 2024-10-17
 */
 public abstract class BaseOption {
-    private String displayText;
-    private Pattern matchPattern;
-    private BaseMenu nextMenu;
-    private Function callback;
+    protected String label;
+    protected String matchPattern;
+    protected BaseMenu nextMenu;
+    protected ThrowableFunction<List<Object>, Object, Exception> callback;
+    protected List<Object> callbackArguments;
 
-    public BaseOption(
-        String displayText,
-        Pattern matchPattern,
-        BaseMenu nextMenu,
-        Function callback
-    ) {
-        this.displayText = displayText;
-        this.matchPattern = matchPattern;
-        this.nextMenu = nextMenu;
-        this.callback = callback;
-    }
+    public BaseOption() {};
 
-    public String getDisplayText() {
-        return displayText;
-    }
-
-    public void setDisplayText(String displayText) {
-        this.displayText = displayText;
-    }
-
-    public Pattern getMatchPattern() {
-        return matchPattern;
-    }
-
-    public void setMatchPattern(Pattern matchPattern) {
-        this.matchPattern = matchPattern;
+    public String getLabel() {
+        return label;
     }
 
     public BaseMenu getNextMenu() {
         return nextMenu;
     }
 
-    public void setNextMenu(BaseMenu nextMenu) {
-        this.nextMenu = nextMenu;
+    public String getMatchPattern() {
+        return matchPattern;
     }
 
-    public Function getCallback() {
-        return callback;
+    public void setMatchPattern(String matchPattern) {
+        this.matchPattern = matchPattern;
     }
 
-    public void setCallback(Function callback) {
-        this.callback = callback;
+    public boolean isMatch(String userInput) {
+        Matcher matcher = Pattern
+            .compile(this.matchPattern, Pattern.CASE_INSENSITIVE)
+            .matcher(userInput);
+        return matcher.find();
+    }
+
+    public Object executeCallback() throws Exception {
+        return this.callback.apply(this.callbackArguments);
     }
 }
