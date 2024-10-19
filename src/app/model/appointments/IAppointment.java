@@ -1,12 +1,12 @@
 
 import java.util.ArrayList;
 
+import app.db.AppointmentTable;
 import app.model.appointments.AppointmentDisplay;
-import app.model.appointments.AppointmentParse;
 
 public interface IAppointment {
 
-    public AppointmentParse appointmentParse;
+    public AppointmentTable appointmentParse;
     public AppointmentDisplay appointmentDisplay;
 
     public ArrayList<Appointment> getAppointments();
