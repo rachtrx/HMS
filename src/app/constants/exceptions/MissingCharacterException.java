@@ -6,11 +6,9 @@ package app.constants.exceptions;
 * @version 1.0
 * @since 2024-10-17
 */
-public class MissingCharacterException extends Exception {
-
-  public MissingCharacterException() {}
+public class MissingCharacterException extends BaseCustomException {
 
   public MissingCharacterException(String message) {
-     super(message);
+      super(message);
   }
 }

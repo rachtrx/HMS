@@ -6,11 +6,9 @@ package app.constants.exceptions;
 * @version 1.0
 * @since 2024-10-17
 */
-public class InvalidLengthException extends Exception {
-
-  public InvalidLengthException() {}
+public class InvalidLengthException extends BaseCustomException {
 
   public InvalidLengthException(String message) {
-     super(message);
+      super(message);
   }
 }

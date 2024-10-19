@@ -40,7 +40,7 @@ public class Timeslot {
             desiredTime.isBefore(Timeslot.firstSlotStartTime) ||
             desiredTime.isAfter(Timeslot.lastSlotStartTime.plusHours(Timeslot.timeslotLengthInHours))
         ) {
-            throw new InvalidTimeslotException();
+            throw new InvalidTimeslotException("Timeslot does not exist");
         }
     }
 }

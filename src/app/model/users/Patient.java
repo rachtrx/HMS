@@ -2,7 +2,7 @@ package app.model.users;
 
 import app.constants.BloodType;
 import app.constants.Gender;
-import app.constants.exceptions.AppointmentNotFound;
+import app.constants.exceptions.MissingAppointmentException;
 import app.constants.exceptions.MedicalRecordNotFound;
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
@@ -170,7 +170,7 @@ public class Patient extends User {
         ));
     }
 
-    public void printMedicalRecord() throws AppointmentNotFound {
+    public void printMedicalRecord() throws MissingAppointmentException {
         this.print();
         medicalRecord.printAppointmentHistory();
     }

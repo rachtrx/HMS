@@ -6,9 +6,7 @@ package app.constants.exceptions;
 * @version 1.0
 * @since 2024-10-17
 */
-public class ItemNotFoundException extends Exception {
-
-  public ItemNotFoundException() {}
+public class ItemNotFoundException extends BaseCustomException {
 
   public ItemNotFoundException(String message) {
      super(message);

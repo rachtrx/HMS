@@ -6,11 +6,8 @@ package app.constants.exceptions;
 * @version 1.0
 * @since 2024-10-17
 */
-public class MedicalRecordNotFound extends Exception {
-
-  public MedicalRecordNotFound() {}
-
+public class MedicalRecordNotFound extends BaseCustomException {
   public MedicalRecordNotFound(String message) {
-     super(message);
+      super(message);
   }
 }

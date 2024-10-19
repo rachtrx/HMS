@@ -6,11 +6,9 @@ package app.constants.exceptions;
 * @version 1.0
 * @since 2024-10-17
 */
-public class UserNotFound extends Exception {
-
-  public UserNotFound() {}
+public class UserNotFound extends BaseCustomException {
 
   public UserNotFound(String message) {
-     super(message);
+      super(message);
   }
 }

@@ -6,11 +6,9 @@ package app.constants.exceptions;
 * @version 1.0
 * @since 2024-10-17
 */
-public class InvalidCharacterException extends Exception {
-
-  public InvalidCharacterException() {}
+public class InvalidCharacterException extends BaseCustomException {
 
   public InvalidCharacterException(String message) {
-     super(message);
+    super(message);
   }
 }

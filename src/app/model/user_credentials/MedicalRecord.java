@@ -1,6 +1,6 @@
 package app.model.user_credentials;
 
-import app.constants.exceptions.AppointmentNotFound;
+import app.constants.exceptions.MissingAppointmentException;
 import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.users.Patient;
 import java.time.LocalDate;
@@ -99,16 +99,16 @@ public class MedicalRecord {
     // Getters and Setters END
 
 
-    public void print() throws AppointmentNotFound {
+    public void print() throws MissingAppointmentException {
         this.patient.print();
         this.printAppointmentHistory();
     }
 
-    public void printAppointmentHistory() throws AppointmentNotFound {
+    public void printAppointmentHistory() throws MissingAppointmentException {
     
         // Check if the appointment history is empty
         if (appointmentHistory.isEmpty()) {
-            throw new AppointmentNotFound("No appointments found.");
+            throw new MissingAppointmentException("No appointments found.");
         }
     
         System.out.println("Completed Appointments with Prescriptions:");

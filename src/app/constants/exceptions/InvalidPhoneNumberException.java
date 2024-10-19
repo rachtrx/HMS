@@ -7,9 +7,7 @@ package app.constants.exceptions;
 * @version 1.0
 * @since 2024-10-17
 */
-public class InvalidPhoneNumberException extends Exception {
-
-  public InvalidPhoneNumberException() {}
+public class InvalidPhoneNumberException extends BaseCustomException {
 
   public InvalidPhoneNumberException(String message) {
      super(message);

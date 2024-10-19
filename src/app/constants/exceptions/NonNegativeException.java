@@ -6,9 +6,7 @@ package app.constants.exceptions;
 * @version 1.0
 * @since 2024-10-17
 */
-public class NonNegativeException extends Exception {
-
-  public NonNegativeException() {}
+public class NonNegativeException extends BaseCustomException {
 
   public NonNegativeException(String message) {
       super(message);

@@ -1,9 +1,6 @@
 package app.model.user_input.menus;
 
 import app.constants.AppMetadata;
-import java.util.ArrayList;
-
-import app.model.user_input.options.ExitOption;
 
 /**
 * Initial landing page.
@@ -12,38 +9,25 @@ import app.model.user_input.options.ExitOption;
 * @version 1.0
 * @since 2024-10-17
 */
-public class LandingMenu extends BaseMenu {
+public class LandingMenu extends BaseInputMenu {
     public LandingMenu() {
-        super(
-            new ArrayList<>(),
-            String.join(
-                "\n",
-                " ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢠⣴⣶⣶⠶⠖⠲⠶⣶⣶⣦⡄⠀⠀⠀⠀⠀⠀⠀⠀⠀",
-                " ⠀⠀⠀⠀⠀⠀⠀⠀⠀⢸⣿⡟⠁⠀⣶⣶⠀⠈⢻⣿⡇⠀⠀⠀⠀⠀⠀⠀⠀⠀",
-                "⠀⠀⣀⣀⣀⣀⣀⣀⡀⢸⣿⡇⢸⣿⣿⣿⣿⡇⢸⣿⡇⢀⣀⣀⣀⣀⣀⣀⠀⠀",
-                "⠀⠀⣿⣿⣿⣿⣿⣿⡇⢸⣿⣧⡀⠀⠿⠿⠀⢀⣼⣿⡇⢸⣿⣿⣿⣿⣿⣿⡇⠀",
-                "⠀⠀⣿⣇⣀⣿⣀⣸⡇⢸⣿⣿⣿⣷⣶⣶⣾⣿⣿⣿⡇⢸⣿⣀⣸⣇⣀⣿⡇⠀",
-                "⠀⠀⣿⡏⠉⣿⠉⢹⡇⢸⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡇⢸⣿⠉⢹⡏⠉⣿⡇⠀",
-                "⠀⠀⣿⡟⠛⣿⠛⢻⡇⢸⣿⣿⣿⠿⠿⠿⠿⢿⣿⣿⡇⢸⣿⠛⢻⡟⠛⣿⡇⠀",
-                "⠀⠀⣿⣧⣴⣿⣤⣾⡇⢸⣿⣿⣿⠀⠀⠀⠀⢸⣿⣿⡇⢸⣿⣤⣾⣧⣴⣿⡇⠀",
-                "⠀⠀⣿⣿⣿⣿⣿⣿⡇⢸⣿⣿⣿⠀⠀⠀⠀⢸⣿⣿⡇⢸⣿⣿⣿⣿⣿⣿⡇⠀",
-                "⣤⣤⣿⣿⣿⣿⣿⣿⣧⣼⣿⣿⣿⣤⣤⣤⣤⣼⣿⣿⣧⣼⣿⣿⣿⣿⣿⣿⣧⣤",
-                "⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿⠿",
-                String.format(
-                    "\nWelcome to the %s (%s)!",
-                    AppMetadata.APP_FULL_NAME.toString(),
-                    AppMetadata.APP_SHORT_NAME.toString()
-                )
-            )
-        );
+        super(String.join(
+            "\n",
+            "| |  | |  \\/  |/ ____|",
+            "| |__| | \\  / | (___  ",
+            "|  __  | |\\/| |\\___ \\ ",
+            "| |  | | |  | |____) |",
+            "|_|  |_|_|  |_|_____/ ",
+            String.format(
+                "\nWelcome to the %s (%s)!",
+                AppMetadata.APP_FULL_NAME.toString(),
+                AppMetadata.APP_SHORT_NAME.toString()
+            ), "\n Press any key to continue..."
+        ));
     }
 
-    ExitOption exitOption = new ExitOption(
-    "Exit Application",
-    null, // assuming no next menu on exit
-    userInput -> {
-        System.exit(0);
-        return null;
+    @Override
+    public BaseMenu next(String userInput) throws Exception {
+        return new LoginUsernameMenu();
     }
-);
 }
