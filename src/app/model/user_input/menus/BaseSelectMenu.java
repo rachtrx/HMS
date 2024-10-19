@@ -101,7 +101,7 @@ public abstract class BaseSelectMenu extends BaseMenu {
         }
         IntStream.range(0, 30).forEach(n -> System.out.print("-"));
         System.err.println("\n");
-        (IntStream.range(0, matchedOptions.size()))
+        (IntStream.range(1, matchedOptions.size()+1))
             .forEach(optionIndex -> System.out.println(String.format(
                 "%d. %s",
                 optionIndex,

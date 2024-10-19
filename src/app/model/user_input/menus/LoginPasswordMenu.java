@@ -8,8 +8,10 @@ package app.model.user_input.menus;
 * @since 2024-10-17
 */
 public class LoginPasswordMenu extends BaseInputMenu {
+    private String username;
     public LoginPasswordMenu(String username) {
         super("Please enter your password: ");
+        this.username = username;
     }
 
     @Override

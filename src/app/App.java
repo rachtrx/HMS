@@ -36,6 +36,5 @@ public class App {
 				MenuService.getCurrentMenu().display();
 			}
 		}
-		
     }
 }

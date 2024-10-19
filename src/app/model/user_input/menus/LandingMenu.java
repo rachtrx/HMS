@@ -28,6 +28,7 @@ public class LandingMenu extends BaseInputMenu {
 
     @Override
     public BaseMenu next(String userInput) throws Exception {
+        // Any action goes here
         return new LoginUsernameMenu();
     }
 }
