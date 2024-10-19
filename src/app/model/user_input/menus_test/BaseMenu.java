@@ -7,7 +7,7 @@ public abstract class BaseMenu {
 
     protected static Scanner scanner = new Scanner(System.in);
 
-    protected User currentUser;
+    protected static User currentUser;
     
     // Method to display the menu
     abstract public void display();

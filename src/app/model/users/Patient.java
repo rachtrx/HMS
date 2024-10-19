@@ -1,33 +1,25 @@
 package app.model.users;
 
 import app.constants.BloodType;
-import app.constants.Gender;
 import app.constants.exceptions.AppointmentNotFound;
-import app.constants.exceptions.MedicalRecordNotFound;
 import app.model.appointments.Appointment;
-import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentOutcomeRecord;
-import app.model.appointments.Prescription;
 import app.model.user_credentials.Email;
 import app.model.user_credentials.MedicalRecord;
-import app.model.user_credentials.Password;
 import app.model.user_credentials.PhoneNumber;
-import app.model.user_credentials.Username;
 import app.utils.DateTimeUtil;
-
+import app.utils.EnumUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 public class Patient extends User {
 
-    private static int uuid = 1;
+    private static int patientUuid = 1;
+    private final int patientId;
 
-    public static int getUuid() {
-        return uuid;
-    }
-
-    public static void setUuid(int uuid) {
-        Patient.uuid = uuid;
+    public static void setPatientUuid(int value) {
+        patientUuid = value;
     }
 
     private final PhoneNumber mobileNumber;
@@ -35,68 +27,57 @@ public class Patient extends User {
     private final Email email;
     private final LocalDate dateOfBirth;
     private final BloodType bloodType;
-    private final ArrayList<Appointment> appointments;
+    private final List<Appointment> appointments;
     private final MedicalRecord medicalRecord;
 
     // IMPT medical record is built from patient's appointmentHistory
 
     public Patient(
+        List<String> patientRow,
+        List<String> userRow,
+        List<Appointment> appointments,
+        List<AppointmentOutcomeRecord> appointmentHistory
+    ) throws Exception {
+        super(userRow);
+        this.patientId = Integer.parseInt(patientRow.get(0));
+        this.mobileNumber = new PhoneNumber(patientRow.get(2));
+        this.homeNumber = new PhoneNumber(patientRow.get(3));
+        this.email = new Email(patientRow.get(4));
+        this.dateOfBirth = DateTimeUtil.parseShortDate(patientRow.get(5));
+        this.bloodType = EnumUtils.fromString(BloodType.class, patientRow.get(6)); // TODO
+        this.appointments = appointments;
+        this.medicalRecord = new MedicalRecord(this, appointmentHistory);
+        Patient.setPatientUuid(Math.max(Patient.patientUuid, this.patientId)+1);
+    }
+
+    public Patient(
         String username,
         String password,
-        String patientId,
         String name,
+        String patientId,
         String gender,
         String mobileNumber,
         String homeNumber,
         String email,
         String dateOfBirth,
-        String bloodType,
-        ArrayList<Appointment> appointments // UPON appointment COMPLETED, push into appointment history
+        String bloodType
     ) throws Exception {
         super(username, password, name, gender);
+        this.patientId = Patient.patientUuid++;
         this.mobileNumber = new PhoneNumber(mobileNumber);
         this.homeNumber = new PhoneNumber(homeNumber);
         this.email = new Email(email);
         this.dateOfBirth = DateTimeUtil.parseShortDate(dateOfBirth);
-        this.bloodType = BloodType.A_MINUS; // TODO
-        this.appointments = appointments;
+        this.bloodType = EnumUtils.fromString(BloodType.class, bloodType);
+        this.appointments = new ArrayList<>();
         this.medicalRecord = new MedicalRecord(this, new ArrayList<>());
     }
 
-    // public Patient(
-    //     String username,
-    //     String password,
-    //     String name,
-    //     String patientId,
-    //     String gender,
-    //     String mobileNumber,
-    //     String homeNumber,
-    //     String email,
-    //     String dateOfBirth,
-    //     String bloodType,
-    //     ArrayList<Appointment> appointments,
-    //     ArrayList<AppointmentOutcomeRecord> appointmentHistory
-    // ) {
-    //     super(username, password, name, gender);
-    //     this.mobileNumber = mobileNumber;
-    //     this.homeNumber = homeNumber;
-    //     this.email = email;
-    //     this.dateOfBirth = dateOfBirth;
-    //     this.bloodType = bloodType;
-    //     this.appointments = appointments;
-    //     this.medicalRecord = new MedicalRecord(this, appointmentHistory);
-    // }
-
-    @Override
-    protected int generateUUID() {
-        return Patient.uuid++;
-    };
-
     public int getPatientId() {
-        return this.id;
+        return this.patientId;
     }
 
-    public int getMobileNumber() {
+    public Integer getMobileNumber() {
         return mobileNumber.getNumber();
     }
 
@@ -108,7 +89,7 @@ public class Patient extends User {
         this.mobileNumber.setNumber(mobileNumber);
     }
 
-    public int getHomeNumber() {
+    public Integer getHomeNumber() {
         return homeNumber.getNumber();
     }
 
@@ -138,7 +119,7 @@ public class Patient extends User {
     }
 
     // No need to set
-    public ArrayList<Appointment> getAppointments() {
+    public List<Appointment> getAppointments() {
         return appointments;
     }
 

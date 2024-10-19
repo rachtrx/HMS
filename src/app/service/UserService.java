@@ -14,16 +14,16 @@ public class UserService {
     //     .map(Class::getSimpleName)
     //     .collect(Collectors.toList());
 
-        public static User findUser(String username, String password) {
-            for (User user : users) {
-                System.out.println(user.getPassword());
-                System.out.println(password);
-                if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
-                    return user;
-                }
+    public static User findUser(String username, String password) {
+        for (User user : users) {
+            System.out.println(user.getPassword());
+            System.out.println(password);
+            if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
+                return user;
             }
-            return null;
         }
+        return null;
+    }
 
     public void loadPatients(List<List<String>> patients) throws Exception {
         for (List<String> row : patients) {
@@ -44,42 +44,42 @@ public class UserService {
         }
     }
 
-    // public void loadStaff(List<List<String>> staff) {
-    //     for (List<String> row : staff) {
-    //         String hospitalId = row.get(0).substring(1);
-    //         String name = row.get(1);
-    //         char role = row.get(2).charAt(0);
-    //         char gender = row.get(3).charAt(0);
-    //         String age = row.get(4);
+    public void loadStaff(List<List<String>> staff) {
+        for (List<String> row : staff) {
+            String hospitalId = row.get(0).substring(1);
+            String name = row.get(1);
+            char role = row.get(2).charAt(0);
+            char gender = row.get(3).charAt(0);
+            String age = row.get(4);
 
-    //         // Create staff and add to users list
-    //         User staffMember = createStaff(hospitalId, name, role, gender, age);
-    //         users.add(staffMember);
-    //     }
-    // }
+            // Create staff and add to users list
+            User staffMember = createStaff(hospitalId, name, role, gender, age);
+            users.add(staffMember);
+        }
+    }
 
     public User createPatient(String username, String password, String patientId, String name, String gender, String mobileNumber, String homeNumber, String email, String dateOfBirth, String bloodType) throws Exception {
         Patient patient = new Patient(username, password, patientId, name, gender, mobileNumber, homeNumber, email, dateOfBirth, bloodType, new ArrayList<>());
         return patient;
     }
 
-    // public User createStaff(String hospitalId, String name, String role, char gender, String age) {
+    public User createStaff(String hospitalId, String name, String role, char gender, String age) {
 
-    //     User user;
+        User user;
 
-    //     switch (role) {
-    //         case 'D': // TODO convert to Enum? same for class
-    //             user = new Doctor(hospitalId, name, gender, age);
-    //             break;
-    //         case 'P':
-    //             user = new Pharmacist(hospitalId, name, gender, age);
-    //             break;
-    //         case 'A':
-    //             user = new Admin(hospitalId, name, gender, age);
-    //             break;
-    //         default:
-    //             throw new IllegalArgumentException("Invalid role");
-    //     }
-    //     return user;
-    // }    
+        switch (role) {
+            case 'D': // TODO convert to Enum? same for class
+                user = new Doctor(hospitalId, name, gender, age);
+                break;
+            case 'P':
+                user = new Pharmacist(hospitalId, name, gender, age);
+                break;
+            case 'A':
+                user = new Admin(hospitalId, name, gender, age);
+                break;
+            default:
+                throw new IllegalArgumentException("Invalid role");
+        }
+        return user;
+    }    
 }

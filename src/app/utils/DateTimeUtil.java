@@ -50,6 +50,15 @@ public class DateTimeUtil {
         }
     }
 
+    public static LocalDateTime parseShortDateTime(String dateTimeStr) {
+        try {
+            return LocalDateTime.parse(dateTimeStr, DATETIME_FORMAT);
+        } catch (DateTimeParseException e) {
+            System.err.println("Invalid date and time format, expected dd/MM/yyyy HH:mm:ss: " + e.getMessage());
+            return null;
+        }
+    }
+
     public static LocalDateTime addWorkingDays(LocalDateTime dateTime, int daysToAdd) {
         LocalDateTime result = dateTime;
         int addedDays = 0;

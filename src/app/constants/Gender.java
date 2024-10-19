@@ -25,5 +25,14 @@ public enum Gender {
     public String toString() {
       return "Non-Binary";
     }
+  };
+
+  public static Gender fromString(String genderString) {
+    for (Gender gender : Gender.values()) {
+      if (gender.toString().equalsIgnoreCase(genderString)) {
+        return gender;
+      }
+    }
+    throw new IllegalArgumentException("No enum constant for the string: " + genderString);
   }
 }
