@@ -66,9 +66,9 @@ public class AppointmentOutcomeRecord {
     ) {
         this.id = Integer.parseInt(row.get(0));
         this.appointment = appointment;
-        this.serviceType = EnumUtils.fromString(ServiceType.class, row.get(1));
+        this.serviceType = EnumUtils.fromString(ServiceType.class, row.get(2));
         this.prescription = prescription;
-        this.consultationNotes = row.get(2);
+        this.consultationNotes = row.get(3);
         AppointmentOutcomeRecord.setUuid(Math.max(AppointmentOutcomeRecord.uuid, this.id)+1);
     }
 
