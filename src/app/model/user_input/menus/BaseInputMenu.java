@@ -1,4 +1,7 @@
 package app.model.user_input.menus;
+
+import app.service.MenuService;
+
 /**
 * Menu shown to users. (Equivalent to state in FSM)
 *
@@ -8,12 +11,31 @@ package app.model.user_input.menus;
 */
 public abstract class BaseInputMenu extends BaseMenu {
 
-    public BaseInputMenu(String title) {
+    private final String label;
+
+    public BaseInputMenu(String title, String label) {
         super(title);
+        this.label = label;
     }
 
     @Override
     public void display() {
-        System.out.println(this.getTitle());
+        MenuService.clearScreen();
+        this.displayTitle();
+        System.out.print(this.label);
     };
+
+    public void validateUserInput(String userInput) throws Exception {
+        if (userInput.length() <= 0) {
+            throw new Exception("Please type something in:");
+        }
+    };
+
+    public abstract BaseMenu nextMenu(String userInput) throws Exception;
+
+    @Override
+    public BaseMenu next(String userInput) throws Exception {
+        this.validateUserInput(userInput);
+        return this.nextMenu(userInput);
+    }
 }

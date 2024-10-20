@@ -1,5 +1,8 @@
 package app.model.user_input.menus;
 
+import app.service.MenuService;
+import app.service.UserService;
+
 /**
 * User login - enter password.
 *
@@ -10,19 +13,19 @@ package app.model.user_input.menus;
 public class LoginPasswordMenu extends BaseInputMenu {
     private String username;
     public LoginPasswordMenu(String username) {
-        super("Please enter your password: ");
+        super("Login", "Please enter your password: ");
         this.username = username;
     }
 
     @Override
-    public BaseMenu next(String userInput) throws Exception {
-        // TODO: new LoggedInMenu abstract class -> add default Logout option
-        // TODO: new menu for each user (e.g. patient, doctor)
-        // TODO: check username is in DB --> if yes, move to a LoggedInMenu.
+    public BaseMenu nextMenu(String userInput) throws Exception {
+        // TODO: Implement Logic - user and password validation
+        // Check username is in DB --> if yes, move to a LoggedInMenu.
         // 
         // if not, return LoginUsernameMenu
         // MenuService.setCurrentMenu(new LoginUsernameMenu());
         // throw new Exception("Incorrect username or password. Please try again.");
-        return new LandingMenu();
+
+        return MenuService.getLoggedInUserMenu(UserService.getCurrentUser());
     }
 }

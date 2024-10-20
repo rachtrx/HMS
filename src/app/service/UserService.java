@@ -1,9 +1,10 @@
 package app.service;
 
-import app.model.users.Patient;
 import app.model.users.User;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+import java.util.stream.Collectors;
 
 public class UserService {
     
@@ -16,6 +17,17 @@ public class UserService {
     //     .map(Class::getSimpleName)
     //     .collect(Collectors.toList());
     
+    public static List<User> getAllUsers() {
+        return users;
+    }
+
+    public static List<? extends User> getAllUserByType(Class<? extends User> userType) {
+        return UserService.users
+            .stream()
+            .filter(userType::isInstance)
+            .collect(Collectors.toList());
+    }
+
     public static User getCurrentUser() {
         return currentUser;
     }
@@ -33,6 +45,15 @@ public class UserService {
             }
         }
         return null;
+    }
+    
+    public static <T extends User> T findUserByIdAndType(int userId, Class<T> userType) {
+        Optional<T> result = UserService.getAllUserByType(userType)
+            .stream()
+            .filter(user -> userId == user.getUserId())
+            .map(userType::cast) // Cast the user to the correct type
+            .findFirst();
+        return result.isPresent() ? result.get() : null;
     }
     
     // public void loadPatients(List<List<String>> patients) throws Exception {

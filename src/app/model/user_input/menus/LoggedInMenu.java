@@ -1,7 +1,7 @@
 package app.model.user_input.menus;
 
 import app.model.user_input.options.BaseSelectOption;
-import app.model.user_input.options.ExitOption;
+import app.model.user_input.options.LogoutOption;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
@@ -11,15 +11,15 @@ import java.util.List;
 *
 * @author Luke Eng (@LEPK02)
 * @version 1.0
-* @since 2024-10-17
+* @since 2024-10-20
 */
-public abstract class ExitMenu extends BaseSelectMenu {
+public abstract class LoggedInMenu extends ExitMenu {
 
-    public ExitMenu(
+    public LoggedInMenu(
         String title,
         List<BaseSelectOption> options
     ) {
         super(title, options);
-        this.addOptionsAtEnd(new ArrayList<>(Arrays.asList(new ExitOption())));
+        this.addOptionsAtStart(new ArrayList<>(Arrays.asList(new LogoutOption())));
     }
 }

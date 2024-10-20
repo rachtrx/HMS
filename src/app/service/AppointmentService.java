@@ -52,7 +52,7 @@ public class AppointmentService extends Service implements IAppointment {
 
     private boolean userIdMatches(Patient patient, Appointment appointment) {
         // if (this.getUser() instanceof Patient) {
-            return appointment.getPatientId() == this.getUser().getId();
+            return appointment.getPatientId() == this.getUser().getUserId();
         // } else if (this.getUser() instanceof Doctor) {
             // return appointment.getDoctorId() == this.getUser().id;
         // }

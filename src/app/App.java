@@ -27,6 +27,7 @@ public class App {
 				if (App.scanner.hasNextLine()) {
 					MenuService.clearScreen();
 					AppController.handleUserInput(App.scanner.nextLine());
+					MenuService.getCurrentMenu().display();
 				} else {
 					App.exitApplication();
 					break;

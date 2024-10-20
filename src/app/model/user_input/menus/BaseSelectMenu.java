@@ -4,135 +4,108 @@ import app.constants.exceptions.ExitApplication;
 import app.model.user_input.options.BaseSelectOption;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
 public abstract class BaseSelectMenu extends BaseMenu {
-    protected List<BaseSelectOption> options;
-
+    protected enum DisplayMode {
+        MATCH_FOUND,
+        NO_MATCH_FOUND,
+        MULTIPLE_MATCHES_FOUND,
+        INITIAL
+    }
+    protected List<BaseSelectOption> options = new ArrayList<>();
+    protected DisplayMode displayMode;
+    protected ArrayList<BaseSelectOption> matchingOptions;
+    
     public BaseSelectMenu(
         String title,
         List<BaseSelectOption> options
     ) {
         super(title);
-        this.options = options;
+        this.addOptionsAtEnd(options);
+        this.displayMode = DisplayMode.INITIAL;
     }
-
+    
     /** 
-     * @return List<BaseSelectOption>
-     */
+    * @return List<BaseSelectOption>
+    */
     public List<BaseSelectOption> getOptions() {
         return this.options;
     }
-
-    private List<BaseSelectOption> addOptionNumberRegex(List<BaseSelectOption> options) {
-        return IntStream.range(0, options.size())
-            .mapToObj(optionsIndex -> {
-                BaseSelectOption newOption = options.get(optionsIndex);
-                String optionNumberRegex = String.format("%d[ ]+(\\.)?", optionsIndex);
-                newOption.setMatchPattern(String.join(
-                    "|",
-                    newOption.getMatchPattern(),
-                    optionNumberRegex,
-                    String.join("", optionNumberRegex, newOption.getMatchPattern())
-                ));
-                return newOption;
-            }).collect(Collectors.toList());
+    
+    protected final void addOptionsAtStart(List<BaseSelectOption> newOptions) {
+        newOptions.addAll(this.options);
+        this.options = newOptions;
     }
 
-    /** 
-     * @param newOptions
-     */
-    protected final void addOptionsToStart(List<BaseSelectOption> newOptions) {
-        this.addOptionNumberRegex(options).addAll(this.options);
+    protected final void addOptionsAtEnd(List<BaseSelectOption> newOptions) {
+        this.options.addAll(newOptions);
     }
-
-    /** 
-     * @param newOptions
-     */
-    protected final void addOptionsToEnd(List<BaseSelectOption> newOptions) {
-        this.options.addAll(this.addOptionNumberRegex(options));
-    }
-
-    /** 
-     * @param options
-     */
-    protected final void setOptions(List<BaseSelectOption> options) {
-        this.options = this.addOptionNumberRegex(options);
-    }
-
-    /**
-     * Display all options. Default.
-     */
+    
     @Override
     public void display() {
-        this.display(false, new ArrayList<>());
-    };
-
-    /** 
-     * Use when user's input does not match any option. Displays all menu options.
-     * 
-     * @param noMatchesFound
-     */
-    public void display(boolean noMatchesFound) {
-        this.display(true, this.getOptions());
-    };
-
-    /** Use when 
-     * 
-     * @param matchedOptions All matches that match user's possible input.
-     */
-    public void display(List<BaseSelectOption> matchedOptions) {
-        this.display(false, matchedOptions);
-    };
-
-    private void display(boolean noMatchesFound, List<BaseSelectOption> matchedOptions) {
-        if (this.getTitle() != null) {
-            System.out.println(this.getTitle());
+        this.displayTitle();
+        switch (this.displayMode) {
+            case NO_MATCH_FOUND -> System.out.println("No option matched your selection. Please try again:");
+            case MULTIPLE_MATCHES_FOUND -> System.out.println("Please be more specific:");
+            case INITIAL -> System.out.println("Please select an option:");
+            default -> { return; }
         }
-        if (noMatchesFound) {
-            System.out.println("No option matched your selection. Please try again:");
-        } else {
-            System.out.println(
-                matchedOptions.size() < this.options.size() ?
-                "Please be more specific:" :
-                "Please select an option:"
-            );
-        }
-        IntStream.range(0, 30).forEach(n -> System.out.print("-"));
-        System.err.println("\n");
-        (IntStream.range(1, matchedOptions.size()+1))
+        List<BaseSelectOption> matches = (
+                this.matchingOptions == null || this.matchingOptions.size() < 1
+            ) ? this.options : this.matchingOptions;
+        IntStream.range(0, matches.size())
             .forEach(optionIndex -> System.out.println(String.format(
                 "%d. %s",
-                optionIndex,
-                matchedOptions.get(optionIndex).getLabel()
+                optionIndex + 1,
+                matches.get(optionIndex).getLabel()
             )));
     }
-
+    
     @Override
-    public BaseMenu next(String userInput) throws Exception{
-        List<BaseSelectOption> matchingOptions = this.getOptions()
-            .stream()
-            .filter(option -> option.isMatch(userInput))
-            .collect(Collectors.toList());
+    public BaseMenu next(String userInput) throws Exception {
+        this.matchingOptions = IntStream.range(0, this.options.size())
+            .mapToObj(optionsIndex -> {
+                BaseSelectOption option = this.options.get(optionsIndex);
+                Pattern matchPattern = Pattern.compile(
+                    String.join(
+                        "|",
+                        String.format("^%d", optionsIndex+1),
+                        option.getMatchPattern(),
+                        String.format("%d[ ]+(\\.)?%s",
+                            optionsIndex+1,
+                            option.getMatchPattern()
+                        )
+                    ), Pattern.CASE_INSENSITIVE
+                );
+                Matcher matcher = matchPattern.matcher(userInput);
+                return matcher.find() ? option : null;
+            }).filter(Objects::nonNull)
+            .collect(Collectors.toCollection(ArrayList::new));
+
         if (matchingOptions.size() < 1) {
-            this.display(true);
+            this.displayMode = DisplayMode.NO_MATCH_FOUND;
+            this.matchingOptions = (ArrayList<BaseSelectOption>) this.options;
         } else if (matchingOptions.size() > 1) {
-            this.display(matchingOptions);
+            this.displayMode = DisplayMode.MULTIPLE_MATCHES_FOUND;
         } else {
-            BaseSelectOption option = matchingOptions.get(0);
             try {
+                BaseSelectOption option = matchingOptions.get(0);
                 option.executeAction();
-                option.getNextMenu().display();
                 return option.getNextMenu();
             } catch (Exception e) {
                 throw e;
             } catch (Error e) {
-                System.err.println("Something went wrong. Please contact your administrator and try again.");
-                System.err.println("Exiting application...");
+                System.out.println("Something went wrong. Please contact your administrator and try again.");
+                System.out.println("Exiting application...");
                 throw new ExitApplication();
             }
         }
+
         return this;
     }
 }

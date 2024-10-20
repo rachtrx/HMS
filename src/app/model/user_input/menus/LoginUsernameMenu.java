@@ -9,11 +9,11 @@ package app.model.user_input.menus;
 */
 public class LoginUsernameMenu extends BaseInputMenu {
     public LoginUsernameMenu() {
-        super("Please enter your username: ");
+        super("Login", "Please enter your username: ");
     }
 
     @Override
-    public BaseMenu next(String userInput) throws Exception {
+    public BaseMenu nextMenu(String userInput) throws Exception {
         return new LoginPasswordMenu(userInput);
     }
 }
