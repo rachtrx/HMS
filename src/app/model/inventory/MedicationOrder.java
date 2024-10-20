@@ -73,9 +73,4 @@ public class MedicationOrder {
         }
         this.quantity = quantity;
     }
-
-    @Override
-    public String toString() {
-        return medication.toString() + ", Quantity: " + quantity;
-    }
 }

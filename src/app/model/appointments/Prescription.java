@@ -37,9 +37,11 @@ public class Prescription {
 
     private final List<MedicationOrder> medicationOrders;
     private PrescriptionStatus status;
+    private int outcomeId;
 
-    public Prescription(List<MedicationOrder> medicationOrders, PrescriptionStatus status) {
+    public Prescription(int outcomeId, List<MedicationOrder> medicationOrders, PrescriptionStatus status) {
         this.id = Prescription.uuid++;
+        this.outcomeId = outcomeId;
         this.medicationOrders = medicationOrders;
         this.status = status;
     }
@@ -47,12 +49,21 @@ public class Prescription {
     public Prescription(List<String> row, List<MedicationOrder> medicationOrders) {
         this.id = Integer.parseInt(row.get(0));
         this.status = EnumUtils.fromString(PrescriptionStatus.class, row.get(1));
+        this.outcomeId = Integer.parseInt(row.get(2));
         this.medicationOrders = medicationOrders;
         Prescription.setUuid(Math.max(Prescription.uuid, this.id)+1);
     }
 
     public int getId() {
         return id;
+    }
+
+    public int getOutcomeId() {
+        return outcomeId;
+    }
+
+    public void setOutcomeId(int outcomeId) {
+        this.outcomeId = outcomeId;
     }
 
     public PrescriptionStatus getStatus() {

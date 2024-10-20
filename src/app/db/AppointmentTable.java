@@ -1,13 +1,15 @@
 package app.db;
 
+import app.controller.AppController;
 import app.model.appointments.Appointment;
 import app.service.CsvReaderService;
-import app.utils.Parser;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class AppointmentTable {
+
+    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
 
     private static final String filename = "src/resources/Appointment_List.csv";
 
@@ -28,7 +30,7 @@ public class AppointmentTable {
         appointmentData.add(appointmentStr);
 
         try {
-            CsvReaderService.write(filename, appointmentData); // Append new appointment data
+            csvReaderService.write(filename, appointmentData); // Append new appointment data
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -36,7 +38,7 @@ public class AppointmentTable {
 
     public static void edit(Appointment appointment) {
         try {
-            List<List<String>> allAppointments = CsvReaderService.read(filename);
+            List<List<String>> allAppointments = csvReaderService.read(filename);
             List<List<String>> updatedAppointments = new ArrayList<>();
 
             // Find the appointment to edit by matching the appointmentId
@@ -49,7 +51,7 @@ public class AppointmentTable {
                 updatedAppointments.add(appointmentData);
             }
 
-            CsvReaderService.write(filename, updatedAppointments); // Overwrite with updated data
+            csvReaderService.write(filename, updatedAppointments); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -58,7 +60,7 @@ public class AppointmentTable {
 
     public static void delete(Appointment appointment) {
         try {
-            List<List<String>> allAppointments = CsvReaderService.read(filename);
+            List<List<String>> allAppointments = csvReaderService.read(filename);
             List<List<String>> updatedAppointments = new ArrayList<>();
 
             for (List<String> appointmentData : allAppointments) {
@@ -67,7 +69,7 @@ public class AppointmentTable {
                 }
             }
 
-            CsvReaderService.write(filename, updatedAppointments); // Overwrite with updated data
+            csvReaderService.write(filename, updatedAppointments); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();

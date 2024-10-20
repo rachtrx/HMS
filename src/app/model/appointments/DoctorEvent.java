@@ -4,6 +4,7 @@ import app.constants.exceptions.InvalidTimeslotException;
 import app.utils.DateTimeUtil;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class DoctorEvent {
 

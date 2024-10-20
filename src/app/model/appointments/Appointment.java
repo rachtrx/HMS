@@ -62,16 +62,16 @@ public class Appointment extends DoctorEvent {
     ) throws Exception {
         super(doctorEventRow);
         this.appointmentId = Integer.parseInt(row.get(0));
-        this.patientId = Integer.parseInt(row.get(1));
-        this.appointmentStatus = EnumUtils.fromString(AppointmentStatus.class, row.get(2));
+        this.patientId = Integer.parseInt(row.get(2));
+        this.appointmentStatus = EnumUtils.fromString(AppointmentStatus.class, row.get(3));
         Appointment.setAppointmentUuid(Math.max(Appointment.appointmentUuid, this.appointmentId)+1);
     }
 
-    public int getAppointmentId() {
+    public Integer getAppointmentId() {
         return appointmentId;
     }
 
-    public int getPatientId() {
+    public Integer getPatientId() {
         return this.patientId;
     }
 

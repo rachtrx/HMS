@@ -35,24 +35,24 @@ public class UserService {
         return null;
     }
     
-    public void loadPatients(List<List<String>> patients) throws Exception {
-        for (List<String> row : patients) {
-            String username = row.get(0);
-            String password = row.get(1);
-            String patientId = row.get(2); // TODO
-            String name = row.get(3);
-            String gender = row.get(4);
-            String mobile = row.get(5);
-            String home = row.get(6);
-            String email = row.get(7);
-            String dob = row.get(8); // Assuming the DoB format is correct in the new data
-            String bloodType = row.get(9);
+    // public void loadPatients(List<List<String>> patients) throws Exception {
+    //     for (List<String> row : patients) {
+    //         String username = row.get(0);
+    //         String password = row.get(1);
+    //         String patientId = row.get(2); // TODO
+    //         String name = row.get(3);
+    //         String gender = row.get(4);
+    //         String mobile = row.get(5);
+    //         String home = row.get(6);
+    //         String email = row.get(7);
+    //         String dob = row.get(8); // Assuming the DoB format is correct in the new data
+    //         String bloodType = row.get(9);
             
-            // Create a patient and add to users list
-            User patient = createPatient(username, password, patientId, name, gender, mobile, home, email, dob, bloodType);
-            users.add(patient);
-        }
-    }
+    //         // Create a patient and add to users list
+    //         User patient = createPatient(username, password, patientId, name, gender, mobile, home, email, dob, bloodType);
+    //         users.add(patient);
+    //     }
+    // }
     
     // public void loadStaff(List<List<String>> staff) {
     //     for (List<String> row : staff) {
@@ -68,10 +68,10 @@ public class UserService {
     //     }
     // }
     
-    public User createPatient(String username, String password, String patientId, String name, String gender, String mobileNumber, String homeNumber, String email, String dateOfBirth, String bloodType) throws Exception {
-        Patient patient = new Patient(username, password, patientId, name, gender, mobileNumber, homeNumber, email, dateOfBirth, bloodType, new ArrayList<>());
-        return patient;
-    }
+    // public User createPatient(String username, String password, String patientId, String name, String gender, String mobileNumber, String homeNumber, String email, String dateOfBirth, String bloodType) throws Exception {
+    //     Patient patient = new Patient(username, password, patientId, name, gender, mobileNumber, homeNumber, email, dateOfBirth, bloodType, new ArrayList<>());
+    //     return patient;
+    // }
     
     // public User createStaff(String hospitalId, String name, String role, char gender, String age) {
     

@@ -1,9 +1,8 @@
 package app.db;
 
-import app.db.utils.CsvReaderService;
+import app.controller.AppController;
 import app.model.appointments.AppointmentOutcomeRecord;
-import app.model.appointments.AppointmentOutcomeRecord.ServiceType;
-import app.model.inventory.Medication;
+import app.service.CsvReaderService;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -11,9 +10,13 @@ import java.io.IOException;
 
 public class AppointmentOutcomeTable {
 
+    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
+
     private static final String filename = "src/resources/Appointment_Outcome_List.csv";
 
-
+    public static String getFilename() {
+        return filename;
+    }
 
     // Create a new AppointmentOutcome record
     public static void create(AppointmentOutcomeRecord outcomeRecord) {
@@ -21,7 +24,7 @@ public class AppointmentOutcomeTable {
 
         outcomeStr.add(String.valueOf(outcomeRecord.getId()));
         outcomeStr.add(String.valueOf(outcomeRecord.getAppointment().getAppointmentId()));
-        outcomeStr.add(String.valueOf(outcomeRecord.getPrescription().getId()));
+        // outcomeStr.add(String.valueOf(outcomeRecord.getPrescription().getId()));
         outcomeStr.add(outcomeRecord.getServiceType().toString()); // Store serviceType as a string
         outcomeStr.add(outcomeRecord.getConsultationNotes()); // Store consultation notes
 
@@ -30,7 +33,7 @@ public class AppointmentOutcomeTable {
         outcomeData.add(outcomeStr);
 
         try {
-            CsvReaderService.write(filename, outcomeData); // Append new outcome data
+            csvReaderService.write(filename, outcomeData); // Append new outcome data
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,21 +42,21 @@ public class AppointmentOutcomeTable {
     // Edit an existing AppointmentOutcome by ServiceType
     public static void edit(AppointmentOutcomeRecord outcomeRecord) {
         try {
-            List<List<String>> allOutcomes = CsvReaderService.read(filename);
+            List<List<String>> allOutcomes = csvReaderService.read(filename);
             List<List<String>> updatedOutcomes = new ArrayList<>();
 
             // Find the outcome to edit by matching the old serviceType
             for (List<String> outcomeData : allOutcomes) {
                 if (outcomeData.get(0).equals(String.valueOf(outcomeRecord.getId()))) {
                     outcomeData.set(1, String.valueOf(outcomeRecord.getAppointment().getAppointmentId()));
-                    outcomeData.set(2, String.valueOf(outcomeRecord.getPrescription().getId())); // Update service type
-                    outcomeData.set(3, outcomeRecord.getServiceType().toString());  // Update consultation notes
-                    outcomeData.set(4, outcomeRecord.getConsultationNotes());
+                    // outcomeData.set(2, String.valueOf(outcomeRecord.getPrescription().getId())); // Update service type
+                    outcomeData.set(2, outcomeRecord.getServiceType().toString());  // Update consultation notes
+                    outcomeData.set(3, outcomeRecord.getConsultationNotes());
                 }
                 updatedOutcomes.add(outcomeData);
             }
 
-            CsvReaderService.write(filename, updatedOutcomes); // Overwrite with updated data
+            csvReaderService.write(filename, updatedOutcomes); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -63,7 +66,7 @@ public class AppointmentOutcomeTable {
     // Delete an AppointmentOutcome by ServiceType
     public static void delete(AppointmentOutcomeRecord outcomeRecord) {
         try {
-            List<List<String>> allOutcomes = CsvReaderService.read(filename);
+            List<List<String>> allOutcomes = csvReaderService.read(filename);
             List<List<String>> updatedOutcomes = new ArrayList<>();
 
             for (List<String> outcomeData : allOutcomes) {
@@ -72,7 +75,7 @@ public class AppointmentOutcomeTable {
                 }
             }
 
-            CsvReaderService.write(filename, updatedOutcomes); // Overwrite with updated data
+            csvReaderService.write(filename, updatedOutcomes); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();

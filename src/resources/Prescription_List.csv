@@ -1,3 +1,3 @@
-Prescription ID,Prescription Status
-1,Completed
-2,Pending
+Prescription ID,Prescription Status,Outcome ID
+1,Dispensed,2
+2,Pending,1

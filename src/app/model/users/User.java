@@ -111,6 +111,11 @@ public abstract class User {
         this.gender = Gender.fromString(gender);
     }
 
+    @Override
+    public String toString() {
+        return this.getUsername();
+    }
+
     // @Override
     // public boolean equals(Object o) {
     //     if (this == o) return true;

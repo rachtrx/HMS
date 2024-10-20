@@ -1,9 +1,7 @@
 package app.model.users;
 
 import app.constants.BloodType;
-import app.constants.Gender;
 import app.constants.exceptions.MissingAppointmentException;
-import app.constants.exceptions.MedicalRecordNotFound;
 import app.model.appointments.Appointment;
 import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.user_credentials.Email;
@@ -33,7 +31,7 @@ public class Patient extends User {
     private final MedicalRecord medicalRecord;
 
     // IMPT medical record is built from patient's appointmentHistory
-
+    
     public Patient(
         List<String> patientRow,
         List<String> userRow,
@@ -149,7 +147,6 @@ public class Patient extends User {
             String.format("Home number: %d", this.getMobileNumber()),
             String.format("Email: %s", this.getEmail()),
             String.format("Blood Type: %s", this.getBloodType())
-            // TODO Past Diagnoses and Treatments
         ));
     }
 

@@ -1,14 +1,16 @@
-package app.model.inventory;
+package app.db;
 
-import app.db.utils.Parser;
-import app.model.inventory.Medication;
+import app.controller.AppController;
 import app.model.inventory.MedicationOrder;
+import app.service.CsvReaderService;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.io.IOException;
 
 public class OrderTable {
+
+    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
 
     private static final String filename = "src/resources/Order_List.csv";
 
@@ -30,7 +32,7 @@ public class OrderTable {
         orderData.add(orderStr);
 
         try {
-            CsvReaderService.write(filename, orderData); // Append new order data
+            csvReaderService.write(filename, orderData); // Append new order data
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,7 +41,7 @@ public class OrderTable {
     // Edit an existing MedicationOrder record
     public static void edit(MedicationOrder order) {
         try {
-            List<List<String>> allOrders = CsvReaderService.read(filename);
+            List<List<String>> allOrders = csvReaderService.read(filename);
             List<List<String>> updatedOrders = new ArrayList<>();
 
             // Find the order to edit by matching the id
@@ -52,7 +54,7 @@ public class OrderTable {
                 updatedOrders.add(orderData);
             }
 
-            CsvReaderService.write(filename, updatedOrders); // Overwrite with updated data
+            csvReaderService.write(filename, updatedOrders); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,7 +64,7 @@ public class OrderTable {
     // Delete a MedicationOrder record by id
     public static void delete(MedicationOrder order) {
         try {
-            List<List<String>> allOrders = CsvReaderService.read(filename);
+            List<List<String>> allOrders = csvReaderService.read(filename);
             List<List<String>> updatedOrders = new ArrayList<>();
 
             for (List<String> orderData : allOrders) {
@@ -71,7 +73,7 @@ public class OrderTable {
                 }
             }
 
-            CsvReaderService.write(filename, updatedOrders); // Overwrite with updated data
+            csvReaderService.write(filename, updatedOrders); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();

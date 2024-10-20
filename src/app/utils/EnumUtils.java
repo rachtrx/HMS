@@ -3,7 +3,7 @@ package app.utils;
 public class EnumUtils {
     public static <T extends Enum<T>> T fromString(Class<T> enumType, String value) {
         for (T constant : enumType.getEnumConstants()) {
-            if (constant.name().equalsIgnoreCase(value)) {
+            if (constant.toString().equalsIgnoreCase(value)) {
                 return constant;
             }
         }

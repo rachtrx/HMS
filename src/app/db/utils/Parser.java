@@ -4,10 +4,15 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import app.controller.AppController;
+import app.service.CsvReaderService;
+
 public abstract class Parser<T> {
 
+    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
+
     public List<T> load(String filepath) throws IOException {
-        List<List<String>> rawData = CsvReaderService.read(filepath);
+        List<List<String>> rawData = csvReaderService.read(filepath);
         List<T> serializedList = new ArrayList<>();
         for (List<String> row : rawData) {
             T serialized = serialize(row);
@@ -22,7 +27,7 @@ public abstract class Parser<T> {
             List<String> row = deserialize(item);
             deserializedList.add(row);
         }
-        CsvReaderService.write(filepath, deserializedList);
+        csvReaderService.write(filepath, deserializedList);
     }
 
     public abstract T serialize(List<String> data);

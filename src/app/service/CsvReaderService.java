@@ -1,4 +1,4 @@
-package app.db;
+package app.service;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -10,7 +10,7 @@ import java.util.List;
 
 public class CsvReaderService {
 
-    public static List<List<String>> read(String filePath) throws IOException {
+    public List<List<String>> read(String filePath) throws IOException {
         List<List<String>> data = new ArrayList<>();
         String line;
     
@@ -30,7 +30,7 @@ public class CsvReaderService {
         return data;
     }
     
-    public static void write(String filePath, List<List<String>> data) throws IOException {
+    public void write(String filePath, List<List<String>> data) throws IOException {
         try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
             for (List<String> row : data) {
                 String line = String.join(",", row);

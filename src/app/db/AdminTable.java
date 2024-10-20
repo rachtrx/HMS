@@ -1,23 +1,21 @@
 package app.db;
 
-import app.db.utils.CsvReaderService;
-import app.model.inventory.Medication;
+import app.controller.AppController;
 import app.model.users.staff.Admin;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import app.service.CsvReaderService;
 
 public class AdminTable {
+
+    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
 
     private static final String filename = "src/resources/Admin_List.csv";
 
     public static String getFilename() {
         return filename;
     }
-
-    // public static Admin serialize(List<String> row) {
-    //     return new Medication(row);
-    // }
 
     // Create a new Admin record
     public static void create(Admin admin) {
@@ -31,7 +29,7 @@ public class AdminTable {
         adminData.add(adminStr);
 
         try {
-            CsvReaderService.write(filename, adminData); // Append new admin data
+            csvReaderService.write(filename, adminData); // Append new admin data
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -42,7 +40,7 @@ public class AdminTable {
     // Delete an Admin record by adminId
     public static void delete(Admin admin) {
         try {
-            List<List<String>> allAdmins = CsvReaderService.read(filename);
+            List<List<String>> allAdmins = csvReaderService.read(filename);
             List<List<String>> updatedAdmins = new ArrayList<>();
 
             for (List<String> adminData : allAdmins) {
@@ -51,7 +49,7 @@ public class AdminTable {
                 }
             }
 
-            CsvReaderService.write(filename, updatedAdmins); // Overwrite with updated data
+            csvReaderService.write(filename, updatedAdmins); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();

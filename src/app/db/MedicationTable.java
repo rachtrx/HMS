@@ -1,12 +1,16 @@
 package app.db;
 
-import app.db.utils.CsvReaderService;
+import app.controller.AppController;
 import app.model.inventory.Medication;
+import app.service.CsvReaderService;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 public class MedicationTable {
+
+    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
 
     private static final String filename = "src/resources/Medication_List.csv";
 
@@ -30,7 +34,7 @@ public class MedicationTable {
         medicineData.add(medicineStr);
 
         try {
-            CsvReaderService.write(filename, medicineData); // Append new medicine data
+            csvReaderService.write(filename, medicineData); // Append new medicine data
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,7 +43,7 @@ public class MedicationTable {
     // Edit an existing Medicine record
     public static void edit(Medication medication) {
         try {
-            List<List<String>> allMedicines = CsvReaderService.read(filename);
+            List<List<String>> allMedicines = csvReaderService.read(filename);
             List<List<String>> updatedMedicines = new ArrayList<>();
 
             // Find the medicine to edit by matching the id
@@ -52,7 +56,7 @@ public class MedicationTable {
                 updatedMedicines.add(medicineData);
             }
 
-            CsvReaderService.write(filename, updatedMedicines); // Overwrite with updated data
+            csvReaderService.write(filename, updatedMedicines); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -62,7 +66,7 @@ public class MedicationTable {
     // Delete a Medicine record by id
     public static void delete(Medication medication) {
         try {
-            List<List<String>> allMedicines = CsvReaderService.read(filename);
+            List<List<String>> allMedicines = csvReaderService.read(filename);
             List<List<String>> updatedMedicines = new ArrayList<>();
 
             for (List<String> medicineData : allMedicines) {
@@ -71,7 +75,7 @@ public class MedicationTable {
                 }
             }
 
-            CsvReaderService.write(filename, updatedMedicines); // Overwrite with updated data
+            csvReaderService.write(filename, updatedMedicines); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();
