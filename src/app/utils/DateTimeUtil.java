@@ -6,6 +6,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+/**
+* LocalDate and LocalDateTime manipulation.
+*
+* @author Rachmiel Teo (@rachtrx)
+* @version 1.0
+* @since 2024-10-18
+*/
 public class DateTimeUtil {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");

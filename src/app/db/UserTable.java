@@ -1,15 +1,12 @@
 package app.db;
 
-import app.controller.AppController;
 import app.model.users.User;
+import app.service.CsvReaderService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import app.service.CsvReaderService;
 
 public class UserTable {
-
-    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
 
     public static String filename = "src/resources/User_List.csv";
 
@@ -32,7 +29,7 @@ public class UserTable {
         userData.add(userStr);
 
         try {
-            csvReaderService.write(filename, userData); // Use your csvReaderService write method here
+            CsvReaderService.write(filename, userData); // Use your CsvReaderService write method here
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -40,7 +37,7 @@ public class UserTable {
 
     public static void edit(User user) {
         try {
-            List<List<String>> allUsers = csvReaderService.read(filename);
+            List<List<String>> allUsers = CsvReaderService.read(filename);
             List<List<String>> updatedUsers = new ArrayList<>();
     
             // Find the user to edit by matching their ID
@@ -54,7 +51,7 @@ public class UserTable {
                 updatedUsers.add(userData);
             }
     
-            csvReaderService.write(filename, updatedUsers);
+            CsvReaderService.write(filename, updatedUsers);
     
         } catch (IOException e) {
             e.printStackTrace();
@@ -63,7 +60,7 @@ public class UserTable {
 
     public static void delete(User user) {
         try {
-            List<List<String>> allUsers = csvReaderService.read(filename);
+            List<List<String>> allUsers = CsvReaderService.read(filename);
             List<List<String>> updatedUsers = new ArrayList<>();
     
             for (List<String> userData : allUsers) {
@@ -71,7 +68,7 @@ public class UserTable {
                     updatedUsers.add(userData); // add all except user with user id
                 }
             }
-            csvReaderService.write(filename, updatedUsers); // Overwrite with the updated data
+            CsvReaderService.write(filename, updatedUsers); // Overwrite with the updated data
     
         } catch (IOException e) {
             e.printStackTrace();

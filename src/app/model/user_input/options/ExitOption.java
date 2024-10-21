@@ -10,14 +10,15 @@ import app.model.user_input.menus.BaseMenu;
 * @version 1.0
 * @since 2024-10-18
 */
-public class ExitOption extends BaseSelectOption {
+public class ExitOption extends BaseOption {
     public ExitOption() {
-        super("exit(( )?((app)?plication)?)?");
+        super("^E$|exit(( )?((app)?plication)?)?(( )?\\(E\\))?");
+        this.setNumberedOption(false);
     }
 
     @Override
     public String getLabel() {
-        return "Exit Application";
+        return "Exit Application (E)";
     }
 
     @Override

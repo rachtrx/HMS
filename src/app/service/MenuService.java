@@ -2,6 +2,10 @@ package app.service;
 
 import app.model.user_input.menus.BaseMenu;
 import app.model.user_input.menus.LandingMenu;
+import app.model.user_input.menus.LoggedInMenu;
+import app.model.user_input.menus.PatientMainMenu;
+import app.model.users.Patient;
+import app.model.users.User;
 
 /**
 * Controls which menus to show (Equivalent to machine in FSM)
@@ -22,13 +26,26 @@ public class MenuService {
         MenuService.currentMenu = currentMenu;
     }
 
-    public void next(String userInput) throws Exception {
-        MenuService.currentMenu = MenuService.currentMenu.next(userInput);
-        MenuService.currentMenu.display();
+    public static void handleUserInput(String userInput) throws Exception {
+        MenuService.currentMenu = MenuService.currentMenu.handleUserInput(userInput);
     }
 
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");  
         System.out.flush();
+        System.out.print("\n\n"); // add buffer rows between states 
     }
+
+    // Get logged in main menus - START
+    // TODO: new menu for each user (e.g. patient, doctor)
+    public static LoggedInMenu getLoggedInUserMenu(User user) throws Exception {
+        // TODO: test - throw error instead of returning new menu
+        // throw new Exception("Undefined user type");
+        return new PatientMainMenu();
+    }
+
+    public static LoggedInMenu getLoggedInUserMenu(Patient patient) {
+        return new PatientMainMenu();
+    }
+    // Get logged in main menus - END
 }

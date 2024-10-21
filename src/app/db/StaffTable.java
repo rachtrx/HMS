@@ -1,15 +1,12 @@
 package app.db;
 
-import app.controller.AppController;
 import app.model.users.staff.Staff;
+import app.service.CsvReaderService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import app.service.CsvReaderService;
 
 public class StaffTable {
-
-    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
 
     private static final String filename = "src/resources/Staff_List.csv";
 
@@ -30,7 +27,7 @@ public class StaffTable {
         staffData.add(staffStr);
 
         try {
-            csvReaderService.write(filename, staffData); // Append new staff data
+            CsvReaderService.write(filename, staffData); // Append new staff data
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -39,7 +36,7 @@ public class StaffTable {
     // Edit an existing Staff record
     public static void edit(Staff staff) {
         try {
-            List<List<String>> allStaff = csvReaderService.read(filename);
+            List<List<String>> allStaff = CsvReaderService.read(filename);
             List<List<String>> updatedStaff = new ArrayList<>();
 
             // Find the staff to edit by matching the staffId
@@ -51,7 +48,7 @@ public class StaffTable {
                 updatedStaff.add(staffData);
             }
 
-            csvReaderService.write(filename, updatedStaff); // Overwrite with updated data
+            CsvReaderService.write(filename, updatedStaff); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -61,7 +58,7 @@ public class StaffTable {
     // Delete a Staff record by staffId
     public static void delete(Staff staff) {
         try {
-            List<List<String>> allStaff = csvReaderService.read(filename);
+            List<List<String>> allStaff = CsvReaderService.read(filename);
             List<List<String>> updatedStaff = new ArrayList<>();
 
             for (List<String> staffData : allStaff) {
@@ -70,7 +67,7 @@ public class StaffTable {
                 }
             }
 
-            csvReaderService.write(filename, updatedStaff); // Overwrite with updated data
+            CsvReaderService.write(filename, updatedStaff); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -1,4 +1,8 @@
 package app.model.user_input.menus;
+
+import app.utils.StringUtils;
+import java.util.stream.IntStream;
+
 /**
 * Menu shown to users. (Equivalent to state in FSM)
 *
@@ -21,7 +25,23 @@ public abstract class BaseMenu {
         return this.title;
     }
 
+    public void displayTitle() {
+        if (this.getTitle() != null) {
+            System.out.println(this.getTitle());
+        }
+        IntStream.range(0, 30).forEach(n -> System.out.print("-"));
+        System.out.println("");
+    }
+
     public abstract void display();
 
     public abstract BaseMenu next(String userInput) throws Exception;
+
+    public BaseMenu handleUserInput(String userInput) throws Exception {
+        return this.handleUserInput(userInput, true);
+    }
+
+    protected final BaseMenu handleUserInput(String userInput, boolean parseString) throws Exception {
+        return this.next(parseString ? StringUtils.parseUserInput(userInput) : userInput);
+    };
 }
