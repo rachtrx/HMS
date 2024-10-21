@@ -39,15 +39,15 @@ public class Doctor extends Staff {
         this.doctorEvents = new ArrayList<>();
     }
 
-    public int getDoctorId() {
-        return doctorId;
-    }
-
     public List<DoctorEvent> getDoctorEvents() {
         return doctorEvents;
     }
 
     public void printAvailability() {
         // TODO
+    }
+
+    public int getDoctorId() {
+        return doctorId;
     }
 }
