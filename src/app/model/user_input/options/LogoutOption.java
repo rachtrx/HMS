@@ -12,13 +12,15 @@ import app.service.UserService;
 * @since 2024-10-20
 */
 public class LogoutOption extends BaseOption {
+
     public LogoutOption() {
-        super("log out|logout");
+        super("^LO$|log( )?out(( )?\\(LO\\))?");
+        this.setNumberedOption(false);
     }
 
     @Override
     public String getLabel() {
-        return "Logout";
+        return "Logout (LO)";
     }
 
     @Override

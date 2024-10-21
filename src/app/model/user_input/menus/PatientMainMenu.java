@@ -19,7 +19,7 @@ public class PatientMainMenu extends LoggedInMenu {
             "Patient Main Menu",
             new ArrayList<>()
         );
-        this.addOptionsAtStart(new ArrayList<>(Arrays.asList(new ViewMedicalRecordOption())));
+        this.addOptions(new ArrayList<>(Arrays.asList(new ViewMedicalRecordOption())));
     }
 
     @Override

@@ -11,18 +11,27 @@ import app.model.user_input.menus.BaseMenu;
 */
 public abstract class BaseOption {
     private final String matchPattern;
+    private boolean numberedOption = true;
 
     public BaseOption(String matchPattern) {
         this.matchPattern = matchPattern;
     };
-
-    public String getMatchPattern() {
-        return this.matchPattern;
-    }
 
     public abstract String getLabel();
 
     public abstract BaseMenu getNextMenu();
 
     public abstract void executeAction() throws Exception;
+
+    public String getMatchPattern() {
+        return this.matchPattern;
+    }
+
+    public boolean isNumberedOption() {
+        return this.numberedOption;
+    }
+
+    public void setNumberedOption(boolean numberedOption) {
+        this.numberedOption = numberedOption;
+    }
 }

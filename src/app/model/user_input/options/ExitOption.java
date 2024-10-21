@@ -12,12 +12,13 @@ import app.model.user_input.menus.BaseMenu;
 */
 public class ExitOption extends BaseOption {
     public ExitOption() {
-        super("exit(( )?((app)?plication)?)?");
+        super("^E$|exit(( )?((app)?plication)?)?(( )?\\(E\\))?");
+        this.setNumberedOption(false);
     }
 
     @Override
     public String getLabel() {
-        return "Exit Application";
+        return "Exit Application (E)";
     }
 
     @Override

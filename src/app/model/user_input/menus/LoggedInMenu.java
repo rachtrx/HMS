@@ -2,8 +2,6 @@ package app.model.user_input.menus;
 
 import app.model.user_input.options.BaseOption;
 import app.model.user_input.options.LogoutOption;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -20,6 +18,6 @@ public abstract class LoggedInMenu extends ExitMenu {
         List<BaseOption> options
     ) {
         super(title, options);
-        this.addOptionsAtStart(new ArrayList<>(Arrays.asList(new LogoutOption())));
+        this.addOption(new LogoutOption());
     }
 }
