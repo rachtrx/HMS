@@ -26,13 +26,14 @@ public class MenuService {
         MenuService.currentMenu = currentMenu;
     }
 
-    public void handleUserInput(String userInput) throws Exception {
+    public static void handleUserInput(String userInput) throws Exception {
         MenuService.currentMenu = MenuService.currentMenu.handleUserInput(userInput);
     }
 
     public static void clearScreen() {
         System.out.print("\033[H\033[2J");  
         System.out.flush();
+        System.out.print("\n\n"); // add buffer rows between states 
     }
 
     // Get logged in main menus - START

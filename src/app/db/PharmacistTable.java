@@ -1,15 +1,12 @@
 package app.db;
 
-import app.controller.AppController;
 import app.model.users.staff.Pharmacist;
+import app.service.CsvReaderService;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import java.io.IOException;
-import app.service.CsvReaderService;
 
 public class PharmacistTable {
-
-    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
 
     private static final String filename = "src/resources/Pharmacist_List.csv";
 
@@ -29,7 +26,7 @@ public class PharmacistTable {
         pharmacistData.add(pharmacistStr);
 
         try {
-            csvReaderService.write(filename, pharmacistData); // Append new pharmacist data
+            CsvReaderService.write(filename, pharmacistData); // Append new pharmacist data
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -40,7 +37,7 @@ public class PharmacistTable {
     // Delete a Pharmacist record by pharmacistId
     public static void delete(Pharmacist pharmacist) {
         try {
-            List<List<String>> allPharmacists = csvReaderService.read(filename);
+            List<List<String>> allPharmacists = CsvReaderService.read(filename);
             List<List<String>> updatedPharmacists = new ArrayList<>();
 
             for (List<String> pharmacistData : allPharmacists) {
@@ -49,7 +46,7 @@ public class PharmacistTable {
                 }
             }
 
-            csvReaderService.write(filename, updatedPharmacists); // Overwrite with updated data
+            CsvReaderService.write(filename, updatedPharmacists); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();

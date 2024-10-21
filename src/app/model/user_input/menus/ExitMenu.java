@@ -1,6 +1,6 @@
 package app.model.user_input.menus;
 
-import app.model.user_input.options.BaseSelectOption;
+import app.model.user_input.options.BaseOption;
 import app.model.user_input.options.ExitOption;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -17,7 +17,7 @@ public abstract class ExitMenu extends BaseSelectMenu {
 
     public ExitMenu(
         String title,
-        List<BaseSelectOption> options
+        List<BaseOption> options
     ) {
         super(title, options);
         this.addOptionsAtEnd(new ArrayList<>(Arrays.asList(new ExitOption())));

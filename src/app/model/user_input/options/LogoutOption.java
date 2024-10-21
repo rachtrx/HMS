@@ -11,7 +11,7 @@ import app.service.UserService;
 * @version 1.0
 * @since 2024-10-20
 */
-public class LogoutOption extends BaseSelectOption {
+public class LogoutOption extends BaseOption {
     public LogoutOption() {
         super("log out|logout");
     }

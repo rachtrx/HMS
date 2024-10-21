@@ -1,7 +1,7 @@
 package app.model.user_input.menus;
 
 import app.constants.exceptions.ExitApplication;
-import app.model.user_input.options.BaseSelectOption;
+import app.model.user_input.options.BaseOption;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
@@ -17,13 +17,13 @@ public abstract class BaseSelectMenu extends BaseMenu {
         MULTIPLE_MATCHES_FOUND,
         INITIAL
     }
-    protected List<BaseSelectOption> options = new ArrayList<>();
+    protected List<BaseOption> options = new ArrayList<>();
     protected DisplayMode displayMode;
-    protected ArrayList<BaseSelectOption> matchingOptions;
+    protected ArrayList<BaseOption> matchingOptions;
     
     public BaseSelectMenu(
         String title,
-        List<BaseSelectOption> options
+        List<BaseOption> options
     ) {
         super(title);
         this.addOptionsAtEnd(options);
@@ -31,18 +31,18 @@ public abstract class BaseSelectMenu extends BaseMenu {
     }
     
     /** 
-    * @return List<BaseSelectOption>
+    * @return List<BaseOption>
     */
-    public List<BaseSelectOption> getOptions() {
+    public List<BaseOption> getOptions() {
         return this.options;
     }
     
-    protected final void addOptionsAtStart(List<BaseSelectOption> newOptions) {
+    protected final void addOptionsAtStart(List<BaseOption> newOptions) {
         newOptions.addAll(this.options);
         this.options = newOptions;
     }
 
-    protected final void addOptionsAtEnd(List<BaseSelectOption> newOptions) {
+    protected final void addOptionsAtEnd(List<BaseOption> newOptions) {
         this.options.addAll(newOptions);
     }
     
@@ -55,7 +55,7 @@ public abstract class BaseSelectMenu extends BaseMenu {
             case INITIAL -> System.out.println("Please select an option:");
             default -> { return; }
         }
-        List<BaseSelectOption> matches = (
+        List<BaseOption> matches = (
                 this.matchingOptions == null || this.matchingOptions.size() < 1
             ) ? this.options : this.matchingOptions;
         IntStream.range(0, matches.size())
@@ -70,7 +70,7 @@ public abstract class BaseSelectMenu extends BaseMenu {
     public BaseMenu next(String userInput) throws Exception {
         this.matchingOptions = IntStream.range(0, this.options.size())
             .mapToObj(optionsIndex -> {
-                BaseSelectOption option = this.options.get(optionsIndex);
+                BaseOption option = this.options.get(optionsIndex);
                 Pattern matchPattern = Pattern.compile(
                     String.join(
                         "|",
@@ -89,12 +89,12 @@ public abstract class BaseSelectMenu extends BaseMenu {
 
         if (matchingOptions.size() < 1) {
             this.displayMode = DisplayMode.NO_MATCH_FOUND;
-            this.matchingOptions = (ArrayList<BaseSelectOption>) this.options;
+            this.matchingOptions = (ArrayList<BaseOption>) this.options;
         } else if (matchingOptions.size() > 1) {
             this.displayMode = DisplayMode.MULTIPLE_MATCHES_FOUND;
         } else {
             try {
-                BaseSelectOption option = matchingOptions.get(0);
+                BaseOption option = matchingOptions.get(0);
                 option.executeAction();
                 return option.getNextMenu();
             } catch (Exception e) {

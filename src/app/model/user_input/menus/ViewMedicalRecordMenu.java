@@ -1,6 +1,6 @@
 package app.model.user_input.menus;
 
-import app.model.user_input.options.BaseSelectOption;
+import app.model.user_input.options.BaseOption;
 import app.model.user_input.options.SelectPatientMedicalRecordOption;
 import app.model.users.Patient;
 import app.service.UserService;
@@ -27,7 +27,7 @@ public class ViewMedicalRecordMenu extends LoggedInMenu {
         );
     }
 
-    private static List<BaseSelectOption> getPatientOptions() {
+    private static List<BaseOption> getPatientOptions() {
         return UserService.getAllUserByType(Patient.class)
             .stream()
             .map(patient -> new SelectPatientMedicalRecordOption((Patient)patient))

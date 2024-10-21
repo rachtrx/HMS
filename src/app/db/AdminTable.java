@@ -1,15 +1,12 @@
 package app.db;
 
-import app.controller.AppController;
 import app.model.users.staff.Admin;
+import app.service.CsvReaderService;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import app.service.CsvReaderService;
 
 public class AdminTable {
-
-    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
 
     private static final String filename = "src/resources/Admin_List.csv";
 
@@ -29,7 +26,7 @@ public class AdminTable {
         adminData.add(adminStr);
 
         try {
-            csvReaderService.write(filename, adminData); // Append new admin data
+            CsvReaderService.write(filename, adminData); // Append new admin data
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -40,7 +37,7 @@ public class AdminTable {
     // Delete an Admin record by adminId
     public static void delete(Admin admin) {
         try {
-            List<List<String>> allAdmins = csvReaderService.read(filename);
+            List<List<String>> allAdmins = CsvReaderService.read(filename);
             List<List<String>> updatedAdmins = new ArrayList<>();
 
             for (List<String> adminData : allAdmins) {
@@ -49,7 +46,7 @@ public class AdminTable {
                 }
             }
 
-            csvReaderService.write(filename, updatedAdmins); // Overwrite with updated data
+            CsvReaderService.write(filename, updatedAdmins); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();

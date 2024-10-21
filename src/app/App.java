@@ -1,7 +1,6 @@
 package app;
 
 import app.constants.exceptions.ExitApplication;
-import app.controller.AppController;
 import app.db.db;
 import app.service.MenuService;
 import java.util.NoSuchElementException;
@@ -26,7 +25,7 @@ public class App {
 			try {
 				if (App.scanner.hasNextLine()) {
 					MenuService.clearScreen();
-					AppController.handleUserInput(App.scanner.nextLine());
+					MenuService.handleUserInput(App.scanner.nextLine());
 					MenuService.getCurrentMenu().display();
 				} else {
 					App.exitApplication();

@@ -1,16 +1,13 @@
 package app.db;
 
-import app.controller.AppController;
 import app.model.appointments.DoctorEvent;
+import app.service.CsvReaderService;
 import app.utils.DateTimeUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import app.service.CsvReaderService;
 
 public class DoctorEventTable {
-
-    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
 
     private static final String filename = "src/resources/Doctor_Event_List.csv";
 
@@ -30,7 +27,7 @@ public class DoctorEventTable {
         doctorEventData.add(doctorEventStr);
 
         try {
-            csvReaderService.write(filename, doctorEventData); // Append new doctorEvent data
+            CsvReaderService.write(filename, doctorEventData); // Append new doctorEvent data
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -38,7 +35,7 @@ public class DoctorEventTable {
 
     public static void edit(DoctorEvent doctorEvent) {
         try {
-            List<List<String>> allDoctorEvents = csvReaderService.read(filename);
+            List<List<String>> allDoctorEvents = CsvReaderService.read(filename);
             List<List<String>> updatedDoctorEvents = new ArrayList<>();
 
             // Find the doctorEvent to edit by matching the doctorEventId
@@ -50,7 +47,7 @@ public class DoctorEventTable {
                 updatedDoctorEvents.add(doctorEventData);
             }
 
-            csvReaderService.write(filename, updatedDoctorEvents); // Overwrite with updated data
+            CsvReaderService.write(filename, updatedDoctorEvents); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -59,7 +56,7 @@ public class DoctorEventTable {
 
     public static void delete(DoctorEvent doctorEvent) {
         try {
-            List<List<String>> allDoctorEvents = csvReaderService.read(filename);
+            List<List<String>> allDoctorEvents = CsvReaderService.read(filename);
             List<List<String>> updatedDoctorEvents = new ArrayList<>();
 
             for (List<String> doctorEventData : allDoctorEvents) {
@@ -68,7 +65,7 @@ public class DoctorEventTable {
                 }
             }
 
-            csvReaderService.write(filename, updatedDoctorEvents); // Overwrite with updated data
+            CsvReaderService.write(filename, updatedDoctorEvents); // Overwrite with updated data
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -14,7 +14,7 @@ import app.service.UserService;
 * @version 1.0
 * @since 2024-10-20
 */
-public class ViewMedicalRecordOption extends BaseSelectOption {
+public class ViewMedicalRecordOption extends BaseOption {
     public ViewMedicalRecordOption() {
         super("(view)?( )?medical( )?(record)?");
     }

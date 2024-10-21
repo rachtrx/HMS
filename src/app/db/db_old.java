@@ -1,6 +1,5 @@
 package app.db;
 
-import app.controller.AppController;
 import app.model.appointments.Appointment;
 import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.DoctorEvent;
@@ -33,10 +32,8 @@ public class db_old {
 
     public static void init() throws Exception {
 
-        CsvReaderService csvReaderService = AppController.getCsvReaderService();
-
         // Load Medication, key on ID
-        List<List<String>> rawMedication = csvReaderService.read(MedicationTable.getFilename());
+        List<List<String>> rawMedication = CsvReaderService.read(MedicationTable.getFilename());
         List<Medication> medicationList = new ArrayList<>();
 
         for (List<String> row : rawMedication) {
@@ -45,7 +42,7 @@ public class db_old {
         }
 
         // Load Orders, Initialise, create order map, key on prescription ID?
-        List<List<String>> rawOrders = csvReaderService.read(OrderTable.getFilename());
+        List<List<String>> rawOrders = CsvReaderService.read(OrderTable.getFilename());
         List<MedicationOrder> medicationOrderList = new ArrayList<>();
         Map<String, List<MedicationOrder>> prescriptionToOrderMap = new HashMap<>();
 
@@ -56,7 +53,7 @@ public class db_old {
         }
 
         // Load Prescriptions, Initialise from orders, create prescription map, key on ID
-        List<List<String>> rawPrescriptions = csvReaderService.read(PrescriptionTable.getFilename());
+        List<List<String>> rawPrescriptions = CsvReaderService.read(PrescriptionTable.getFilename());
         
         List<Prescription> prescriptionList = new ArrayList<>();
         Map<String, Prescription> prescriptionMap = new HashMap<>();
@@ -74,7 +71,7 @@ public class db_old {
         System.out.println("Prescriptions added");
 
         // Load Appointments, key on eventId
-        List<List<String>> rawAppointments = csvReaderService.read(AppointmentTable.getFilename());
+        List<List<String>> rawAppointments = CsvReaderService.read(AppointmentTable.getFilename());
 
         Map<String, List<String>> eventToAppointmentMap = new HashMap<>();
 
@@ -84,7 +81,7 @@ public class db_old {
         }
 
         // Load Doctor Events, try to join with Appointments. Initialise appointments and busy events. Create Appointment map, key on appointmentId
-        List<List<String>> rawDoctorEvents = csvReaderService.read(DoctorEventTable.getFilename());
+        List<List<String>> rawDoctorEvents = CsvReaderService.read(DoctorEventTable.getFilename());
         List<Appointment> appointmentList = new ArrayList<>(); // List od all events
         Map<String, List<DoctorEvent>> doctorToEventMap = new HashMap<>(); // doctorId: List<DoctorEvent>
         Map<String, List<Appointment>> patientToAppointmentMap = new HashMap<>(); // patientId: List<Appointment>
@@ -109,7 +106,7 @@ public class db_old {
         }
 
         // Load Appointment Outcomes. Initialise with PrescriptionIds and appointmentIds
-        List<List<String>> rawOutcomes = csvReaderService.read(AppointmentOutcomeTable.getFilename());
+        List<List<String>> rawOutcomes = CsvReaderService.read(AppointmentOutcomeTable.getFilename());
         
         List<AppointmentOutcomeRecord> outcomeList = new ArrayList<>();
         Map<String, List<AppointmentOutcomeRecord>> patientToOutcomeMap = new HashMap<>();
@@ -138,36 +135,36 @@ public class db_old {
         // Load Staff
 
         // Create mappings and initialise
-        List<List<String>> rawPatients = csvReaderService.read(PatientTable.getFilename());
+        List<List<String>> rawPatients = CsvReaderService.read(PatientTable.getFilename());
         Map<String, List<String>> patientMap = new HashMap<>();
         for (List<String> patientRow : rawPatients) {
             patientMap.put(patientRow.get(1), patientRow);
         }
 
-        List<List<String>> rawDoctors = csvReaderService.read(DoctorTable.getFilename());
+        List<List<String>> rawDoctors = CsvReaderService.read(DoctorTable.getFilename());
         Map<String, List<String>> doctorsMap = new HashMap<>();
         for (List<String> doctorRow : rawDoctors) {
             doctorsMap.put(doctorRow.get(1), doctorRow);
         }
-        List<List<String>> rawPharmacists = csvReaderService.read(PharmacistTable.getFilename());
+        List<List<String>> rawPharmacists = CsvReaderService.read(PharmacistTable.getFilename());
         Map<String, List<String>> pharmacistsMap = new HashMap<>();
         for (List<String> pharmacistRow : rawPharmacists) {
             pharmacistsMap.put(pharmacistRow.get(1), pharmacistRow);
         }
-        List<List<String>> rawAdmins = csvReaderService.read(AdminTable.getFilename());
+        List<List<String>> rawAdmins = CsvReaderService.read(AdminTable.getFilename());
         Map<String, List<String>> adminsMap = new HashMap<>();
         for (List<String> adminRow : rawAdmins) {
             adminsMap.put(adminRow.get(1), adminRow);
         }
 
         // Initialise by looping on rawStaff
-        List<List<String>> rawStaff = csvReaderService.read(StaffTable.getFilename());
+        List<List<String>> rawStaff = CsvReaderService.read(StaffTable.getFilename());
         Map<String, List<String>> staffMap = new HashMap<>();
         for (List<String> staffRow : rawStaff) {
             staffMap.put(staffRow.get(1), staffRow);
         }
 
-        List<List<String>> rawUsers = csvReaderService.read(UserTable.getFilename());
+        List<List<String>> rawUsers = CsvReaderService.read(UserTable.getFilename());
 
         List<User> usersList = new ArrayList<>(); // List to store the Patient objects
         

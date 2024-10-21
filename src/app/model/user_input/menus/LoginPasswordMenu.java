@@ -34,7 +34,7 @@ public class LoginPasswordMenu extends BaseInputMenu {
             UserService.login(this.username, userInput);
             return MenuService.getLoggedInUserMenu(UserService.getCurrentUser());
         } catch (Exception e) {
-            System.err.println(e.getMessage() + "\n");
+            System.out.println(e.getMessage() + "\n");
             return new LoginUsernameMenu();
         }
     }

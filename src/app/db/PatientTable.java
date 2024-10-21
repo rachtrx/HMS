@@ -1,16 +1,13 @@
 package app.db;
 
-import app.controller.AppController;
 import app.model.users.Patient;
+import app.service.CsvReaderService;
 import app.utils.DateTimeUtil;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
-import app.service.CsvReaderService;
 
 public class PatientTable {
-
-    private static CsvReaderService csvReaderService = AppController.getCsvReaderService();
 
     public static String filename = "src/resources/Patient_List.csv";
 
@@ -33,7 +30,7 @@ public class PatientTable {
         patientData.add(patientStr);
 
         try {
-            csvReaderService.write(filename, patientData);
+            CsvReaderService.write(filename, patientData);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -41,7 +38,7 @@ public class PatientTable {
 
     public static void edit(Patient patient) {
         try {
-            List<List<String>> allPatients = csvReaderService.read(filename);
+            List<List<String>> allPatients = CsvReaderService.read(filename);
             List<List<String>> updatedPatients = new ArrayList<>();
 
             // Find the patient to edit by matching their ID
@@ -57,7 +54,7 @@ public class PatientTable {
                 updatedPatients.add(patientData);
             }
 
-            csvReaderService.write(filename, updatedPatients);
+            CsvReaderService.write(filename, updatedPatients);
 
         } catch (IOException e) {
             e.printStackTrace();
@@ -66,7 +63,7 @@ public class PatientTable {
 
     public static void delete(Patient patient) {
         try {
-            List<List<String>> allPatients = csvReaderService.read(filename);
+            List<List<String>> allPatients = CsvReaderService.read(filename);
             List<List<String>> updatedPatients = new ArrayList<>();
 
             for (List<String> patientData : allPatients) {
@@ -76,7 +73,7 @@ public class PatientTable {
             }
 
             // Overwrite the CSV with the updated patient list
-            csvReaderService.write(filename, updatedPatients);
+            CsvReaderService.write(filename, updatedPatients);
 
         } catch (IOException e) {
             e.printStackTrace();

@@ -9,7 +9,7 @@ import app.model.users.Patient;
 * @version 1.0
 * @since 2024-10-20
 */
-public abstract class PatientNameAndIdOption extends BaseSelectOption {
+public abstract class PatientNameAndIdOption extends BaseOption {
     private String patientName;
     private int patientId;
 
