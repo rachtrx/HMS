@@ -1,6 +1,7 @@
 package app.model.inventory;
 
 import app.constants.exceptions.NonNegativeException;
+import java.util.List;
 
 /**
 * Order for each medication. Tracks any consumption of a medication type.
@@ -11,7 +12,8 @@ import app.constants.exceptions.NonNegativeException;
 */
 public class Medication {
     private static int uuid = 1;
-    private final int id = Medication.uuid++;
+    private final int id;
+    
     private int stock;
     private final String name;
     private int lowAlertLevel;
@@ -21,10 +23,22 @@ public class Medication {
      * @param name
      * @param lowAlertLevel
      */
-    public Medication(int stock, String name, int lowAlertLevel) {
-        this.stock = stock;
+    public Medication(int id, String name, int stock, int lowAlertLevel) {
+        this.id = Medication.uuid++;
         this.name = name;
+        this.stock = stock;
         this.lowAlertLevel = lowAlertLevel;
+    }
+
+    public Medication(List<String> data) {
+        this.id = Integer.parseInt(data.get(0));
+        this.name = data.get(1);
+        this.stock = Integer.parseInt(data.get(2));
+        this.lowAlertLevel = Integer.parseInt(data.get(3));
+    }
+
+    public static void setStartId(int i) {
+        uuid = i;
     }
 
     /**

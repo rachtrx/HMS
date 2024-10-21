@@ -1,4 +1,4 @@
-Username,Password,Patient ID,Name,Gender,Mobile,Home,Contact Information,Date of Birth,Blood Type
-user_a,Easy2Type!,1,Alice Brown,Female,91234567,66666666,alice.brown@example.com,14/05/1980,A+
-user_b,StrongPass#1,2,Bob Stone,Male,98765443,66666667,bob.stone@example.com,22/11/1975,B+
-user_c,SafeKey@123,3,Charlie White,Male,89123345,66666669,charlie.white@example.com,08/07/2002,O-
+Patient ID,User ID,Mobile,Home,Contact Information,Date of Birth,Blood Type
+1,1,91234567,66666666,alice.brown@example.com,14/05/1980,A+
+2,2,98765443,66666667,bob.stone@example.com,22/11/1975,B+
+3,3,89123345,66666669,charlie.white@example.com,08/07/2002,O-

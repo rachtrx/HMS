@@ -1,8 +1,5 @@
 package app.model.user_input.options;
 
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 /**
 * Menu option for user to select.
 *
@@ -23,12 +20,5 @@ public abstract class BaseSelectOption implements BaseOption {
 
     public void setMatchPattern(String matchPattern) {
         this.matchPattern = matchPattern;
-    }
-
-    public boolean isMatch(String userInput) {
-        Matcher matcher = Pattern
-            .compile(this.matchPattern, Pattern.CASE_INSENSITIVE)
-            .matcher(userInput);
-        return matcher.find();
     }
 }

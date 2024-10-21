@@ -2,6 +2,7 @@ package app;
 
 import app.constants.exceptions.ExitApplication;
 import app.controller.AppController;
+import app.db.db;
 import app.service.MenuService;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
@@ -16,6 +17,8 @@ public class App {
 	}
 
     public static void main(String[] args) throws Exception {
+		db.init();
+		
 		MenuService.clearScreen();
         MenuService.getCurrentMenu().display();
 		
@@ -24,6 +27,7 @@ public class App {
 				if (App.scanner.hasNextLine()) {
 					MenuService.clearScreen();
 					AppController.handleUserInput(App.scanner.nextLine());
+					MenuService.getCurrentMenu().display();
 				} else {
 					App.exitApplication();
 					break;
@@ -32,10 +36,9 @@ public class App {
 				App.exitApplication();
 				break;
 			} catch (Exception e) {
-				System.out.println(e.getMessage());
+				System.out.println(e.getMessage() + "\n");
 				MenuService.getCurrentMenu().display();
 			}
 		}
-		
     }
 }

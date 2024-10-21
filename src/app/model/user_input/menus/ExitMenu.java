@@ -20,6 +20,6 @@ public abstract class ExitMenu extends BaseSelectMenu {
         List<BaseSelectOption> options
     ) {
         super(title, options);
-        this.addOptionsToEnd(new ArrayList<>(Arrays.asList(new ExitOption())));
+        this.addOptionsAtEnd(new ArrayList<>(Arrays.asList(new ExitOption())));
     }
 }

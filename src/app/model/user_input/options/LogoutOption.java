@@ -2,22 +2,23 @@ package app.model.user_input.options;
 
 import app.model.user_input.menus.BaseMenu;
 import app.model.user_input.menus.LoginUsernameMenu;
+import app.service.UserService;
 
 /**
-* Continue to application.
+* Logout.
 *
 * @author Luke Eng (@LEPK02)
 * @version 1.0
-* @since 2024-10-18
+* @since 2024-10-20
 */
-public class LandingOption extends BaseSelectOption {
-    public LandingOption() {
-        super(".*");
+public class LogoutOption extends BaseSelectOption {
+    public LogoutOption() {
+        super("log out|logout");
     }
 
     @Override
     public String getLabel() {
-        return "Start Application";
+        return "Logout";
     }
 
     @Override
@@ -26,8 +27,7 @@ public class LandingOption extends BaseSelectOption {
     }
 
     @Override
-    public void executeAction() throws Exception {
-        // TODO Initialise application here (e.g. load from init CSVs)
-        
+    public void executeAction() {
+        UserService.logout();
     }
 }

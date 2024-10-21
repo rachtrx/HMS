@@ -6,6 +6,13 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 
+/**
+* LocalDate and LocalDateTime manipulation.
+*
+* @author Rachmiel Teo (@rachtrx)
+* @version 1.0
+* @since 2024-10-18
+*/
 public class DateTimeUtil {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
@@ -46,6 +53,15 @@ public class DateTimeUtil {
             return LocalDate.parse(dateStr, DATE_FORMAT);
         } catch (DateTimeParseException e) {
             System.err.println("Invalid date format, expected dd/MM/yyyy: " + e.getMessage());
+            return null;
+        }
+    }
+
+    public static LocalDateTime parseShortDateTime(String dateTimeStr) {
+        try {
+            return LocalDateTime.parse(dateTimeStr, DATETIME_FORMAT);
+        } catch (DateTimeParseException e) {
+            System.err.println("Invalid date and time format, expected dd/MM/yyyy HH:mm:ss: " + e.getMessage());
             return null;
         }
     }

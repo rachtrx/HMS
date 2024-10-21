@@ -5,23 +5,35 @@ import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.users.Patient;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
+/**
+* Patient medical record.
+*
+* @author Rachmiel Teo (@rachtrx)
+* @version 1.0
+* @since 2024-10-17
+*/
 public class MedicalRecord {
 
     // Constructor START
-    private static int uuid = 1;
-    
-    private final int id = MedicalRecord.uuid++; // recordId
     private Patient patient; // Composition: Patient and MR both mapped to each other, but MR is always created from Patient
-    private ArrayList<AppointmentOutcomeRecord> appointmentHistory;
+    private List<AppointmentOutcomeRecord> appointmentHistory;
     // TODO: diagnoses and treatments
 
     public MedicalRecord(
         Patient patient,
-        ArrayList<AppointmentOutcomeRecord> appointmentHistory
+        List<AppointmentOutcomeRecord> appointmentHistory
     ) {
         this.patient = patient;
         this.appointmentHistory = appointmentHistory;
+    }
+
+    public MedicalRecord(
+        Patient patient
+    ) {
+        this.patient = patient;
+        this.appointmentHistory = new ArrayList<>();
     }
     // Constructor END
 
