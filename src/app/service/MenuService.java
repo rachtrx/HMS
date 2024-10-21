@@ -1,33 +1,51 @@
 package app.service;
 
-import app.model.user_input.menus.BaseMenu;
-import app.model.user_input.menus.LandingMenu;
-import app.model.user_input.menus.LoggedInMenu;
-import app.model.user_input.menus.PatientMainMenu;
-import app.model.users.Patient;
-import app.model.users.User;
+import app.model.user_input.States;
+import app.model.user_input.Transitions;
+import app.utils.StringUtils;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
 * Controls which menus to show (Equivalent to machine in FSM)
 *
 * @author Luke Eng (@LEPK02)
 * @version 1.0
-* @since 2024-10-17
+* @since 2024-10-21
 */
 public class MenuService {
-    
-    private static BaseMenu currentMenu = new LandingMenu();
-    
-    public static BaseMenu getCurrentMenu() {
-        return currentMenu;
+
+    private static States state = States.LANDING;
+
+    public static States getState() {
+        return MenuService.state;
     }
 
-    public static void setCurrentMenu(BaseMenu currentMenu) {
-        MenuService.currentMenu = currentMenu;
+    public static void next(String userInput) throws Exception {
+        List<Transitions> matches = Arrays.stream(Transitions.values())
+            .filter(transition -> MenuService.isMatch(userInput, transition))
+            .collect(Collectors.toCollection(ArrayList::new));
+        if (matches.size() < 1) {
+            throw new Exception("No option matched your selection. Please try again:");
+        } else if (matches.size() > 1) {
+            throw new Exception("Please be more specific:");
+        }
+        MenuService.state = matches.get(0).getDestination();
     }
 
-    public static void handleUserInput(String userInput) throws Exception {
-        MenuService.currentMenu = MenuService.currentMenu.handleUserInput(userInput);
+    private static boolean isMatch(String userInput, Transitions transition) {
+        Pattern matchPattern = Pattern.compile(
+            transition.getMatchPattern(),
+            transition.shouldParseUserInput() ? Pattern.CASE_INSENSITIVE : null
+        );
+        Matcher matcher = matchPattern.matcher(
+            transition.shouldParseUserInput() ? StringUtils.parseUserInput(userInput) : userInput
+        );
+        return matcher.find();
     }
 
     public static void clearScreen() {
@@ -35,17 +53,4 @@ public class MenuService {
         System.out.flush();
         System.out.print("\n\n"); // add buffer rows between states 
     }
-
-    // Get logged in main menus - START
-    // TODO: new menu for each user (e.g. patient, doctor)
-    public static LoggedInMenu getLoggedInUserMenu(User user) throws Exception {
-        // TODO: test - throw error instead of returning new menu
-        // throw new Exception("Undefined user type");
-        return new PatientMainMenu();
-    }
-
-    public static LoggedInMenu getLoggedInUserMenu(Patient patient) {
-        return new PatientMainMenu();
-    }
-    // Get logged in main menus - END
 }

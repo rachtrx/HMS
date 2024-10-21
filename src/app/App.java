@@ -19,14 +19,14 @@ public class App {
 		db.init();
 		
 		MenuService.clearScreen();
-        MenuService.getCurrentMenu().display();
+        MenuService.getState().printMenu();
 		
 		while (true) {
 			try {
 				if (App.scanner.hasNextLine()) {
 					MenuService.clearScreen();
-					MenuService.handleUserInput(App.scanner.nextLine());
-					MenuService.getCurrentMenu().display();
+					MenuService.next(App.scanner.nextLine());
+					MenuService.getState().printMenu();
 				} else {
 					App.exitApplication();
 					break;
@@ -36,7 +36,7 @@ public class App {
 				break;
 			} catch (Exception e) {
 				System.out.println(e.getMessage() + "\n");
-				MenuService.getCurrentMenu().display();
+				MenuService.getState().printMenu();
 			}
 		}
     }
