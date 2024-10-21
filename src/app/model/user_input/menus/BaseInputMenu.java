@@ -1,7 +1,5 @@
 package app.model.user_input.menus;
 
-import app.service.MenuService;
-
 /**
 * Menu shown to users. (Equivalent to state in FSM)
 *
@@ -20,7 +18,6 @@ public abstract class BaseInputMenu extends BaseMenu {
 
     @Override
     public void display() {
-        MenuService.clearScreen();
         this.displayTitle();
         System.out.print(this.label);
     };

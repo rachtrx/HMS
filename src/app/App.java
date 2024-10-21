@@ -19,7 +19,7 @@ public class App {
     public static void main(String[] args) throws Exception {
 		db.init();
 		
-		// MenuService.clearScreen(); // need to see logs
+		MenuService.clearScreen();
         MenuService.getCurrentMenu().display();
 		
 		while (true) {
@@ -36,9 +36,7 @@ public class App {
 				App.exitApplication();
 				break;
 			} catch (Exception e) {
-				e.printStackTrace();
-				System.out.println("Exception Caught");
-				System.out.println(e.getMessage());
+				System.out.println(e.getMessage() + "\n");
 				MenuService.getCurrentMenu().display();
 			}
 		}

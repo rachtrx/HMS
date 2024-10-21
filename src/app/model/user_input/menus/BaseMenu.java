@@ -1,5 +1,6 @@
 package app.model.user_input.menus;
 
+import app.utils.StringUtils;
 import java.util.stream.IntStream;
 
 /**
@@ -35,4 +36,12 @@ public abstract class BaseMenu {
     public abstract void display();
 
     public abstract BaseMenu next(String userInput) throws Exception;
+
+    public BaseMenu handleUserInput(String userInput) throws Exception {
+        return this.handleUserInput(userInput, true);
+    }
+
+    protected final BaseMenu handleUserInput(String userInput, boolean parseString) throws Exception {
+        return this.next(parseString ? StringUtils.parseUserInput(userInput) : userInput);
+    };
 }

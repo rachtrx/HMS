@@ -1,6 +1,7 @@
 package app.model.user_input.menus;
 
 import app.model.user_input.options.ViewMedicalRecordOption;
+import app.service.UserService;
 import java.util.ArrayList;
 import java.util.Arrays;
 
@@ -19,5 +20,13 @@ public class PatientMainMenu extends LoggedInMenu {
             new ArrayList<>()
         );
         this.addOptionsAtStart(new ArrayList<>(Arrays.asList(new ViewMedicalRecordOption())));
+    }
+
+    @Override
+    public void display() {
+        System.out.println(String.format(
+            "Welcome, %s!\n",
+            UserService.getCurrentUser().getName()));
+        super.display();
     }
 }

@@ -13,6 +13,7 @@ import app.model.users.staff.Admin;
 import app.model.users.staff.Doctor;
 import app.model.users.staff.Pharmacist;
 import app.service.CsvReaderService;
+import app.service.UserService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -387,5 +388,8 @@ public class db {
         for (User user : usersList) {
             System.out.println(user);
         }
+
+        // Load data into services
+        UserService.addUsers(usersList);
     }
 }

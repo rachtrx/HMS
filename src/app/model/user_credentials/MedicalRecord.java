@@ -7,6 +7,13 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+* Patient medical record.
+*
+* @author Rachmiel Teo (@rachtrx)
+* @version 1.0
+* @since 2024-10-17
+*/
 public class MedicalRecord {
 
     // Constructor START

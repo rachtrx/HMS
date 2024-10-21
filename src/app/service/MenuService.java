@@ -26,8 +26,8 @@ public class MenuService {
         MenuService.currentMenu = currentMenu;
     }
 
-    public void next(String userInput) throws Exception {
-        MenuService.currentMenu = MenuService.currentMenu.next(userInput);
+    public void handleUserInput(String userInput) throws Exception {
+        MenuService.currentMenu = MenuService.currentMenu.handleUserInput(userInput);
     }
 
     public static void clearScreen() {

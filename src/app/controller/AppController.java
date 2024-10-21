@@ -27,6 +27,6 @@ public class AppController {
 	}
 	
 	public static void handleUserInput(String userInput) throws Exception {
-		AppController.menuService.next(userInput.trim().toLowerCase());
+		AppController.menuService.handleUserInput(userInput);
 	}
 }

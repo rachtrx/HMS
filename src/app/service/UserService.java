@@ -21,6 +21,10 @@ public class UserService {
         return users;
     }
 
+    public static void addUsers(List<User> users) {
+        UserService.users.addAll(users);
+    }
+
     public static List<? extends User> getAllUserByType(Class<? extends User> userType) {
         return UserService.users
             .stream()
@@ -31,11 +35,24 @@ public class UserService {
     public static User getCurrentUser() {
         return currentUser;
     }
-    
-    public static void setCurrentUser(User currentUser) {
-        UserService.currentUser = currentUser;
+
+    public static void login(String username, String password) throws Exception {
+        Optional<User> findUser = UserService.users.stream()
+            .filter(user -> (
+                user.getUsername().equals(username) &&
+                user.getPassword().equals(password))
+            )
+            .findFirst();
+        if (findUser.isEmpty()) {
+            throw new Exception("Incorrect username or password. Please try again.");
+        }
+        UserService.currentUser = findUser.get();
     }
 
+    public static void logout() {
+        UserService.currentUser = null;
+    }
+    
     public static User findUser(String username, String password) {
         for (User user : users) {
             System.out.println(user.getPassword());
@@ -63,15 +80,17 @@ public class UserService {
     //         String patientId = row.get(2); // TODO
     //         String name = row.get(3);
     //         String gender = row.get(4);
-    //         String mobile = row.get(5);
-    //         String home = row.get(6);
+    //         String mobileNumber = row.get(5);
+    //         String homeNumber = row.get(6);
     //         String email = row.get(7);
-    //         String dob = row.get(8); // Assuming the DoB format is correct in the new data
+    //         String dateOfBirth = row.get(8); // Assuming the DoB format is correct in the new data
     //         String bloodType = row.get(9);
             
     //         // Create a patient and add to users list
-    //         User patient = createPatient(username, password, patientId, name, gender, mobile, home, email, dob, bloodType);
-    //         users.add(patient);
+    //         users.add(new Patient(
+    //             username, password, name, patientId, gender,
+    //             mobileNumber, homeNumber, email, dateOfBirth, bloodType
+    //         ));
     //     }
     // }
     
@@ -87,11 +106,6 @@ public class UserService {
     //         User staffMember = createStaff(hospitalId, name, role, gender, age);
     //         users.add(staffMember);
     //     }
-    // }
-    
-    // public User createPatient(String username, String password, String patientId, String name, String gender, String mobileNumber, String homeNumber, String email, String dateOfBirth, String bloodType) throws Exception {
-    //     Patient patient = new Patient(username, password, patientId, name, gender, mobileNumber, homeNumber, email, dateOfBirth, bloodType, new ArrayList<>());
-    //     return patient;
     // }
     
     // public User createStaff(String hospitalId, String name, String role, char gender, String age) {
@@ -112,5 +126,5 @@ public class UserService {
     //             throw new IllegalArgumentException("Invalid role");
     //     }
     //     return user;
-    // }    
+    // }
 }

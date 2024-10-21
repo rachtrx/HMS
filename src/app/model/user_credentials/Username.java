@@ -2,13 +2,18 @@ package app.model.user_credentials;
 
 import app.constants.exceptions.InvalidCharacterException;
 import app.constants.exceptions.InvalidLengthException;
+import app.model.users.User;
 import app.model.validators.IntegerValidator;
 import app.model.validators.StringValidator;
+import app.service.UserService;
+import app.utils.StringUtils;
+import java.util.Optional;
 
 /**
 * Username validator.
 *
 * @author Luke Eng (@LEPK02)
+* @author Rachmiel Teo (@rachtrx)
 * @version 1.0
 * @since 2024-10-17
 */
@@ -24,7 +29,7 @@ public final class Username extends ValidatedData<String, String> implements Int
     * @param username Username
     */
     public Username(String username) throws Exception {
-        super(username);
+        super(StringUtils.parseUserInput(username));
     }
 
     /** 
@@ -40,7 +45,15 @@ public final class Username extends ValidatedData<String, String> implements Int
      * @throws InvalidCharacterException
      */
     public void setUsername(String username) throws Exception {
-        this.setValue(username);
+        String parsedUsername = StringUtils.parseUserInput(username);
+        Optional<User> existingUser = UserService.getAllUsers()
+            .stream()
+            .filter(user -> user.getUsername().equals(parsedUsername))
+            .findFirst();
+        if (existingUser.isPresent()) {
+            throw new Exception("Username is already taken; please try another.");
+        }
+        this.setValue(parsedUsername);
     }
 
     

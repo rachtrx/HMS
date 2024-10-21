@@ -11,10 +11,15 @@ import app.service.UserService;
 * @since 2024-10-17
 */
 public class LoginPasswordMenu extends BaseInputMenu {
-    private String username;
+    private final String username;
     public LoginPasswordMenu(String username) {
         super("Login", "Please enter your password: ");
         this.username = username;
+    }
+
+    @Override
+    public BaseMenu handleUserInput(String userInput) throws Exception {
+        return this.handleUserInput(userInput, false);
     }
 
     @Override
@@ -25,7 +30,12 @@ public class LoginPasswordMenu extends BaseInputMenu {
         // if not, return LoginUsernameMenu
         // MenuService.setCurrentMenu(new LoginUsernameMenu());
         // throw new Exception("Incorrect username or password. Please try again.");
-
-        return MenuService.getLoggedInUserMenu(UserService.getCurrentUser());
+        try {
+            UserService.login(this.username, userInput);
+            return MenuService.getLoggedInUserMenu(UserService.getCurrentUser());
+        } catch (Exception e) {
+            System.err.println(e.getMessage() + "\n");
+            return new LoginUsernameMenu();
+        }
     }
 }

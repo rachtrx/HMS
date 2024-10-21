@@ -1,5 +1,11 @@
 package app.model.user_credentials;
-
+/**
+* Validator template.
+*
+* @author Rachmiel Teo (@rachtrx)
+* @version 1.0
+* @since 2024-10-17
+*/
 public abstract class ValidatedData<T, K> {
 
     private T value;

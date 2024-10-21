@@ -2,6 +2,7 @@ package app.model.user_input.options;
 
 import app.model.user_input.menus.BaseMenu;
 import app.model.user_input.menus.LoginUsernameMenu;
+import app.service.UserService;
 
 /**
 * Logout.
@@ -27,6 +28,6 @@ public class LogoutOption extends BaseSelectOption {
 
     @Override
     public void executeAction() {
-        // TODO: Implment Logic - Logout
+        UserService.logout();
     }
 }
