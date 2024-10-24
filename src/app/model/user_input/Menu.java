@@ -1,5 +1,10 @@
 package app.model.user_input;
 
+import app.constants.AppMetadata;
+import app.constants.exceptions.ExitApplication;
+import app.model.users.Patient;
+import app.service.MenuService;
+import app.service.UserService;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -9,12 +14,6 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import app.constants.AppMetadata;
-import app.constants.exceptions.ExitApplication;
-import app.model.users.Patient;
-import app.service.MenuService;
-import app.service.UserService;
 
 /**
 * Controls which menus to show (Equivalent to machine in FSM)
@@ -58,7 +57,22 @@ public enum Menu {
     PATIENT_MAIN_MENU(new MenuBuilder(
         MenuType.SELECT,
         "Patient Main Menu",
-        ""
+        null
+    )),
+    PATIENT_VIEW_MEDICAL_RECORD(new MenuBuilder(
+        MenuType.SELECT,
+        "Patient Medical Record",
+        "Please select an option to edit:"
+    )),
+    EDIT(new MenuBuilder(
+        MenuType.INPUT,
+        null,
+        "Enter a new value: "
+    )),
+    CONFIRM(new MenuBuilder(
+        MenuType.SELECT,
+        "Confirm Action? ",
+        null
     ));
 
     // Transitions
@@ -70,6 +84,7 @@ public enum Menu {
                 put("username", userInput);
             }});
         Menu.LOGIN_PASSWORD
+            .setParseUserInput(false)
             .setNextAction((userInput, args) -> {
                 try {
                     UserService.login((String) args.get("username"), userInput);
@@ -85,7 +100,29 @@ public enum Menu {
                 }
                 return null;
             });
-        Menu.PATIENT_MAIN_MENU.makeLogoutMenu();
+        Menu.PATIENT_MAIN_MENU
+            .setOptions(new ArrayList<>(List.of(
+                // TODO: complete remaining options
+                new Option(
+                        "View Medical Record", 
+                        "(view ( )?)?medical(( )?record)?", 
+                        true
+                    ).setNextMenu(PATIENT_VIEW_MEDICAL_RECORD)
+            ))).makeLogoutMenu();
+        // TODO: complete patient medical record
+        PATIENT_VIEW_MEDICAL_RECORD
+            .setOptionGenerator(() -> {
+                return new ArrayList<>(List.of(
+                    new Option(
+                        String.format("Name: %s", UserService.getCurrentUser().getName()),
+                        "name|" + UserService.getCurrentUser().getName(),
+                        true
+                    ).setNextMenuAsEdit((userInput, args) -> {
+                        UserService.getCurrentUser().setName((String) args.get("confirm"));
+                        return null;
+                    })
+                ));
+            }).makeLogoutMenu();
     }
     // Init END
 
@@ -96,11 +133,17 @@ public enum Menu {
         SELECT
     }
 
-    public interface ThrowableFunction<T, U, R, E extends Exception> {
+    public interface ThrowableBlankFunction<R, E extends Exception> {
+        R apply() throws E;
+    }
+
+    private interface OptionGenerator extends ThrowableBlankFunction<List<Option>, Exception> {}
+
+    public interface ThrowableBiFunction<T, U, R, E extends Exception> {
         R apply(T t, U u) throws E;
     }
 
-    private interface NextAction extends ThrowableFunction<
+    private interface NextAction extends ThrowableBiFunction<
         String,
         Map<String, Object>,
         Map<String, Object>,
@@ -114,7 +157,7 @@ public enum Menu {
         INITIAL
     }
 
-    private class Option {
+    private static class Option {
         private final String label;
         private final String matchPattern;
         private final boolean isNumberedOption;
@@ -134,6 +177,29 @@ public enum Menu {
         private Option setNextMenu(Menu nextMenu) {
             this.nextMenu = nextMenu;
             return this;
+        }
+
+        private Option setNextMenuAsEdit(NextAction nextAction) {
+            return this.setNextMenu(Menu.EDIT
+                .setNextAction((userInput, args) -> {
+                    return new HashMap<>(){{ put("confirm", userInput); }};
+                })
+                .setNextMenu(Menu.CONFIRM
+                    .setOptions(new ArrayList<>(List.of(
+                        new Option(
+                                "Yes (Y)",
+                                "yes|y|yes( )?\\(?y\\)?",
+                                false
+                            ).setNextAction((userInput, args) -> nextAction.apply(null, args))
+                            .setNextMenu(MenuService.getCurrentMenu()),
+                        new Option(
+                            "No (N)",
+                            "no|n|no( )?\\(?n\\)?",
+                            false
+                        ).setNextMenu(MenuService.getCurrentMenu())
+                    )))
+                )
+            );
         }
     
         private Option setNextAction(NextAction nextAction) {
@@ -161,6 +227,7 @@ public enum Menu {
     private final String title;
     private final String label;
     private final MenuType menuType;
+    private boolean parseUserInput = true;
     // Transitions & Actions START
     private Menu nextMenu;
     private NextAction nextAction;
@@ -170,6 +237,7 @@ public enum Menu {
     // Options START
     private List<Option> options;
     private List<Option> matchingOptions;
+    private OptionGenerator optionGenerator;
     private DisplayMode displayMode = DisplayMode.INITIAL;
     // Options END
         
@@ -179,9 +247,24 @@ public enum Menu {
         this.label = menuBuilder.label;
     }
 
-    public void display() {
-        if (this.menuType == MenuType.SELECT && (this.options == null || this.options.size() < 1)) {
-            throw new Error("Menu with type select shold have at least one option");
+    public void display() throws Exception {
+        if (this.menuType == MenuType.SELECT) {
+            if (this.optionGenerator != null) {
+                this.options = optionGenerator.apply();
+                if (
+                    this.options != null &&
+                    this.matchingOptions != null &&
+                    this.options.size() >= this.matchingOptions.size()
+                ) {
+                     // refresh options after editing
+                    this.matchingOptions = this.getNumberedOptions(true);
+                }
+                this.makeLogoutMenu();
+            }
+
+            if (this.options == null || this.options.size() < 1) {
+                throw new Error("Menu with type select shold have at least one option");
+            }
         }
 
         if (!(this.title == null || this.title.length() < 1)) {
@@ -226,10 +309,19 @@ public enum Menu {
         }
     }
 
+    public Menu setParseUserInput(boolean parseUserInput) {
+        this.parseUserInput = parseUserInput;
+        return this;
+    }
+
     // Next state (transition + action) handling START
     public Menu handleUserInput(String userInput) throws Exception {
         if (!(this.menuType == MenuType.DISPLAY || userInput.length() > 0)) {
             throw new Exception("Please type something in:");
+        }
+
+        if (this.parseUserInput) {
+            userInput = userInput.trim().toLowerCase();
         }
 
         if (this.menuType == MenuType.SELECT) {
@@ -294,8 +386,13 @@ public enum Menu {
 
     // Options handling START
     // Options handling - builder START
+    private Menu setOptionGenerator(OptionGenerator optionGenerator) {
+        this.optionGenerator = optionGenerator;
+        return this;
+    }
+
     private Menu addOption(Option option) {
-        return this.addOptions(List.of(option));
+        return this.addOptions(new ArrayList<>(List.of(option)));
     }
 
     private Menu addOptions(List<Option> options) {
@@ -308,28 +405,45 @@ public enum Menu {
         }
 
         this.options.addAll(options);
+
         return this;
     }
 
+    private Menu setOptions(List<Option> options) {
+        this.options = options;
+        return this;
+    }
+
+    private boolean optionExists(String optionLabel) {
+        return this.options != null &&
+            this.options.stream().anyMatch(option -> optionLabel.equals(option.label));
+    }
+
     private Menu addExitOption() {
-        return this.addOption(new Option(
-            "Exit Application (E)",
-            "^E$|exit(( )?((app)?plication)?)?(( )?\\(E\\))?",
-            false
-        ).setNextAction((input, args) -> { throw new ExitApplication(); }));
+        String exitLabel = "Exit Application (E)";
+        return this.optionExists(exitLabel) ?
+            this :
+            this.addOption(new Option(
+                exitLabel,
+                "^E$|exit(( )?((app)?plication)?)?(( )?\\(E\\))?",
+                false
+            ).setNextAction((input, args) -> { throw new ExitApplication(); }));
     }
 
     private Menu addLogoutOption() {
-        return this.addOption(new Option(
-            "Logout (LO)",
-            "^LO$|log( )?out(( )?\\(LO\\))?",
-            false
-        ).setNextAction((input, args) -> {
-            UserService.logout();
-            MenuService.getCurrentMenu().displayMode = DisplayMode.INITIAL;
-            MenuService.getCurrentMenu().setNextMenu(Menu.LOGIN_USERNAME);
-            return null;
-        }));
+        String logoutLabel = "Logout (LO)";
+        return this.optionExists(logoutLabel) ?
+            this :
+            this.addOption(new Option(
+                    logoutLabel,
+                    "^LO$|log( )?out(( )?\\(LO\\))?",
+                    false
+                ).setNextAction((input, args) -> {
+                    UserService.logout();
+                    MenuService.getCurrentMenu().displayMode = DisplayMode.INITIAL;
+                    return null;
+                }).setNextMenu(Menu.LOGIN_USERNAME)
+            );
     }
 
     private Menu makeLogoutMenu() {
