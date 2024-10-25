@@ -1,8 +1,8 @@
+package app.model.appointments;
 
 import java.util.ArrayList;
 
 import app.db.AppointmentTable;
-import app.model.appointments.AppointmentDisplay;
 
 public interface IAppointment {
 

@@ -28,7 +28,7 @@ public class UserService {
     public static List<? extends User> getAllUserByType(Class<? extends User> userType) {
         return UserService.users
             .stream()
-            .filter(userType::isInstance)
+            .filter(user -> userType.equals(user.getClass()))
             .collect(Collectors.toList());
     }
 

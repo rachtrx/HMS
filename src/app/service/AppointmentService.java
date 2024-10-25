@@ -1,19 +1,17 @@
-package app.model.appointments;
+package app.service;
 
 import app.constants.exceptions.InvalidTimeslotException;
-import app.constants.exceptions.ItemNotFoundException;
-import app.constants.exceptions.UserNotFound;
+import app.model.appointments.Appointment;
+import app.model.appointments.Timeslot;
 import app.model.users.Patient;
-import app.model.users.User;
 import app.model.users.staff.Doctor;
-import app.service.Service;
-import app.utils.DateTimeUtil;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Optional;
+import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
 * CRUD functionality for appointments.
@@ -22,100 +20,142 @@ import java.util.stream.Collectors;
 * @version 1.0
 * @since 2024-10-17
 */
-public class AppointmentService extends Service implements IAppointment {
+public class AppointmentService {
+// public class AppointmentService extends Service {
 
-    private AppointmentParse appointmentParse;
-    private AppointmentDisplay appointmentDisplay;
-    private ArrayList<Appointment> appointments;
+    // private AppointmentParse appointmentParse;
+    // private AppointmentDisplay appointmentDisplay;
+    // public static ArrayList<Appointment> appointments;
 
-    public AppointmentService(
-        ArrayList<Appointment> appointments,
-        User user
-    ) {
-        super(user);
-        this.appointments = appointments;
-        this.appointmentParse = new AppointmentParse();
-        this.appointmentDisplay = new AppointmentDisplay();
+    public static List<Appointment> getAllAppointments() {
+        List<Appointment> appointments = new ArrayList<>();
+        UserService.getAllUsers()
+            .stream()
+            .forEach(user -> {
+                if (Patient.class.isInstance(user)) {
+                    appointments.addAll(((Patient) user).getAppointments());
+                } else if (Doctor.class.isInstance(user)) {
+                    appointments.addAll(((Doctor) user).getDoctorEvents()
+                        .stream()
+                        .filter(event -> event.isAppointment(event))
+                        .map(Appointment.class::cast)
+                        .collect(Collectors.toList())
+                    );
+                }
+            });
+        return appointments;
     }
 
-    public ArrayList<Appointment> getAppointments() throws UserNotFound {
-        if (this.isLoggedIn()) {
-            return (ArrayList<Appointment>) this.appointments
-                .stream()
-                .filter(appointment -> {
-                    this.userIdMatches(appointment)
-                    throw new AssertionError();
-                }).collect(Collectors.toList());
-        }
-        throw new UserNotFound();
-    }
+    // public static ArrayList<Appointment> getAppointments() throws UserNotFound {
+    //     if (UserService.isLoggedIn()) {
+    //         return (ArrayList<Appointment>) this.appointments
+    //             .stream()
+    //             .filter(appointment -> {
+    //                 this.userIdMatches(appointment)
+    //                 throw new AssertionError();
+    //             }).collect(Collectors.toList());
+    //     }
+    //     throw new UserNotFound();
+    // }
 
     private boolean userIdMatches(Patient patient, Appointment appointment) {
-        // if (this.getUser() instanceof Patient) {
-            return appointment.getPatientId() == this.getUser().getUserId();
-        // } else if (this.getUser() instanceof Doctor) {
-            // return appointment.getDoctorId() == this.getUser().id;
-        // }
+        return appointment.getPatientId() == UserService.getCurrentUser().getUserId();
     }
 
+    // private Appointment (int appointmentId) throws ItemNotFoundException, UserNotFound {
+    //     Optional<Appointment> result = this.getAppointments()
+    //         .stream()
+    //         .filter(appointment -> appointment.getId() == appointmentId)
+    //         .findFirst();
+    //     if (result.isPresent()) {
+    //         return result.get();
+    //     }
+    //     throw new ItemNotFoundException(
+    //         String.format("No appointment with ID %d exists", appointmentId)
+    //     );
+    // }
 
-
-    private Appointment (int appointmentId) throws ItemNotFoundException, UserNotFound {
-        Optional<Appointment> result = this.getAppointments()
-            .stream()
-            .filter(appointment -> appointment.getId() == appointmentId)
-            .findFirst();
-        if (result.isPresent()) {
-            return result.get();
-        }
-        throw new ItemNotFoundException(
-            String.format("No appointment with ID %d exists", appointmentId)
-        );
-    }
-
-    public ArrayList<Timeslot> getAvailableAppointmentSlots() throws InvalidTimeslotException{
+    public static ArrayList<Timeslot> getAvailableAppointmentSlotsToday() {
         LocalDateTime dateTimeNow = LocalDateTime.now();
         LocalDateTime dateTimeOffset = dateTimeNow.plusHours(1);
-        LocalTime offsetTime = LocalTime.of(dateTimeOffset.getHour(), dateTimeOffset.getMinute());
-        Timeslot nextAvailableTimeslot = new Timeslot(LocalDateTime.of(
-            (
-                offsetTime.isAfter(Timeslot.lastSlotStartTime) ?
-                DateTimeUtil.addWorkingDays(dateTimeNow, 1) :
-                dateTimeOffset
-            ).toLocalDate(),
-            (
-                dateTimeNow.toLocalTime().isBefore(Timeslot.firstSlotStartTime) ||
-                dateTimeNow.toLocalTime().isAfter(Timeslot.lastSlotStartTime)
-            ) ? Timeslot.firstSlotStartTime : dateTimeNow.toLocalTime()
-        ));
-        Timeslot lastAvailableTimeslot = new Timeslot(LocalDateTime.of(
-            DateTimeUtil.addWorkingDays(dateTimeNow, 7).toLocalDate(),
-            Timeslot.lastSlotStartTime
-        ));
-        // TODO: list all timeslots -> filter out those that are already booked
+        LocalTime currentSlotStartTime = LocalTime.of(dateTimeOffset.getHour(), 0);
+        LocalTime earliestSlotTime = currentSlotStartTime.compareTo(Timeslot.firstSlotStartTime) < 0 ?
+            Timeslot.firstSlotStartTime : currentSlotStartTime;
+        return IntStream.range(
+            0,
+            (int) (earliestSlotTime.until(Timeslot.lastSlotStartTime, ChronoUnit.HOURS) /
+                Timeslot.timeslotLengthInHours + Timeslot.timeslotLengthInHours)
+        ).mapToObj(timeslotOffset -> {
+            try {
+                Timeslot checkTimeslot = new Timeslot(LocalDateTime.of(
+                    dateTimeOffset.toLocalDate(), earliestSlotTime)
+                );
+                if (
+                    UserService.getAllUserByType(Doctor.class)
+                        .stream()
+                        .filter(user -> {
+                            Doctor doctor = (Doctor) user;
+                            return doctor.getDoctorEvents()
+                                .stream()
+                                .filter(event -> event.getTimeslot().isEqual(checkTimeslot.getTimeSlot()))
+                                .findFirst()
+                                .isEmpty();
+                        })
+                        .findFirst()
+                        .isPresent()
+                ) {
+                    try {
+                        return new Timeslot(
+                            LocalDateTime.of(dateTimeNow.toLocalDate(),
+                                    LocalTime.of(earliestSlotTime.getHour()+timeslotOffset, 0)
+                            ));
+                    } catch (InvalidTimeslotException ex) {}
+                }
+            } catch (InvalidTimeslotException e) {
+                return null;
+            }
+            
+            return null;
+        }).collect(Collectors.toCollection(ArrayList::new));
+        // LocalTime offsetTime = LocalTime.of(dateTimeOffset.getHour(), dateTimeOffset.getMinute());
+        // Timeslot nextAvailableTimeslot = new Timeslot(LocalDateTime.of(
+        //     (
+        //         offsetTime.isAfter(Timeslot.lastSlotStartTime) ?
+        //         DateTimeUtil.addWorkingDays(dateTimeNow, 1) :
+        //         dateTimeOffset
+        //     ).toLocalDate(),
+        //     (
+        //         dateTimeNow.toLocalTime().isBefore(Timeslot.firstSlotStartTime) ||
+        //         dateTimeNow.toLocalTime().isAfter(Timeslot.lastSlotStartTime)
+        //     ) ? Timeslot.firstSlotStartTime : dateTimeNow.toLocalTime()
+        // ));
+        // Timeslot lastAvailableTimeslot = new Timeslot(LocalDateTime.of(
+        //     DateTimeUtil.addWorkingDays(dateTimeNow, 7).toLocalDate(),
+        //     Timeslot.lastSlotStartTime
+        // ));
     }
 
-    public void scheduleAppointment(Appointment appointment) {
-        this.appointments.add(appointment);
-    }
+    // public void scheduleAppointment(Appointment appointment) {
+    //     this.appointments.add(appointment);
+    // }
 
-    public void rescheduleAppointment (int appointmentId) throws ItemNotFoundException, UserNotFound {
-        Appointment appointment = this.(appointmentId);
+    // public void rescheduleAppointment (int appointmentId) throws ItemNotFoundException, UserNotFound {
+    //     Appointment appointment = this.(appointmentId);
         
-    }
+    // }
 
-    public void cancelAppointment(int appointmentId) throws ItemNotFoundException, UserNotFound {
-        Appointment appointment = this.findAppointmentById(appointmentId);
-        appointment.cancel();
-    }
+    // public void cancelAppointment(int appointmentId) throws ItemNotFoundException, UserNotFound {
+    //     Appointment appointment = this.findAppointmentById(appointmentId);
+    //     appointment.cancel();
+    // }
 
-    public void confirmAppointment(int appointmentId) throws ItemNotFoundException, UserNotFound {
-        Appointment appointment = this.findAppointmentById(appointmentId);
-        appointment.confirm();
-    }
+    // public void confirmAppointment(int appointmentId) throws ItemNotFoundException, UserNotFound {
+    //     Appointment appointment = this.findAppointmentById(appointmentId);
+    //     appointment.confirm();
+    // }
 
-    public void completeAppointment(int appointmentId) throws ItemNotFoundException, UserNotFound {
-        Appointment appointment = this.findAppointmentById(appointmentId);
-        appointment.completed();
-    }
+    // public void completeAppointment(int appointmentId) throws ItemNotFoundException, UserNotFound {
+    //     Appointment appointment = this.findAppointmentById(appointmentId);
+    //     appointment.completed();
+    // }
 }
