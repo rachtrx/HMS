@@ -43,6 +43,10 @@ public class Doctor extends Staff {
         return doctorEvents;
     }
 
+    public void addDoctorEvent(DoctorEvent event) {
+        this.doctorEvents.add(event);
+    }
+
     public void printAvailability() {
         // TODO
     }

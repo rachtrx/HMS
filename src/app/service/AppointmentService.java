@@ -2,6 +2,7 @@ package app.service;
 
 import app.constants.exceptions.InvalidTimeslotException;
 import app.model.appointments.Appointment;
+import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.Timeslot;
 import app.model.users.Patient;
 import app.model.users.staff.Doctor;
@@ -75,7 +76,8 @@ public class AppointmentService {
     //     );
     // }
 
-    public static ArrayList<Timeslot> getAvailableAppointmentSlotsToday() {
+    // TODO: requires testing
+    public static List<Timeslot> getAvailableAppointmentSlotsToday() {
         LocalDateTime dateTimeNow = LocalDateTime.now();
         LocalDateTime dateTimeOffset = dateTimeNow.plusHours(1);
         LocalTime currentSlotStartTime = LocalTime.of(dateTimeOffset.getHour(), 0);
@@ -90,19 +92,11 @@ public class AppointmentService {
                 Timeslot checkTimeslot = new Timeslot(LocalDateTime.of(
                     dateTimeOffset.toLocalDate(), earliestSlotTime)
                 );
+                List<Doctor> availableDoctors = AppointmentService
+                    .getAvailableDoctorsAtTimeslot(checkTimeslot.getTimeSlot());
                 if (
-                    UserService.getAllUserByType(Doctor.class)
-                        .stream()
-                        .filter(user -> {
-                            Doctor doctor = (Doctor) user;
-                            return doctor.getDoctorEvents()
-                                .stream()
-                                .filter(event -> event.getTimeslot().isEqual(checkTimeslot.getTimeSlot()))
-                                .findFirst()
-                                .isEmpty();
-                        })
-                        .findFirst()
-                        .isPresent()
+                    availableDoctors != null &&
+                    availableDoctors.stream().findFirst().isPresent()
                 ) {
                     try {
                         return new Timeslot(
@@ -116,7 +110,7 @@ public class AppointmentService {
             }
             
             return null;
-        }).collect(Collectors.toCollection(ArrayList::new));
+        }).collect(Collectors.toList());
         // LocalTime offsetTime = LocalTime.of(dateTimeOffset.getHour(), dateTimeOffset.getMinute());
         // Timeslot nextAvailableTimeslot = new Timeslot(LocalDateTime.of(
         //     (
@@ -135,9 +129,40 @@ public class AppointmentService {
         // ));
     }
 
-    // public void scheduleAppointment(Appointment appointment) {
-    //     this.appointments.add(appointment);
-    // }
+    // TODO: requires testing
+    public static List<Doctor> getAvailableDoctorsAtTimeslot(LocalDateTime timeslotDateTime) {
+        return UserService.getAllUserByType(Doctor.class)
+            .stream()
+            .filter(user -> {
+                Doctor doctor = (Doctor) user;
+                return doctor.getDoctorEvents()
+                    .stream()
+                    .filter(event -> event.getTimeslot().isEqual(timeslotDateTime))
+                    .findFirst()
+                    .isEmpty();
+            }).map(Doctor.class::cast)
+            .collect(Collectors.toList());
+    }
+
+    public static void scheduleAppointment(
+        int patientId, int doctorId, LocalDateTime timeslot
+    ) throws Exception {
+        Appointment appointment = new Appointment(
+            doctorId, timeslot, patientId, AppointmentStatus.CONFIRMED
+        );
+
+        Doctor doctor = (Doctor) UserService.findUserByIdAndType(doctorId, Doctor.class);
+        if (doctor == null) {
+            throw new Exception("Doctor not found.");
+        }
+        doctor.addDoctorEvent(appointment);
+
+        Patient patient = (Patient) UserService.findUserByIdAndType(patientId, Patient.class);
+        if (patient == null) {
+            throw new Exception("Patient not found.");
+        }
+        patient.addAppointment(appointment);
+    }
 
     // public void rescheduleAppointment (int appointmentId) throws ItemNotFoundException, UserNotFound {
     //     Appointment appointment = this.(appointmentId);

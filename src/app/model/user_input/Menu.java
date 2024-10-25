@@ -10,6 +10,9 @@ import app.service.AppointmentService;
 import app.service.MenuService;
 import app.service.UserService;
 import app.utils.DateTimeUtil;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -88,6 +91,35 @@ public enum Menu {
         MenuType.SELECT,
         "Available Appointments Today",
         null
+    )),
+    INPUT_APPOINTMENT_YEAR(new MenuBuilder(
+        MenuType.INPUT,
+        "Choose Appointment Date",
+        "Please enter the appointment year: "
+    )),
+    INPUT_APPOINTMENT_MONTH(new MenuBuilder(
+        MenuType.INPUT,
+        "Choose Appointment Date",
+        "Please enter the appointment month as a number (1 = Jan, 12 = Dec): "
+    )),
+    INPUT_APPOINTMENT_DAY(new MenuBuilder(
+        MenuType.INPUT,
+        "Choose Appointment Date",
+        "Please enter the appointment day: "
+    )),
+    INPUT_APPOINTMENT_HOUR(new MenuBuilder(
+        MenuType.INPUT,
+        "Choose Appointment Date",
+        String.format(
+            "Please enter the appointment start hour in 24H format (appointments last 1 hour between %d and %d): ",
+            Timeslot.firstSlotStartTime.getHour(),
+            Timeslot.lastSlotStartTime.getHour()
+        )
+    )),
+    INPUT_APPOINTMENT_DOCTOR(new MenuBuilder(
+        MenuType.SELECT,
+        "Choose Appointment Doctor",
+        null
     ));
 
     // Transitions
@@ -127,7 +159,19 @@ public enum Menu {
                         "View Available Appointments Today", 
                         "view( )?(available( )?)?appointment(s)?|(view( )?)?today", 
                         true
-                    ).setNextMenu(() -> PATIENT_VIEW_AVAILABLE_APPOINTMENTS)
+                    ).setNextMenu(() -> PATIENT_VIEW_AVAILABLE_APPOINTMENTS),
+                new Option(
+                        "Schedule an Appointment", 
+                        "^schedule( )?(a(n)?( )?)?appointment(s)?",
+                        true
+                    ).setNextMenu(() -> INPUT_APPOINTMENT_YEAR)
+                    .setNextAction((a,b) -> new HashMap<String, Object>() {{
+                            put("yearValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
+                            put("monthValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
+                            put("dayValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
+                            put("hourValidator", DateTimeUtil.DateConditions.FUTURE.toString());
+                        }}
+                    )
             ))).shouldAddLogoutOptions();
         Menu.PATIENT_VIEW_MEDICAL_RECORD
             .setDisplayGenerator(() -> {
@@ -231,23 +275,188 @@ public enum Menu {
                 ));
             }).shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
-            Menu.PATIENT_VIEW_AVAILABLE_APPOINTMENTS
-                .setOptionGenerator(() -> {
-                    List<Timeslot> timeslots = AppointmentService.getAvailableAppointmentSlotsToday();
-                    if (timeslots == null) {
-                        System.out.println("No available timeslots today.");
-                        return null;
-                    }
-                    return timeslots.stream()
+        Menu.PATIENT_VIEW_AVAILABLE_APPOINTMENTS
+            .setOptionGenerator(() -> {
+                List<Timeslot> timeslots = AppointmentService.getAvailableAppointmentSlotsToday();
+                if (timeslots != null) {
+                    List<Option> options = timeslots.stream()
                         .map(timeslot -> new Option(
                                 DateTimeUtil.printLongDateTime(timeslot.getTimeSlot()),
                                 DateTimeUtil.printShortDate(timeslot.getTimeSlot().toLocalDate()),
                                 true
-                            ) // TODO: set schedule appointment menu
+                            ).setNextMenu(INPUT_APPOINTMENT_DOCTOR.setDataFromPreviousMenu(
+                                new HashMap<>(){{
+                                    put("date", DateTimeUtil.printLongDateTime(timeslot.getTimeSlot()));
+                                }}
+                            ))
                         ).collect(Collectors.toList());
-                })
-                .shouldAddMainMenuOption()
-                .shouldAddLogoutOptions();
+                    if (!options.isEmpty()) {
+                        return options;
+                    }
+                }
+                System.out.println(String.format(
+                    "No available timeslots today. Try again tomorrow before %02d:00.\n",
+                    Timeslot.lastSlotStartTime.getHour()
+                ));
+                return null;
+            })
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.INPUT_APPOINTMENT_YEAR
+            .setNextMenu(Menu.INPUT_APPOINTMENT_MONTH)
+            .setNextAction((userInput, args) -> {
+                if (args.containsKey("yearValidator")) {
+                    int userIntInput = Menu.parseUserIntInput(userInput);
+                    if (
+                        userIntInput > LocalDate.now().getYear() + 1 ||
+                        userIntInput < LocalDate.now().getYear() - 1
+                    ) {
+                        throw new Exception(String.format(
+                            "Please enter a number between %d to %d",
+                            LocalDate.now().getYear() - 1,
+                            LocalDate.now().getYear() + 1
+                        ));
+                    }
+                    LocalDateTime originalDate = LocalDateTime.now();
+                    DateTimeUtil.validateUserDateInput(
+                        originalDate,
+                        originalDate.withYear(userIntInput),
+                        (String) args.get("yearValidator")
+                    );
+                }
+
+                if (args.isEmpty()) {
+                    args = new HashMap<>();
+                }
+                args.put("year", userInput);
+                return args;
+            });
+        Menu.INPUT_APPOINTMENT_MONTH
+            .setNextMenu(Menu.INPUT_APPOINTMENT_DAY)
+            .setNextAction((userInput, args) -> {
+                if (args.containsKey("monthValidator")) {
+                    int userIntInput = Menu.parseUserIntInput(userInput);
+                    if (userIntInput < 1 || userIntInput > 12) {
+                        throw new Exception("Please enter a number between 1 (Jan) to 12 (Dec)");
+                    }
+                    LocalDateTime originalDate = LocalDateTime.now();
+                    DateTimeUtil.validateUserDateInput(
+                        originalDate,
+                        originalDate
+                            .withYear(Menu.parseUserIntInput((String) args.get("year")))
+                            .withMonth(userIntInput),
+                        (String) args.get("monthValidator")
+                    );
+                }
+
+                args.put("month", userInput);
+                return args;
+            });
+        Menu.INPUT_APPOINTMENT_DAY
+            .setNextMenu(Menu.INPUT_APPOINTMENT_HOUR)
+            .setNextAction((userInput, args) -> {
+                if (args.containsKey("dayValidator")) {
+                    int userIntInput = Menu.parseUserIntInput(userInput);
+                    LocalDateTime originalDate = LocalDateTime.now();
+                    LocalDateTime offsetDate = originalDate
+                        .withYear(Menu.parseUserIntInput((String) args.get("year")))
+                        .withMonth(Menu.parseUserIntInput((String) args.get("month")))
+                        .withDayOfMonth(userIntInput);
+                    DateTimeUtil.validateUserDateInput(
+                        originalDate,
+                        offsetDate,
+                        (String) args.get("dayValidator")
+                    );
+                    if (
+                        !(offsetDate.toLocalDate().isAfter(originalDate.toLocalDate())) &&
+                        originalDate.getHour() > Timeslot.lastSlotStartTime.getHour()
+                    ) {
+                        throw new Exception("No appointments left for today. Please try another date.");
+                    }
+                }
+
+                args.put("day", userInput);
+                return args;
+            });
+        Menu.INPUT_APPOINTMENT_HOUR
+            .setNextAction((userInput, args) -> {
+                if (args.containsKey("hourValidator")) {
+                    int userIntInput = Menu.parseUserIntInput(userInput);
+                    LocalDateTime originalDate = LocalDateTime.now();
+                    if (
+                        userIntInput > Timeslot.lastSlotStartTime.getHour()  ||
+                        userIntInput < Timeslot.firstSlotStartTime.getHour()
+                    ) {
+                        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HHmm");
+                        throw new Exception(String.format(
+                            "Please enter a time during office hours (%sH - %sH)",
+                            Timeslot.firstSlotStartTime.format(formatter),
+                            Timeslot.lastSlotStartTime.format(formatter)
+                        ));
+                    }
+                    DateTimeUtil.validateUserDateInput(
+                        originalDate,
+                        originalDate
+                            .withYear(Menu.parseUserIntInput((String) args.get("year")))
+                            .withMonth(Menu.parseUserIntInput((String) args.get("month")))
+                            .withDayOfMonth(Menu.parseUserIntInput((String) args.get("day")))
+                            .withHour(userIntInput),
+                        (String) args.get("hourValidator")
+                    );
+                }
+
+                return new HashMap<String, Object>(){{
+                    put(
+                        "date", 
+                        DateTimeUtil.printLongDateTime(
+                            LocalDateTime.of(
+                                Menu.parseUserIntInput((String) args.get("year")),
+                                Menu.parseUserIntInput((String) args.get("month")),
+                                Menu.parseUserIntInput((String) args.get("day")),
+                                Menu.parseUserIntInput(userInput),
+                                0
+                            )
+                        )
+                    );
+                }};
+            }).setNextMenu(Menu.INPUT_APPOINTMENT_DOCTOR);
+        Menu.INPUT_APPOINTMENT_DOCTOR
+            .setOptionGenerator(() -> {
+                if (
+                    MenuService.getCurrentMenu().dataFromPreviousMenu != null &&
+                    MenuService.getCurrentMenu().dataFromPreviousMenu.containsKey("date")
+                ) {
+                    String selectedDateTimeString = 
+                        (String) MenuService.getCurrentMenu().dataFromPreviousMenu.get("date");
+                    LocalDateTime selectedDateTime = DateTimeUtil.parseLongDateTime(selectedDateTimeString);
+                    List<Doctor> availableDoctors = AppointmentService
+                        .getAvailableDoctorsAtTimeslot(selectedDateTime);
+                    if (availableDoctors != null && !availableDoctors.isEmpty()) {
+                        return IntStream.range(0, availableDoctors.size())
+                            .mapToObj(doctorIndex -> {
+                                Doctor doctor = availableDoctors.get(doctorIndex);
+                                return new Option(
+                                        doctor.getName(),
+                                        doctor.getName(),
+                                        true
+                                    ).setNextMenu(Menu.getConfirmMenu(
+                                        (input, args) -> {
+                                            AppointmentService.scheduleAppointment(
+                                                ((Patient) UserService.getCurrentUser()).getUserId(),
+                                                doctor.getUserId(),
+                                                selectedDateTime
+                                            );
+                                            return args;
+                                        },
+                                        MenuService.getCurrentMenu(),
+                                        Menu.getUserMainMenu()
+                                    )).setNextAction((input, args) -> args);
+                            }).collect(Collectors.toList());
+                    }
+                }
+                MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu());
+                throw new Exception("No doctors available.");
+            });
     }
     // Init END
 
@@ -323,34 +532,21 @@ public enum Menu {
                 .setNextAction((userInput, args) -> {
                     return new HashMap<>(){{ put("confirm", userInput); }};
                 })
-                .setNextMenu(Menu.CONFIRM
-                    .setOptions(new ArrayList<>(List.of(
-                        new Option(
-                                "Yes (Y)",
-                                "yes|y|yes( )?\\(?y\\)?",
-                                false
-                            ).setNextAction((userInput, args) -> {
-                                try {
-                                    return nextAction.apply(null, args);
-                                } catch (Exception e) {
-                                    MenuService.setCurrentMenu(currentMenu);
-                                    throw e;
-                                }
-                            })
-                            .setNextMenu(MenuService.getCurrentMenu()),
-                        new Option(
-                            "No (N)",
-                            "no|n|no( )?\\(?n\\)?",
-                            false
-                        ).setNextMenu(currentMenu)
-                    )))
-                )
+                .setNextMenu(Menu.getConfirmMenu(nextAction, currentMenu))
             );
         }
     
         private Option setNextAction(NextAction nextAction) {
             this.nextAction = nextAction;
             return this;
+        }
+    }
+
+    private static int parseUserIntInput(String userInput) throws Exception {
+        try {
+            return Integer.parseInt(userInput);
+        } catch (NumberFormatException e) {
+            throw new Exception("Please enter an integer/number.");
         }
     }
     // Helper END
@@ -527,6 +723,7 @@ public enum Menu {
         }
 
         Map<String, Object> argsForNext = this.setUserInput(userInput).executeNextAction();
+        System.out.println(argsForNext); // TODO: remove test
         return this.getNextMenu().setDataFromPreviousMenu(argsForNext);
     }
 
@@ -577,7 +774,39 @@ public enum Menu {
             UserService.logout();
             return Menu.LOGIN_USERNAME;
         }
+    }
 
+    private static Menu getConfirmMenu(NextAction nextAction, Menu currentMenu) {
+        return Menu.getConfirmMenu(nextAction, currentMenu, MenuService.getCurrentMenu());
+    }
+
+    private static Menu getConfirmMenu(
+        NextAction nextAction, Menu currentMenu, Menu exitMenu
+    ) {
+        return Menu.CONFIRM
+            .setOptions(new ArrayList<>(List.of(
+                new Option(
+                        "Yes (Y)",
+                        "yes|y|yes( )?\\(?y\\)?",
+                        false
+                    ).setNextAction((input, args) -> {
+                        System.out.println("test");
+                        System.out.println(args);
+                        try {
+                            return nextAction.apply(input, args);
+                        } catch (Exception e) {
+                            MenuService.setCurrentMenu(currentMenu);
+                            throw e;
+                        }
+                    })
+                    .setNextMenu(exitMenu),
+                new Option(
+                    "No (N)",
+                    "no|n|no( )?\\(?n\\)?",
+                    false
+                ).setNextMenu(currentMenu)
+                .setNextAction((input, args) -> args)
+            )));
     }
     // Next state (transition + action) handling END
 
@@ -671,7 +900,7 @@ public enum Menu {
         return IntStream.range(0, this.options.size())
             .filter(optionsIndex -> getNumbered == this.options.get(optionsIndex).isNumberedOption)
             .mapToObj((int optionsIndex) -> this.options.get(optionsIndex))
-            .collect(Collectors.toCollection(ArrayList::new));
+            .collect(Collectors.toList());
     }
 
     private List<Option> getFilteredOptions(String userInput, boolean numbered) {
@@ -683,7 +912,7 @@ public enum Menu {
                     numbered ? 
                         String.join(
                             "|",
-                            String.format("^%d$", optionsIndex+1),
+                            String.format("^%d(\\.)?$", optionsIndex+1),
                             option.matchPattern,
                             String.format("%d[ ]+(\\.)?%s",
                                 optionsIndex+1,
@@ -695,7 +924,7 @@ public enum Menu {
                 Matcher matcher = matchPattern.matcher(userInput);
                 return matcher.find() ? option : null;
             }).filter(Objects::nonNull)
-            .collect(Collectors.toCollection(ArrayList::new));
+            .collect(Collectors.toList());
     }
     // Options handling - display & matching user input END
     // Options handling END
