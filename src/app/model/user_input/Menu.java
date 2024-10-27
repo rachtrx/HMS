@@ -24,6 +24,8 @@ import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javax.swing.text.html.Option;
+
 /**
 * Controls which menus to show (Equivalent to machine in FSM)
 *
@@ -125,7 +127,8 @@ public enum Menu {
     INPUT_APPOINTMENT_DOCTOR(new MenuBuilder(
         MenuType.SELECT,
         "Choose Appointment Doctor",
-        null
+        null,
+        true
     ));
 
     // Transitions
@@ -456,19 +459,18 @@ public enum Menu {
                             .mapToObj(doctorIndex -> {
                                 Doctor doctor = availableDoctors.get(doctorIndex);
                                 return new Option(
-                                        doctor.getName(),
-                                        doctor.getName(),
-                                        true,
-                                        true
-                                    ).setNextMenu(Menu.getUserMainMenu())
-                                    .setNextAction((input, args) -> {
-                                        AppointmentService.scheduleAppointment(
-                                            ((Patient) UserService.getCurrentUser()).getRoleId(),
-                                            doctor.getRoleId(),
-                                            selectedDateTime
-                                        );
-                                        return args;
-                                    });
+                                    doctor.getName(),
+                                    doctor.getName(),
+                                    true
+                                ).setNextMenu(Menu.getUserMainMenu())
+                                .setNextAction((input, args) -> {
+                                    AppointmentService.scheduleAppointment(
+                                        ((Patient) UserService.getCurrentUser()).getRoleId(),
+                                        doctor.getRoleId(),
+                                        selectedDateTime
+                                    );
+                                    return args;
+                                });
                             }).collect(Collectors.toList());
                     }
                 }
@@ -519,57 +521,28 @@ public enum Menu {
         private final String label;
         private final String matchPattern;
         private final boolean isNumberedOption;
-        private final boolean requiresConfirmation;
         private MenuGenerator nextMenuGenerator;
         private NextAction nextAction;
-
+    
         public Option(
             String label,
             String matchPattern,
             boolean isNumberedOption
         ) {
-            this(label, matchPattern, isNumberedOption, false);
-        };
-    
-        public Option(
-            String label,
-            String matchPattern,
-            boolean isNumberedOption,
-            boolean requiresConfirmation
-        ) {
             this.label = label;
             this.matchPattern = matchPattern;
             this.isNumberedOption = isNumberedOption;
-            this.requiresConfirmation = requiresConfirmation;
         };
-
-        private NextAction getNextAction() {
-            return this.nextAction;
-        }
 
         private MenuGenerator getNextMenuGenerator() {
             return this.nextMenuGenerator;
         }
+
+        private NextAction getNextAction() {
+            return this.nextAction;
+        }
     
         private Option setNextMenu(Menu nextMenu) {
-            if (this.requiresConfirmation) {
-                Menu currentMenu = MenuService.getCurrentMenu();
-                return this.setNextMenu(() -> Menu.CONFIRM
-                    .setOptionGenerator(() -> new ArrayList<>(List.of(
-                        new Option(
-                            "Yes (Y)",
-                            "yes|y|yes( )?\\(?y\\)?",
-                            false
-                        ).setNextAction(this.getNextAction()).setNextMenu(nextMenu),
-                        new Option(
-                            "No (N)",
-                            "no|n|no( )?\\(?n\\)?",
-                            false
-                        ).setNextAction((input, args) -> args).setNextMenu(() -> currentMenu)
-                    )))
-                );
-            }
-            
             return this.setNextMenu(() -> nextMenu);
         }
 
@@ -612,11 +585,17 @@ public enum Menu {
         private final MenuType menuType;
         private final String title;
         private final String label;
+        private final boolean requiresConfirmation;
         
-        MenuBuilder(MenuType menuType, String title, String label) {
+        MenuBuilder(MenuType menuType, String title, String label, boolean requiresConfirmation) {
             this.menuType = menuType;
             this.title = title;
             this.label = label;
+            this.requiresConfirmation = requiresConfirmation;
+        }
+
+        MenuBuilder(MenuType menuType, String title, String label) {
+            this(menuType, title, label, false);
         }
     }
     // Builder END
@@ -639,18 +618,19 @@ public enum Menu {
     private DisplayGenerator displayGenerator;
     private boolean shouldHaveMainMenuOption;
     private boolean shouldHaveLogoutOption;
+    private final boolean requiresConfirmation;
     // Options END
         
     Menu(MenuBuilder menuBuilder) {
         this.menuType = menuBuilder.menuType;
         this.title = menuBuilder.title;
         this.label = menuBuilder.label;
+        this.requiresConfirmation = menuBuilder.requiresConfirmation;
     }
 
     public Menu setDisplayGenerator(DisplayGenerator displayGenerator) {
         this.displayGenerator = displayGenerator;
         return this;
-
     }
 
     public void display() throws Exception {
@@ -781,7 +761,8 @@ public enum Menu {
                 }
             }
 
-            this.setNextMenu(option == null ? () -> this : option.getNextMenuGenerator());
+            if (this.requiresConfirmation) this.setNextMenu(option);
+            else this.setNextMenu(option == null ? () -> this : option.getNextMenuGenerator());
             this.setNextAction(option == null ? (a, b) -> null : (option.nextAction));
         }
 
@@ -817,8 +798,20 @@ public enum Menu {
         return this.nextMenuGenerator.apply();
     }
 
-    private Menu setNextMenu(Menu nextMenu) { // TODO can we just use this and remove the 2nd one?
-        return this.setNextMenu(() -> nextMenu);
+    private Menu setNextMenu(Option option) {
+        Menu currentMenu = MenuService.getCurrentMenu();
+        return setNextMenu(() -> {
+            return Menu.CONFIRM.setOptionGenerator(() -> Arrays.asList(
+                new Option("Yes (Y)", "yes|y|yes( )?\\(?y\\)?", false)
+                    .setNextMenu(option.getNextMenuGenerator()).setNextAction(option.getNextAction()),
+                new Option("No (N)", "no|n|no( )?\\(?n\\)?", false)
+                    .setNextMenu(currentMenu).setNextAction((input, args) -> args)
+            ));
+        });
+    }
+
+    private Menu setNextMenu(Menu nextMenu) {
+        return setNextMenu(() -> nextMenu);
     }
 
     private Menu setNextMenu(MenuGenerator nextMenuGenerator) {
