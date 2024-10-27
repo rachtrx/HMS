@@ -553,6 +553,7 @@ public enum Menu {
     
         private Option setNextMenu(Menu nextMenu) {
             if (this.requiresConfirmation) {
+                Menu currentMenu = MenuService.getCurrentMenu();
                 return this.setNextMenu(() -> Menu.CONFIRM
                     .setOptionGenerator(() -> new ArrayList<>(List.of(
                         new Option(
@@ -564,7 +565,7 @@ public enum Menu {
                             "No (N)",
                             "no|n|no( )?\\(?n\\)?",
                             false
-                        ).setNextAction((input, args) -> args).setNextMenu(() -> MenuService.getCurrentMenu())
+                        ).setNextAction((input, args) -> args).setNextMenu(() -> currentMenu)
                     )))
                 );
             }
