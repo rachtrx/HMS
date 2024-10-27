@@ -2,7 +2,6 @@ package app.model.appointments;
 
 import app.constants.exceptions.InvalidTimeslotException;
 import app.utils.DateTimeUtil;
-
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -50,7 +49,7 @@ public class DoctorEvent {
         this.timeslot = timeslot;
     }
 
-    public boolean isAppointment(DoctorEvent obj) {
-        return obj instanceof Appointment;
+    public boolean isAppointment() {
+        return this instanceof Appointment;
     }
 }

@@ -1,8 +1,6 @@
 package app.model.appointments;
 
-import app.utils.DateTimeUtil;
 import app.utils.EnumUtils;
-import java.time.LocalDateTime;
 import java.util.List;
 
 /**
@@ -41,19 +39,19 @@ public class AppointmentOutcomeRecord {
         },
     }
 
-    private final Appointment appointment;
+    private final int appointmentId;
     private final ServiceType serviceType;
     private final Prescription prescription;
     private final String consultationNotes;
 
     public AppointmentOutcomeRecord(
-        Appointment appointment,
+        int appointmentId,
         String serviceType,
         Prescription prescription,
         String consultationNotes
     ) {
         this.id = AppointmentOutcomeRecord.uuid++;
-        this.appointment = appointment;
+        this.appointmentId = appointmentId;
         this.serviceType = EnumUtils.fromString(ServiceType.class, serviceType);
         this.prescription = prescription;
         this.consultationNotes = consultationNotes;
@@ -61,11 +59,10 @@ public class AppointmentOutcomeRecord {
 
     public AppointmentOutcomeRecord(
         List<String> row,
-        Appointment appointment,
         Prescription prescription
     ) {
         this.id = Integer.parseInt(row.get(0));
-        this.appointment = appointment;
+        this.appointmentId = Integer.parseInt(row.get(1));
         this.serviceType = EnumUtils.fromString(ServiceType.class, row.get(2));
         this.prescription = prescription;
         this.consultationNotes = row.get(3);
@@ -76,16 +73,12 @@ public class AppointmentOutcomeRecord {
         return id;
     }
 
-    public Appointment getAppointment() {
-        return appointment;
+    public int getAppointmentId() {
+        return appointmentId;
     }
 
-    public LocalDateTime getAppointmentDate() {
-        return appointment.getTimeslot();
-    }
-
-    public ServiceType getServiceType() {
-        return serviceType;
+    public String getServiceType() {
+        return serviceType.toString();
     }
 
     public Prescription getPrescription(){
@@ -94,12 +87,5 @@ public class AppointmentOutcomeRecord {
 
     public String getConsultationNotes() {
         return consultationNotes;
-    }
-
-    public void printDetails() {
-        System.out.println("Appointment Date: " + DateTimeUtil.printShortDateTime(appointment.getTimeslot()));
-        System.out.println("Service Type: " + serviceType.toString());
-        System.out.println("Prescription Details: " + prescription.toString());
-        System.out.println("Consultation Notes: " + consultationNotes);
     }
 }

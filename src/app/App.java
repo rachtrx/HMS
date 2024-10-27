@@ -24,7 +24,7 @@ public class App {
 		while (true) {
 			try {
 				if (App.scanner.hasNextLine()) {
-					MenuService.clearScreen();
+					// MenuService.clearScreen(); // TODO uncomment once done
 					MenuService.handleUserInput(App.scanner.nextLine());
 					MenuService.getCurrentMenu().display();
 				} else {

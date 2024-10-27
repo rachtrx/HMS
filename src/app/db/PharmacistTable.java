@@ -18,7 +18,7 @@ public class PharmacistTable {
     public static void create(Pharmacist pharmacist) {
         List<String> pharmacistStr = new ArrayList<>();
 
-        pharmacistStr.add(String.valueOf(pharmacist.getPharmacistId()));
+        pharmacistStr.add(String.valueOf(pharmacist.getRoleId()));
         pharmacistStr.add(String.valueOf(pharmacist.getStaffId()));
 
         // Convert to a List<List<String>> to represent the CSV rows
@@ -41,7 +41,7 @@ public class PharmacistTable {
             List<List<String>> updatedPharmacists = new ArrayList<>();
 
             for (List<String> pharmacistData : allPharmacists) {
-                if (!pharmacistData.get(0).equals(String.valueOf(pharmacist.getPharmacistId()))) {
+                if (!pharmacistData.get(0).equals(String.valueOf(pharmacist.getRoleId()))) {
                     updatedPharmacists.add(pharmacistData); // Add all except the one with pharmacistId
                 }
             }

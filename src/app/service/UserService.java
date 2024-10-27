@@ -64,67 +64,12 @@ public class UserService {
         return null;
     }
     
-    public static <T extends User> T findUserByIdAndType(int userId, Class<T> userType) {
+    public static <T extends User> T findUserByIdAndType(int userId, Class<T> userType, boolean byRole) {
         Optional<T> result = UserService.getAllUserByType(userType)
             .stream()
-            .filter(user -> userId == user.getUserId())
+            .filter(user -> byRole ? userId == user.getRoleId() : userId == user.getUserId())
             .map(userType::cast) // Cast the user to the correct type
             .findFirst();
         return result.isPresent() ? result.get() : null;
     }
-    
-    // public void loadPatients(List<List<String>> patients) throws Exception {
-    //     for (List<String> row : patients) {
-    //         String username = row.get(0);
-    //         String password = row.get(1);
-    //         String patientId = row.get(2); // TODO
-    //         String name = row.get(3);
-    //         String gender = row.get(4);
-    //         String mobileNumber = row.get(5);
-    //         String homeNumber = row.get(6);
-    //         String email = row.get(7);
-    //         String dateOfBirth = row.get(8); // Assuming the DoB format is correct in the new data
-    //         String bloodType = row.get(9);
-            
-    //         // Create a patient and add to users list
-    //         users.add(new Patient(
-    //             username, password, name, patientId, gender,
-    //             mobileNumber, homeNumber, email, dateOfBirth, bloodType
-    //         ));
-    //     }
-    // }
-    
-    // public void loadStaff(List<List<String>> staff) {
-    //     for (List<String> row : staff) {
-    //         String hospitalId = row.get(0).substring(1);
-    //         String name = row.get(1);
-    //         char role = row.get(2).charAt(0);
-    //         char gender = row.get(3).charAt(0);
-    //         String age = row.get(4);
-    
-    //         // Create staff and add to users list
-    //         User staffMember = createStaff(hospitalId, name, role, gender, age);
-    //         users.add(staffMember);
-    //     }
-    // }
-    
-    // public User createStaff(String hospitalId, String name, String role, char gender, String age) {
-    
-    //     User user;
-    
-    //     switch (role) {
-    //         case 'D': // TODO convert to Enum? same for class
-    //             user = new Doctor(hospitalId, name, gender, age);
-    //             break;
-    //         case 'P':
-    //             user = new Pharmacist(hospitalId, name, gender, age);
-    //             break;
-    //         case 'A':
-    //             user = new Admin(hospitalId, name, gender, age);
-    //             break;
-    //         default:
-    //             throw new IllegalArgumentException("Invalid role");
-    //     }
-    //     return user;
-    // }
 }

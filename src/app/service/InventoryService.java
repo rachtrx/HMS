@@ -8,8 +8,6 @@ import app.model.inventory.Medication;
 import app.model.inventory.Request;
 import java.util.*;
 
-import com.sun.net.httpserver.Request;
-
 // public class InventoryService {
 // 	private List<Medication> medicationList = new ArrayList<>();
 //     private List<Request> requestList = new ArrayList<>();

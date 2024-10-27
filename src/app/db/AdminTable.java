@@ -18,7 +18,7 @@ public class AdminTable {
     public static void create(Admin admin) {
         List<String> adminStr = new ArrayList<>();
 
-        adminStr.add(String.valueOf(admin.getAdminId()));
+        adminStr.add(String.valueOf(admin.getRoleId()));
         adminStr.add(String.valueOf(admin.getStaffId()));
 
         // Convert to a List<List<String>> to represent the CSV rows
@@ -41,7 +41,7 @@ public class AdminTable {
             List<List<String>> updatedAdmins = new ArrayList<>();
 
             for (List<String> adminData : allAdmins) {
-                if (!adminData.get(0).equals(String.valueOf(admin.getAdminId()))) {
+                if (!adminData.get(0).equals(String.valueOf(admin.getRoleId()))) {
                     updatedAdmins.add(adminData); // Add all except the one with adminId
                 }
             }

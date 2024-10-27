@@ -59,6 +59,8 @@ public abstract class User {
         return this.userId;
     }
 
+    public abstract int getRoleId();
+
     // /** 
     //  * @return String
     //  */

@@ -32,7 +32,8 @@ public class Admin extends Staff {
         this.adminId = Admin.adminUuid++;
     }
 
-    public int getAdminId() {
-        return adminId;
-    }
+    @Override
+    public int getRoleId() {
+        return this.adminId;
+    };
 }

@@ -19,9 +19,9 @@ public class AppointmentOutcomeTable {
         List<String> outcomeStr = new ArrayList<>();
 
         outcomeStr.add(String.valueOf(outcomeRecord.getId()));
-        outcomeStr.add(String.valueOf(outcomeRecord.getAppointment().getAppointmentId()));
+        outcomeStr.add(String.valueOf(outcomeRecord.getAppointmentId()));
         // outcomeStr.add(String.valueOf(outcomeRecord.getPrescription().getId()));
-        outcomeStr.add(outcomeRecord.getServiceType().toString()); // Store serviceType as a string
+        outcomeStr.add(outcomeRecord.getServiceType()); // Store serviceType as a string
         outcomeStr.add(outcomeRecord.getConsultationNotes()); // Store consultation notes
 
         // Convert to a List<List<String>> to represent the CSV rows
@@ -44,9 +44,9 @@ public class AppointmentOutcomeTable {
             // Find the outcome to edit by matching the old serviceType
             for (List<String> outcomeData : allOutcomes) {
                 if (outcomeData.get(0).equals(String.valueOf(outcomeRecord.getId()))) {
-                    outcomeData.set(1, String.valueOf(outcomeRecord.getAppointment().getAppointmentId()));
+                    outcomeData.set(1, String.valueOf(outcomeRecord.getAppointmentId()));
                     // outcomeData.set(2, String.valueOf(outcomeRecord.getPrescription().getId())); // Update service type
-                    outcomeData.set(2, outcomeRecord.getServiceType().toString());  // Update consultation notes
+                    outcomeData.set(2, outcomeRecord.getServiceType());  // Update consultation notes
                     outcomeData.set(3, outcomeRecord.getConsultationNotes());
                 }
                 updatedOutcomes.add(outcomeData);

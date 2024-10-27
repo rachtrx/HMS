@@ -32,7 +32,8 @@ public class Pharmacist extends Staff {
         this.pharmacistId = Pharmacist.pharmacistUuid++;
     }
 
-    public int getPharmacistId() {
-        return pharmacistId;
-    }
+    @Override
+    public int getRoleId() {
+        return this.pharmacistId;
+    };
 }

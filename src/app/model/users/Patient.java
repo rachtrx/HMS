@@ -1,16 +1,11 @@
 package app.model.users;
 
 import app.constants.BloodType;
-import app.constants.exceptions.MissingAppointmentException;
-import app.model.appointments.Appointment;
-import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.user_credentials.Email;
-import app.model.user_credentials.MedicalRecord;
 import app.model.user_credentials.PhoneNumber;
 import app.utils.DateTimeUtil;
 import app.utils.EnumUtils;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 public class Patient extends User {
@@ -27,16 +22,12 @@ public class Patient extends User {
     private final Email email;
     private final LocalDate dateOfBirth;
     private final BloodType bloodType;
-    private final List<Appointment> appointments;
-    private final MedicalRecord medicalRecord;
 
     // IMPT medical record is built from patient's appointmentHistory
     
     public Patient(
         List<String> patientRow,
-        List<String> userRow,
-        List<Appointment> appointments,
-        List<AppointmentOutcomeRecord> appointmentHistory
+        List<String> userRow
     ) throws Exception {
         super(userRow);
         this.patientId = Integer.parseInt(patientRow.get(0));
@@ -45,8 +36,6 @@ public class Patient extends User {
         this.email = new Email(patientRow.get(4));
         this.dateOfBirth = DateTimeUtil.parseShortDate(patientRow.get(5));
         this.bloodType = EnumUtils.fromString(BloodType.class, patientRow.get(6)); // TODO
-        this.appointments = appointments;
-        this.medicalRecord = new MedicalRecord(this, appointmentHistory);
         Patient.setPatientUuid(Math.max(Patient.patientUuid, this.patientId)+1);
     }
 
@@ -69,13 +58,12 @@ public class Patient extends User {
         this.email = new Email(email);
         this.dateOfBirth = DateTimeUtil.parseShortDate(dateOfBirth);
         this.bloodType = EnumUtils.fromString(BloodType.class, bloodType);
-        this.appointments = new ArrayList<>();
-        this.medicalRecord = new MedicalRecord(this, new ArrayList<>());
     }
 
-    public int getPatientId() {
+    @Override
+    public int getRoleId() {
         return this.patientId;
-    }
+    };
 
     public Integer getMobileNumber() {
         return mobileNumber.getNumber();
@@ -118,20 +106,6 @@ public class Patient extends User {
         return bloodType.toString();
     }
 
-    // No need to set
-    public List<Appointment> getAppointments() {
-        return appointments;
-    }
-
-    public void addAppointment(Appointment appointment) {
-        this.appointments.add(appointment);
-    }
-
-    // No need to set
-    public MedicalRecord getMedicalRecord() {
-        return medicalRecord;
-    }
-
     // public void addAppointmentRecord(AppointmentOutcomeRecord appointmentRecord) {
     //     this.medicalRecord.addAppointmentRecord(appointmentRecord);
     // }
@@ -139,21 +113,21 @@ public class Patient extends User {
     public void print() {
         System.out.println(String.join(
             "\n",
-            String.format("Patient ID: %d", this.getPatientId()),
-            String.format("Name: %s", this.getName()),
-            String.format("Date of Birth: %s", DateTimeUtil.printShortDate(this.dateOfBirth)),
-            String.format("Gender: %s", this.getGender()),
-            String.format("Mobile number: %d", this.getMobileNumber()),
-            String.format("Home number: %d", this.getMobileNumber()),
-            String.format("Email: %s", this.getEmail()),
-            String.format("Blood Type: %s", this.getBloodType())
+            String.format("1. Patient Name: %s", this.getName()),
+            String.format("2. Patient ID: %d", this.getRoleId()),
+            String.format("3. Date of Birth: %s", DateTimeUtil.printLongDate(this.dateOfBirth)),
+            String.format("4. Gender: %s", this.getGender()),
+            String.format("5. Mobile number: +65%d", this.getMobileNumber()),
+            String.format("6. Home number: +65%d", this.getMobileNumber()),
+            String.format("7. Email: %s", this.getEmail()),
+            String.format("8. Blood Type: %s", this.getBloodType())
         ));
     }
 
-    public void printMedicalRecord() throws MissingAppointmentException {
-        this.print();
-        medicalRecord.printAppointmentHistory();
-    }
+    // public void printMedicalRecord() throws MissingAppointmentException {
+    //     this.print();
+    //     medicalRecord.printAppointmentHistory();
+    // }
 
     
 

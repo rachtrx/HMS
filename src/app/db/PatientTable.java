@@ -18,7 +18,7 @@ public class PatientTable {
     public static void create(Patient patient) {
         List<String> patientStr = new ArrayList<>();
 
-        patientStr.add(String.valueOf(patient.getPatientId()));
+        patientStr.add(String.valueOf(patient.getRoleId()));
         patientStr.add(patient.getMobileNumber().toString());
         patientStr.add(patient.getHomeNumber().toString());
         patientStr.add(patient.getEmail());
@@ -43,7 +43,7 @@ public class PatientTable {
 
             // Find the patient to edit by matching their ID
             for (List<String> patientData : allPatients) {
-                if (patientData.get(0).equals(String.valueOf(patient.getPatientId()))) {
+                if (patientData.get(0).equals(String.valueOf(patient.getRoleId()))) {
                     patientData.set(1, patient.getMobileNumber().toString());
                     patientData.set(2, patient.getMobileNumber().toString());
                     patientData.set(3, patient.getHomeNumber().toString());
@@ -67,7 +67,7 @@ public class PatientTable {
             List<List<String>> updatedPatients = new ArrayList<>();
 
             for (List<String> patientData : allPatients) {
-                if (!patientData.get(0).equals(String.valueOf(patient.getPatientId()))) {
+                if (!patientData.get(0).equals(String.valueOf(patient.getRoleId()))) {
                     updatedPatients.add(patientData);
                 }
             }

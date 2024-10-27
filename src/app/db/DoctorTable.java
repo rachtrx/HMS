@@ -18,7 +18,7 @@ public class DoctorTable {
     public static void create(Doctor doctor) {
         List<String> doctorStr = new ArrayList<>();
 
-        doctorStr.add(String.valueOf(doctor.getDoctorId()));
+        doctorStr.add(String.valueOf(doctor.getRoleId()));
         doctorStr.add(String.valueOf(doctor.getStaffId()));
 
         // Convert to a List<List<String>> to represent the CSV rows
@@ -41,7 +41,7 @@ public class DoctorTable {
             List<List<String>> updatedDoctors = new ArrayList<>();
 
             for (List<String> doctorData : allDoctors) {
-                if (!doctorData.get(0).equals(String.valueOf(doctor.getDoctorId()))) {
+                if (!doctorData.get(0).equals(String.valueOf(doctor.getRoleId()))) {
                     updatedDoctors.add(doctorData); // Add all except the one with doctorId
                 }
             }

@@ -2,8 +2,6 @@ package app.model.user_credentials;
 
 import app.constants.exceptions.MissingAppointmentException;
 import app.model.appointments.AppointmentOutcomeRecord;
-import app.model.users.Patient;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,102 +15,40 @@ import java.util.List;
 public class MedicalRecord {
 
     // Constructor START
-    private Patient patient; // Composition: Patient and MR both mapped to each other, but MR is always created from Patient
     private List<AppointmentOutcomeRecord> appointmentHistory;
+    private int patientId;
     // TODO: diagnoses and treatments
 
     public MedicalRecord(
-        Patient patient,
+        int patientId,
         List<AppointmentOutcomeRecord> appointmentHistory
     ) {
-        this.patient = patient;
+        this.patientId = patientId;
         this.appointmentHistory = appointmentHistory;
     }
 
     public MedicalRecord(
-        Patient patient
+        int patientId
     ) {
-        this.patient = patient;
-        this.appointmentHistory = new ArrayList<>();
+        this(patientId, new ArrayList<>());
     }
     // Constructor END
 
     // Getters and Setters START
-    
-    /** 
-     * @return int
-     */
+
     public int getPatientId() {
-        return this.patient.getPatientId();
-    }
-    
-    /** 
-     * @return int
-     */
-    public int getMobileNumber() {
-        return this.patient.getMobileNumber();
+        return this.patientId;
     }
 
-    
-    /** 
-     * @param mobileNumber
-     */
-    public void setMobileNumber(Integer mobileNumber) throws Exception {
-        this.patient.setMobileNumber(mobileNumber);
+    public List<AppointmentOutcomeRecord> getAppointmentOutcomes() {
+        return appointmentHistory;
     }
 
-    
-    /** 
-     * @return int
-     */
-    public int getHomeNumber() {
-        return this.patient.getHomeNumber();
+    public void addAppointmentOutcome(AppointmentOutcomeRecord outcome) {
+        this.appointmentHistory.add(outcome);
     }
-
-    
-    /** 
-     * @param homeNumber
-     */
-    public void setHomeNumber(Integer homeNumber) throws Exception {
-        this.patient.setHomeNumber(homeNumber);
-    }
-
-    
-    /** 
-     * @return String
-     */
-    public String getEmail() {
-        return this.patient.getEmail();
-    }
-
-    
-    /** 
-     * @param email
-     */
-    public void setEmail(String email) throws Exception {
-        this.patient.setEmail(email);
-    }
-
-    
-    /** 
-     * @return LocalDate
-     */
-    public LocalDate getDateOfBirth() {
-        return this.patient.getDateOfBirth();
-    }
-
-    
-    /** 
-     * @return BloodType
-     */
-     public String getBloodType() {
-        return this.patient.getBloodType();
-    }
-    // Getters and Setters END
-
 
     public void print() throws MissingAppointmentException {
-        this.patient.print();
         this.printAppointmentHistory();
     }
 
@@ -124,8 +60,8 @@ public class MedicalRecord {
         }
     
         System.out.println("Completed Appointments with Prescriptions:");
-        for (AppointmentOutcomeRecord record : appointmentHistory) {
-            record.printDetails();
-        }
+        // for (AppointmentOutcomeRecord record : appointmentHistory) {
+        //     record.printDetails();
+        // }
     }
 }
