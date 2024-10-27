@@ -313,9 +313,7 @@ public enum Menu {
                     new Option("Custom", "custom", true)
                     .setNextAction((userInput, args) -> args).setNextMenu(Menu.INPUT_APPOINTMENT_YEAR)
                 ));
-            })
-            .shouldAddMainMenuOption()
-            .shouldAddLogoutOptions();
+            });
         Menu.INPUT_APPOINTMENT_YEAR
             .setNextMenu(Menu.INPUT_APPOINTMENT_MONTH)
             .setNextAction((userInput, args) -> {
@@ -460,26 +458,25 @@ public enum Menu {
                                 return new Option(
                                         doctor.getName(),
                                         doctor.getName(),
+                                        true,
                                         true
-                                    ).setNextMenu(Menu.getConfirmMenu(
-                                        (input, args) -> {
-                                            AppointmentService.scheduleAppointment(
-                                                ((Patient) UserService.getCurrentUser()).getRoleId(),
-                                                doctor.getRoleId(),
-                                                selectedDateTime
-                                            );
-                                            return args;
-                                        },
-                                        MenuService.getCurrentMenu(),
-                                        Menu.getUserMainMenu()
-                                    )).setNextAction((input, args) -> args);
+                                    ).setNextMenu(Menu.getUserMainMenu())
+                                    .setNextAction((input, args) -> {
+                                        AppointmentService.scheduleAppointment(
+                                            ((Patient) UserService.getCurrentUser()).getRoleId(),
+                                            doctor.getRoleId(),
+                                            selectedDateTime
+                                        );
+                                        return args;
+                                    });
                             }).collect(Collectors.toList());
                     }
                 }
                 MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu());
                 throw new Exception("No doctors available.");
             });
-    }
+
+        }
     // Init END
 
     // Helper START
@@ -522,24 +519,56 @@ public enum Menu {
         private final String label;
         private final String matchPattern;
         private final boolean isNumberedOption;
+        private final boolean requiresConfirmation;
         private MenuGenerator nextMenuGenerator;
         private NextAction nextAction;
-    
+
         public Option(
             String label,
             String matchPattern,
             boolean isNumberedOption
         ) {
+            this(label, matchPattern, isNumberedOption, false);
+        };
+    
+        public Option(
+            String label,
+            String matchPattern,
+            boolean isNumberedOption,
+            boolean requiresConfirmation
+        ) {
             this.label = label;
             this.matchPattern = matchPattern;
             this.isNumberedOption = isNumberedOption;
+            this.requiresConfirmation = requiresConfirmation;
         };
+
+        private NextAction getNextAction() {
+            return this.nextAction;
+        }
 
         private MenuGenerator getNextMenuGenerator() {
             return this.nextMenuGenerator;
         }
     
         private Option setNextMenu(Menu nextMenu) {
+            if (this.requiresConfirmation) {
+                return this.setNextMenu(() -> Menu.CONFIRM
+                    .setOptionGenerator(() -> new ArrayList<>(List.of(
+                        new Option(
+                            "Yes (Y)",
+                            "yes|y|yes( )?\\(?y\\)?",
+                            false
+                        ).setNextAction(this.getNextAction()).setNextMenu(nextMenu),
+                        new Option(
+                            "No (N)",
+                            "no|n|no( )?\\(?n\\)?",
+                            false
+                        ).setNextAction((input, args) -> args).setNextMenu(() -> MenuService.getCurrentMenu())
+                    )))
+                );
+            }
+            
             return this.setNextMenu(() -> nextMenu);
         }
 
