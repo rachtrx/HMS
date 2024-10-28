@@ -3,6 +3,9 @@ package app.model.user_input;
 import app.constants.AppMetadata;
 import app.constants.exceptions.ExitApplication;
 import app.model.appointments.Appointment;
+import app.model.appointments.Appointment.AppointmentStatus;
+import app.model.appointments.AppointmentDisplay;
+import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.Timeslot;
 import app.model.users.Patient;
 import app.model.users.staff.Doctor;
@@ -18,6 +21,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -41,7 +45,8 @@ public enum Menu {
     EDIT(new MenuBuilder(
         MenuType.INPUT,
         null,
-        "Enter a new value: "
+        "Enter a new value: ",
+        true
     )),
     CONFIRM(new MenuBuilder(
         MenuType.SELECT,
@@ -95,7 +100,7 @@ public enum Menu {
         "Choose Date",
         null
     )),
-    PATIENT_VIEW_AVAILABLE_APPOINTMENTS(new MenuBuilder(
+    PATIENT_VIEW_AVAIL_APPOINTMENTS(new MenuBuilder(
         MenuType.SELECT,
         "Available Appointments Today",
         null
@@ -129,7 +134,65 @@ public enum Menu {
         "Choose Appointment Doctor",
         null,
         true
+    )),
+    PATIENT_RESCHEDULE_SELECTION(new MenuBuilder(
+        MenuType.SELECT,
+        "Choose Appointment to reschedule",
+        null
+    )),
+    PATIENT_CANCEL_SELECTION(new MenuBuilder(
+        MenuType.SELECT,
+        "Choose Appointment to cancel",
+        null,
+        true
+    )),
+    PATIENT_VIEW_CONFIRMED_APPOINTMENTS(new MenuBuilder(
+        MenuType.SELECT,
+        "Upcoming Scheduled Appointments",
+        null
+    )),
+    PATIENT_VIEW_OUTCOMES(new MenuBuilder(
+        MenuType.SELECT,
+        "Past Appointment Outcome Records",
+        null
+    )),
+    // TODO 
+    DOCTOR_VIEW_RECORDS(new MenuBuilder(
+        MenuType.SELECT,
+        "Past Appointment Outcome Records",
+        null
+    )),
+    DOCTOR_UPDATE_RECORDS(new MenuBuilder(
+        MenuType.SELECT,
+        "Past Appointment Outcome Records",
+        null
+    )),
+    DOCTOR_VIEW_SCHEDULE(new MenuBuilder(
+        MenuType.SELECT,
+        "Past Appointment Outcome Records",
+        null
+    )),
+    DOCTOR_SET_AVAIL(new MenuBuilder(
+        MenuType.SELECT,
+        "Past Appointment Outcome Records",
+        null
+    )),
+    DOCTOR_RESPOND(new MenuBuilder(
+        MenuType.SELECT,
+        "Past Appointment Outcome Records",
+        null
+    )),
+    DOCTOR_VIEW_CONFIRMED(new MenuBuilder(
+        MenuType.SELECT,
+        "Past Appointment Outcome Records",
+        null
+    )),
+    DOCTOR_ADD_OUTCOME(new MenuBuilder(
+        MenuType.SELECT,
+        "Past Appointment Outcome Records",
+        null
     ));
+
 
     // Transitions
     static {
@@ -142,16 +205,11 @@ public enum Menu {
         Menu.LOGIN_PASSWORD
             .setParseUserInput(false)
             .setNextAction((userInput, args) -> {
-                try {
-                    UserService.login((String) args.get("username"), userInput);
-                    MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu()); // pass in menugenerator
-                } catch (Exception e) {
-                    System.out.println(e.getMessage() + "\n");
-                    MenuService.getCurrentMenu().setNextMenu(Menu.LOGIN_USERNAME);
-                }
+                UserService.login((String) args.get("username"), userInput);
+                MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu()); // pass in menugenerator
                 return null;
-            });
-        Menu.PATIENT_MAIN_MENU
+            }).setExitMenu(Menu.LOGIN_USERNAME);
+        Menu.PATIENT_MAIN_MENU // exit menu should be itself
             .setOptionGenerator(() -> new ArrayList<>(List.of(
                 // TODO: complete remaining options
                 new Option(
@@ -168,10 +226,7 @@ public enum Menu {
                         "View Available Appointments Today", 
                         "view( )?(available( )?)?appointment(s)?|(view( )?)?today", 
                         true
-                    ).setNextMenu(() -> PATIENT_VIEW_AVAILABLE_APPOINTMENTS)
-                    .setNextAction((a, b) -> new HashMap<String, Object>() {{
-                        put("dateTime", LocalDateTime.now());
-                    }}),
+                    ).setNextMenu(() -> PATIENT_VIEW_AVAIL_APPOINTMENTS),
                 new Option(
                         "Schedule an Appointment", 
                         "^schedule( )?(a(n)?( )?)?appointment(s)?",
@@ -183,7 +238,35 @@ public enum Menu {
                             put("dayValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
                             put("hourValidator", DateTimeUtil.DateConditions.FUTURE.toString());
                         }}
-                    )
+                    ),
+                new Option(
+                        "Reschedule an Appointment", 
+                        "^Reschedule( )?(a(n)?( )?)?appointment(s)?",
+                        true
+                    ).setNextMenu(() -> PATIENT_RESCHEDULE_SELECTION)
+                    .setNextAction((a,b) -> new HashMap<String, Object>() {{
+                            put("yearValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
+                            put("monthValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
+                            put("dayValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
+                            put("hourValidator", DateTimeUtil.DateConditions.FUTURE.toString());
+                        }}
+                    ),
+                new Option(
+                        "Cancel an Appointment", 
+                        "^Cancel( )?(a(n)?( )?)?appointment(s)?",
+                        true
+                    ).setNextMenu(() -> PATIENT_CANCEL_SELECTION)
+                    .setNextAction((a,b) -> new HashMap<String, Object>()),
+                new Option(
+                        "View Scheduled Appointments", 
+                        "view( )?(scheduled( )?)?appointment(s)?|(view( )?)?confirmed", 
+                        true
+                    ).setNextMenu(() -> PATIENT_VIEW_CONFIRMED_APPOINTMENTS),
+                new Option(
+                        "View Appointment Outcomes", 
+                        "view( )?(appointment( )?)?outcomes(s)?|(view( )?)?history", 
+                        true
+                    ).setNextMenu(() -> PATIENT_VIEW_OUTCOMES)
             ))).shouldAddLogoutOptions();
         Menu.PATIENT_VIEW_MEDICAL_RECORD
             .setDisplayGenerator(() -> {
@@ -196,33 +279,7 @@ public enum Menu {
                 System.out.println("\nAppointment History");
                 Menu.printLineBreak(10);
                 List<Appointment> appointments = AppointmentService.getAllAppointmentsForPatient(patient.getRoleId());
-                IntStream.range(0, appointments.size()) 
-                    .forEach(appointmentIndex -> {
-                        Appointment appointment = appointments.get(appointmentIndex);
-                        System.out.println(String.format("%d.", appointmentIndex+1));
-                        System.out.println(String.format(
-                            "Appointment Timeslot: %s",
-                            DateTimeUtil.printLongDateTime(appointment.getTimeslot())
-                        ));
-                        System.out.println(String.format(
-                            "Patient Name: %s",
-                            UserService
-                                .findUserByIdAndType(appointment.getPatientId(), Patient.class, true) // TODO why is this needed though
-                                .getName()
-                        ));
-                        Doctor doctor = UserService
-                                .findUserByIdAndType(appointment.getDoctorId(), Doctor.class, true);
-                        System.out.println(
-                            doctor == null ?
-                                "No doctor assigned." :
-                                String.format("Doctor Name: %s", doctor.getName())
-                        );
-                        System.out.println(String.format(
-                            "Appointment Status: %s",
-                            appointment.getAppointmentStatus().toString()
-                        ));
-                        // TODO: display prescription
-                    });
+                AppointmentDisplay.printAppointmentDetails(appointments);
             })
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
@@ -230,30 +287,36 @@ public enum Menu {
             .setOptionGenerator(() -> {
                 Patient patient = (Patient) UserService.getCurrentUser();
                 return new ArrayList<>(List.of(
-                    new Option(
+                    new EditOption(
                             String.format("Mobile Number: +65%d", patient.getMobileNumber()),
                             "mobile(( )?number)?",
-                            true
-                        ).setNextMenuAsEdit((userInput, args) -> {
-                            patient.setMobileNumber((String) args.get("confirm"));
-                            return null;
-                        }),
-                    new Option(
+                            true,
+                            (input, args) -> {
+                                patient.setMobileNumber((String) input);
+                                return null;
+                            }
+                        )
+                    ,
+                    new EditOption(
                             String.format("Home Number: +65%d", patient.getHomeNumber()),
                             "home(( )?number)?",
-                            true
-                        ).setNextMenuAsEdit((userInput, args) -> {
-                            patient.setHomeNumber((String) args.get("confirm"));
-                            return null;
-                        }),
-                    new Option(
+                            true,
+                            (input, args) -> {
+                                patient.setHomeNumber((String) input);
+                                return null;
+                            }
+                        )
+                        ,
+                    new EditOption(
                             String.format("Email: %s", patient.getEmail()),
                             "email",
-                            true
-                        ).setNextMenuAsEdit((userInput, args) -> {
-                            patient.setEmail((String) args.get("confirm"));
-                            return null;
-                        })
+                            true,
+                            (input, args) -> {
+                                patient.setEmail((String) input);
+                                return null;
+                            }
+                        )
+                        
                     // new Option(
                     //         String.format("Name: %s", UserService.getCurrentUser().getName()),
                     //         "name|" + UserService.getCurrentUser().getName(),
@@ -265,54 +328,53 @@ public enum Menu {
                 ));
             }).shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
-        Menu.PATIENT_VIEW_AVAILABLE_APPOINTMENTS
-            .setOptionGenerator(() -> {
-                if (
-                    MenuService.getCurrentMenu().dataFromPreviousMenu != null &&
-                    MenuService.getCurrentMenu().dataFromPreviousMenu.containsKey("dateTime")
-                ) {
-                    List<Timeslot> timeslots = AppointmentService.getAvailableAppointmentSlot((LocalDateTime) MenuService.getCurrentMenu().dataFromPreviousMenu.get("dateTime"));
-                    if (timeslots != null) {
-                        List<Option> options = timeslots.stream()
-                            .map(timeslot -> new Option(
-                                    DateTimeUtil.printLongDateTime(timeslot.getTimeSlot()),
-                                    DateTimeUtil.printShortDate(timeslot.getTimeSlot().toLocalDate()),
-                                    true
-                                ).setNextMenu(INPUT_APPOINTMENT_DOCTOR)
-                                .setNextAction((userInput, args) -> new HashMap<>(){{
-                                    put("date", DateTimeUtil.printLongDateTime(timeslot.getTimeSlot()));
-                                }})
-                            ).collect(Collectors.toList());
-                        if (!options.isEmpty()) {
-                            return options;
-                        }
-                    }
-                    System.out.println(String.format(
-                        "No available timeslots today. Try again tomorrow before %02d:00.\n",
-                        Timeslot.lastSlotStartTime.getHour()
-                    ));
-                }
-                return null;
-            })
+        Menu.PATIENT_VIEW_AVAIL_APPOINTMENTS
+            .setDisplayGenerator(() -> {
+                    Map<Doctor, List<Timeslot>> timeslotsByDoctor = AppointmentService.getAvailableAppointmentSlotsByDoctor(LocalDateTime.now());
+                    if (!timeslotsByDoctor.isEmpty()) {
+                        AppointmentDisplay.printAvailableTimeslots(timeslotsByDoctor);
+                    } else {
+                        System.out.println(String.format(
+                            "No available timeslots today. Try again tomorrow before %02d:00.\n",
+                            Timeslot.lastSlotStartTime.getHour()
+                        ));
+                    }       
+                })
             .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.PATIENT_VIEW_CONFIRMED_APPOINTMENTS
+            .setDisplayGenerator(() -> {
+                Patient patient = (Patient) UserService.getCurrentUser();
+                    List<Appointment> appointments = AppointmentService.getAllAppointmentsForPatient(patient.getRoleId())
+                        .stream()
+                        .filter(appointment -> appointment.getAppointmentStatus() == AppointmentStatus.CONFIRMED)
+                        .collect(Collectors.toList());
+                    if (!appointments.isEmpty()) {
+                        AppointmentDisplay.printAppointmentDetails(appointments);
+                    } else {
+                        System.out.println("No appointments scheduled. Start scheduling one today.\n");
+                    }
+            }).shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
         Menu.PATIENT_APPOINTMENT_SELECTION_TYPE
             .setOptionGenerator(() -> {
                 return new ArrayList<>(Arrays.asList(
                     new Option("Today", "today", true)
-                        .setNextAction((userInput, args) -> new HashMap<String, Object>() {{
+                        .setNextAction((userInput, args) -> {
                             LocalDate today = LocalDate.now();
-                            put("year", String.valueOf(today.getYear()));
-                            put("month", String.valueOf(today.getMonthValue()));
-                            put("day", String.valueOf(today.getDayOfMonth()));
-                        }}).setNextMenu(Menu.INPUT_APPOINTMENT_HOUR), 
+                            args.put("year", String.valueOf(today.getYear()));
+                            args.put("month", String.valueOf(today.getMonthValue()));
+                            args.put("day", String.valueOf(today.getDayOfMonth()));
+                            return args;
+                        }).setNextMenu(Menu.INPUT_APPOINTMENT_HOUR),
                     new Option("Tomorrow", "tmr|tomorrow", true)
-                        .setNextAction((userInput, args) -> new HashMap<String, Object>() {{
+                        .setNextAction((userInput, args) -> {
                             LocalDate tmr = LocalDate.now().plusDays(1);
-                            put("year", String.valueOf(tmr.getYear()));
-                            put("month", String.valueOf(tmr.getMonthValue()));
-                            put("day", String.valueOf(tmr.getDayOfMonth()));
-                        }}).setNextMenu(Menu.INPUT_APPOINTMENT_HOUR), 
+                            args.put("year", String.valueOf(tmr.getYear()));
+                            args.put("month", String.valueOf(tmr.getMonthValue()));
+                            args.put("day", String.valueOf(tmr.getDayOfMonth()));
+                            return args;
+                        }).setNextMenu(Menu.INPUT_APPOINTMENT_HOUR), 
                     new Option("Custom", "custom", true)
                     .setNextAction((userInput, args) -> args).setNextMenu(Menu.INPUT_APPOINTMENT_YEAR)
                 ));
@@ -419,39 +481,24 @@ public enum Menu {
                         (String) args.get("hourValidator")
                     );
                 }
-
-                return new HashMap<String, Object>(){{
-                    put(
-                        "dateTime", LocalDateTime.of(
-                            Menu.parseUserIntInput((String) args.get("year")),
-                            Menu.parseUserIntInput((String) args.get("month")),
-                            Menu.parseUserIntInput((String) args.get("day")),
-                            Menu.parseUserIntInput(userInput),
-                            0
-                        ));
-                    put(
-                        "date", 
-                        DateTimeUtil.printLongDateTime(
-                            LocalDateTime.of(
-                                Menu.parseUserIntInput((String) args.get("year")),
-                                Menu.parseUserIntInput((String) args.get("month")),
-                                Menu.parseUserIntInput((String) args.get("day")),
-                                Menu.parseUserIntInput(userInput),
-                                0
-                            )
-                        )
-                    );
-                }};
+                args.put(
+                    "dateTime", LocalDateTime.of(
+                        Menu.parseUserIntInput((String) args.get("year")),
+                        Menu.parseUserIntInput((String) args.get("month")),
+                        Menu.parseUserIntInput((String) args.get("day")),
+                        Menu.parseUserIntInput(userInput), // hour
+                        0
+                    ));
+                return args;
             }).setNextMenu(Menu.INPUT_APPOINTMENT_DOCTOR);
         Menu.INPUT_APPOINTMENT_DOCTOR
             .setOptionGenerator(() -> {
                 if (
                     MenuService.getCurrentMenu().dataFromPreviousMenu != null &&
-                    MenuService.getCurrentMenu().dataFromPreviousMenu.containsKey("date")
+                    MenuService.getCurrentMenu().dataFromPreviousMenu.containsKey("dateTime")
                 ) {
-                    String selectedDateTimeString = 
-                        (String) MenuService.getCurrentMenu().dataFromPreviousMenu.get("date");
-                    LocalDateTime selectedDateTime = DateTimeUtil.parseLongDateTime(selectedDateTimeString);
+                    LocalDateTime selectedDateTime = 
+                        (LocalDateTime) MenuService.getCurrentMenu().dataFromPreviousMenu.get("dateTime");
                     List<Doctor> availableDoctors = AppointmentService
                         .getAvailableDoctorsAtTimeslot(selectedDateTime);
                     if (availableDoctors != null && !availableDoctors.isEmpty()) {
@@ -464,11 +511,20 @@ public enum Menu {
                                     true
                                 ).setNextMenu(Menu.getUserMainMenu())
                                 .setNextAction((input, args) -> {
-                                    AppointmentService.scheduleAppointment(
-                                        ((Patient) UserService.getCurrentUser()).getRoleId(),
-                                        doctor.getRoleId(),
-                                        selectedDateTime
-                                    );
+                                    if (args.get("currentAppointment") != null) {
+                                        AppointmentService.rescheduleAppointment(
+                                            ((Patient) UserService.getCurrentUser()).getRoleId(),
+                                            doctor.getRoleId(),
+                                            selectedDateTime,
+                                            (Appointment) args.get("currentAppointment")
+                                        );
+                                    } else {
+                                        AppointmentService.scheduleAppointment(
+                                            ((Patient) UserService.getCurrentUser()).getRoleId(),
+                                            doctor.getRoleId(),
+                                            selectedDateTime
+                                        );
+                                    }
                                     return args;
                                 });
                             }).collect(Collectors.toList());
@@ -476,9 +532,73 @@ public enum Menu {
                 }
                 MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu());
                 throw new Exception("No doctors available.");
-            });
-
+            }).setExitMenu(Menu.getUserMainMenu());
+        Menu.PATIENT_RESCHEDULE_SELECTION
+            .setOptionGenerator(() -> {
+                Patient patient = (Patient) UserService.getCurrentUser();
+                List<Appointment> appointments = AppointmentService.getAllAppointmentsForPatient(patient.getRoleId())
+                    .stream()
+                    .filter(appointment -> appointment.getAppointmentStatus() == Appointment.AppointmentStatus.CONFIRMED)
+                    .collect(Collectors.toList());
+                if (appointments != null && !appointments.isEmpty()) {
+                    return IntStream.range(0, appointments.size())
+                        .mapToObj(apptIdx -> {
+                            Appointment appointment = appointments.get(apptIdx);
+                            return new Option(
+                                DateTimeUtil.printLongDateTime(appointment.getTimeslot()),
+                                DateTimeUtil.printShortDateTime(appointment.getTimeslot()),
+                                true
+                            ).setNextMenu(Menu.PATIENT_APPOINTMENT_SELECTION_TYPE)
+                            .setNextAction((input, args) -> {
+                                args.put("currentAppointment", appointment);
+                                return args;
+                            });
+                        }).collect(Collectors.toList());
+                }
+                MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu());
+                throw new Exception("No appointments available.");
+            }).setExitMenu(Menu.getUserMainMenu());
+        Menu.PATIENT_CANCEL_SELECTION
+            .setOptionGenerator(() -> {
+                Patient patient = (Patient) UserService.getCurrentUser();
+                List<Appointment> appointments = AppointmentService.getAllAppointmentsForPatient(patient.getRoleId())
+                    .stream()
+                    .filter(appointment -> appointment.getAppointmentStatus() == Appointment.AppointmentStatus.CONFIRMED)
+                    .collect(Collectors.toList());
+                if (appointments != null && !appointments.isEmpty()) {
+                    return IntStream.range(0, appointments.size())
+                        .mapToObj(apptIdx -> {
+                            Appointment appointment = appointments.get(apptIdx);
+                            return new Option(
+                                DateTimeUtil.printLongDateTime(appointment.getTimeslot()),
+                                DateTimeUtil.printShortDateTime(appointment.getTimeslot()),
+                                true
+                            ).setNextMenu(Menu.PATIENT_MAIN_MENU)
+                            .setNextAction((input, args) -> {
+                                AppointmentService.cancelAppointment(appointment);
+                                return null;
+                            });
+                        }).collect(Collectors.toList());
+                }
+                MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu());
+                throw new Exception("No appointments available.");
+            }).setExitMenu(Menu.getUserMainMenu());
+        Menu.PATIENT_VIEW_OUTCOMES
+            .setDisplayGenerator(() -> {
+                Patient patient = (Patient) UserService.getCurrentUser();
+                List<AppointmentOutcomeRecord> outcomeRecords = AppointmentService.getAppointmentRecordsByPatientId(patient.getRoleId());
+                if (!outcomeRecords.isEmpty()) {
+                    outcomeRecords.stream().forEach(outcomeRecord -> 
+                        AppointmentDisplay.printAppointmentOutcomeDetails(outcomeRecord)
+                    );
+                } else {
+                    System.out.println("No appointment outcomes found. Start scheduling an appointment today.\n");
+                }
+            }).setExitMenu(Menu.getUserMainMenu())
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
         }
+
     // Init END
 
     // Helper START
@@ -522,7 +642,8 @@ public enum Menu {
         private final String matchPattern;
         private final boolean isNumberedOption;
         private MenuGenerator nextMenuGenerator;
-        private NextAction nextAction;
+        private MenuGenerator exitMenuGenerator;
+        protected NextAction nextAction;
     
         public Option(
             String label,
@@ -534,36 +655,71 @@ public enum Menu {
             this.isNumberedOption = isNumberedOption;
         };
 
-        private MenuGenerator getNextMenuGenerator() {
+        protected MenuGenerator getNextMenuGenerator() {
             return this.nextMenuGenerator;
         }
 
-        private NextAction getNextAction() {
+        protected MenuGenerator getExitMenuGenerator() {
+            return this.exitMenuGenerator;
+        }
+
+        protected NextAction getNextAction() {
             return this.nextAction;
         }
     
-        private Option setNextMenu(Menu nextMenu) {
+        protected final Option setNextMenu(Menu nextMenu) {
             return this.setNextMenu(() -> nextMenu);
         }
 
-        private Option setNextMenu(MenuGenerator nextMenuGenerator) {
+        protected Option setNextMenu(MenuGenerator nextMenuGenerator) {
             this.nextMenuGenerator = nextMenuGenerator;
             return this;
         }
 
-        private Option setNextMenuAsEdit(NextAction nextAction) {
-            Menu currentMenu = MenuService.getCurrentMenu();
-            return this.setNextMenu(() -> Menu.EDIT
-                .setNextAction((userInput, args) -> {
-                    return new HashMap<>(){{ put("confirm", userInput); }};
-                })
-                .setNextMenu(Menu.getConfirmMenu(nextAction, currentMenu))
-            );
+        protected final Option setExitMenu(Menu exitMenu) {
+            return this.setExitMenu(() -> exitMenu);
+        }
+
+        protected Option setExitMenu(MenuGenerator exitMenuGenerator) {
+            this.exitMenuGenerator = exitMenuGenerator;
+            return this;
         }
     
         private Option setNextAction(NextAction nextAction) {
             this.nextAction = nextAction;
             return this;
+        }
+    }
+
+    /**
+     * The constructor expects a Next Action middleware, which gets called after selection to update the behaviour of the edit menu immediately before rendering it
+     * subsequent calls to setNextAction will not work since setNextAction in Option is private
+     * The Edit Option's next menu is then the Edit Menu
+     * The Edit Option's error menu is then the 
+     * The Edit Menus's error menu is itself, ie it will keep asking for user input 
+     */
+    private static class EditOption extends Option {
+
+        public EditOption(
+            String label,
+            String matchPattern,
+            boolean isNumberedOption,
+            NextAction finalNextAction
+        ) {
+            super(label, matchPattern, isNumberedOption);
+            Menu currentMenu = MenuService.getCurrentMenu();
+            this.nextAction = ((userInput, args) -> {
+                // edit menu updated
+                Menu.EDIT
+                    .setNextAction((innerInput, innerArgs) -> {
+                        finalNextAction.apply(innerInput, innerArgs);
+                        return null;
+                    })
+                    .setNextMenu(currentMenu);
+                // return any args that might be required
+                return args;
+            });
+            this.setNextMenu(Menu.EDIT); // Will always redirect to Edit Menu
         }
     }
 
@@ -606,6 +762,7 @@ public enum Menu {
     private boolean parseUserInput = true;
     // Transitions & Actions START
     private MenuGenerator nextMenuGenerator;
+    private MenuGenerator exitMenuGenerator;
     private NextAction nextAction;
     private Map<String, Object> dataFromPreviousMenu;
     private String userInput;
@@ -657,7 +814,7 @@ public enum Menu {
             }
 
             if (this.options == null || this.options.size() < 1) {
-                throw new Error("Menu with type select shold have at least one option");
+                throw new Error("Menu with type select should have at least one option");
             }
         }
 
@@ -720,6 +877,15 @@ public enum Menu {
         return this;
     }
 
+    // BUG the exitMenu cannot be current menu
+    private void setConfirmMenu(MenuGenerator nextMenu, MenuGenerator exitMenu, NextAction nextAction) {
+        Menu.CONFIRM.setOptionGenerator(() -> Arrays.asList(
+            new Option("Yes (Y)", "yes|y|yes( )?\\(?y\\)?", false)
+                .setNextMenu(nextMenu).setNextAction(nextAction),
+            new Option("No (N)", "no|n|no( )?\\(?n\\)?", false)
+                .setNextMenu(exitMenu).setNextAction((input, args) -> args)
+        )).setExitMenu(exitMenu);
+    }
     
     /**
      * @param userInput
@@ -730,12 +896,26 @@ public enum Menu {
      * Output: Returns next menu to MenuService along with any form data from current menu 
      */
     public Menu handleUserInput(String userInput) throws Exception {
+
         if (!(this.menuType == MenuType.DISPLAY || userInput.length() > 0)) {
             throw new Exception("Please type something in:");
         }
 
         if (this.parseUserInput) {
             userInput = userInput.trim().toLowerCase();
+        }
+
+        System.out.printf("MenuType: %s%n", this.menuType); // IMPT DEBUG
+
+        if (this.menuType == MenuType.INPUT && this.requiresConfirmation) {
+            String trueInput = userInput;
+            System.out.printf("Input Next Menu: %s%n, Input Exit Menu: %s%n", this.getNextMenu(), this.getExitMenu());
+            this.setConfirmMenu(this.getNextMenuGenerator(), this.getExitMenuGenerator(), (input, args) -> {
+                return this.nextAction.apply(trueInput, args); // input MenuType.INPUT should have all nextAction() set, unlike MenuType.OPTION
+            });
+            Menu.CONFIRM.setDataFromPreviousMenu(this.dataFromPreviousMenu);
+            this.setDataFromPreviousMenu(null);
+            return Menu.CONFIRM;
         }
 
         if (this.menuType == MenuType.SELECT) {
@@ -745,6 +925,7 @@ public enum Menu {
             Option option = null;
             if (numberOfMatches < 1) {
                 this.displayMode = DisplayMode.NO_MATCH_FOUND;
+                System.out.println("No option match found"); // TODO REMOVE
             } else if (numberOfMatches > 1) {
                 this.displayMode = DisplayMode.MULTIPLE_MATCHES_FOUND;
             } else {
@@ -761,14 +942,30 @@ public enum Menu {
                 }
             }
 
-            if (this.requiresConfirmation) this.setNextMenu(option);
-            else this.setNextMenu(option == null ? () -> this : option.getNextMenuGenerator());
-            this.setNextAction(option == null ? (a, b) -> null : (option.nextAction));
+            if (!this.requiresConfirmation || option == null) {
+                // BUG if selection in confirm menu is not Y or N, then confirm menu is repeatedly shown
+                if (option != null) {
+                    this.setNextMenu(option.getNextMenuGenerator());
+                    this.setNextAction(option.getNextAction());
+                } else {
+                    throw new Exception();
+                }
+            } else {
+                // set next menu as the CONFIRM MENU
+                this.setConfirmMenu(option.getNextMenuGenerator(), option.getExitMenuGenerator(), option.getNextAction());
+                Menu.CONFIRM.setDataFromPreviousMenu(this.dataFromPreviousMenu);
+                this.setDataFromPreviousMenu(null);
+                return Menu.CONFIRM;
+            }
         }
-
-        Map<String, Object> argsForNext = this.setUserInput(userInput).executeNextAction();
+        
+        System.out.printf("Before Executing Action: %s%n", this);
+        Map<String, Object> argsForNext = this.setUserInput(userInput).executeNextAction(); // Options dont use user input since they are called within next action methods. Exceptions caught in here will propagate back to App.java which will render exitMenu
         System.out.println(argsForNext); // TODO: remove test
-        return this.getNextMenu().setDataFromPreviousMenu(argsForNext);
+
+        System.out.printf("After Executing Action: %s%n", this.getNextMenu());
+        this.setDataFromPreviousMenu(null);
+        return this.getNextMenu().setDataFromPreviousMenu(argsForNext); // only pass args if no exceptions caught
     }
 
     private Menu setUserInput(String userInput) {
@@ -794,20 +991,20 @@ public enum Menu {
         return this.nextAction.apply(this.userInput, this.dataFromPreviousMenu);
     }
 
-    public Menu getNextMenu() throws Exception {
+    public MenuGenerator getNextMenuGenerator() throws Exception {
+        return this.nextMenuGenerator;
+    }
+
+    public MenuGenerator getExitMenuGenerator() throws Exception {
+        return this.exitMenuGenerator == null ? () -> this : this.exitMenuGenerator;
+    }
+
+    public Menu getNextMenu() throws Exception { // Menu only
         return this.nextMenuGenerator.apply();
     }
 
-    private Menu setNextMenu(Option option) {
-        Menu currentMenu = MenuService.getCurrentMenu();
-        return setNextMenu(() -> {
-            return Menu.CONFIRM.setOptionGenerator(() -> Arrays.asList(
-                new Option("Yes (Y)", "yes|y|yes( )?\\(?y\\)?", false)
-                    .setNextMenu(option.getNextMenuGenerator()).setNextAction(option.getNextAction()),
-                new Option("No (N)", "no|n|no( )?\\(?n\\)?", false)
-                    .setNextMenu(currentMenu).setNextAction((input, args) -> args)
-            ));
-        });
+    public Menu getExitMenu() throws Exception { // Menu only
+        return this.getExitMenuGenerator().apply();
     }
 
     private Menu setNextMenu(Menu nextMenu) {
@@ -819,7 +1016,16 @@ public enum Menu {
         return this;
     }
 
-    private Menu setDataFromPreviousMenu(Map<String, Object> dataFromPreviousMenu) {
+    private Menu setExitMenu(Menu exitMenu) {
+        return setExitMenu(() -> exitMenu);
+    }
+
+    private Menu setExitMenu(MenuGenerator exitMenuGenerator) {
+        this.exitMenuGenerator = exitMenuGenerator;
+        return this;
+    }
+
+    public Menu setDataFromPreviousMenu(Map<String, Object> dataFromPreviousMenu) {
         this.dataFromPreviousMenu = dataFromPreviousMenu;
         return this;
     }
@@ -835,39 +1041,6 @@ public enum Menu {
             UserService.logout();
             return Menu.LOGIN_USERNAME;
         }
-    }
-
-    private static Menu getConfirmMenu(NextAction nextAction, Menu currentMenu) {
-        return Menu.getConfirmMenu(nextAction, currentMenu, MenuService.getCurrentMenu());
-    }
-
-    private static Menu getConfirmMenu(
-        NextAction nextAction, Menu currentMenu, Menu exitMenu
-    ) {
-        return Menu.CONFIRM
-            .setOptions(new ArrayList<>(List.of(
-                new Option(
-                        "Yes (Y)",
-                        "yes|y|yes( )?\\(?y\\)?",
-                        false
-                    ).setNextAction((input, args) -> {
-                        System.out.println("test");
-                        System.out.println(args);
-                        try {
-                            return nextAction.apply(input, args);
-                        } catch (Exception e) {
-                            MenuService.setCurrentMenu(currentMenu);
-                            throw e;
-                        }
-                    })
-                    .setNextMenu(exitMenu),
-                new Option(
-                    "No (N)",
-                    "no|n|no( )?\\(?n\\)?",
-                    false
-                ).setNextMenu(currentMenu)
-                .setNextAction((input, args) -> args)
-            )));
     }
     // Next state (transition + action) handling END
 
@@ -983,7 +1156,13 @@ public enum Menu {
                     Pattern.CASE_INSENSITIVE
                 );
                 Matcher matcher = matchPattern.matcher(userInput);
-                return matcher.find() ? option : null;
+
+                boolean optionFound = matcher.find();
+                if(optionFound) {
+                    System.out.println(option.label);
+                    return option;
+                } else return null;
+                // return matcher.find() ? option : null;
             }).filter(Objects::nonNull)
             .collect(Collectors.toList());
     }

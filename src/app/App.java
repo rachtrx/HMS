@@ -23,6 +23,7 @@ public class App {
 		
 		while (true) {
 			try {
+				System.out.printf("Current Menu: %s%n", MenuService.getCurrentMenu());
 				if (App.scanner.hasNextLine()) {
 					// MenuService.clearScreen(); // TODO uncomment once done
 					MenuService.handleUserInput(App.scanner.nextLine());
@@ -36,6 +37,13 @@ public class App {
 				break;
 			} catch (Exception e) {
 				System.out.println(e.getMessage() + "\n");
+				System.out.println("Exception Caught!");
+
+				if (MenuService.getCurrentMenu() != MenuService.getCurrentMenu().getExitMenu()) {
+					System.out.println("Same singleton instance"); // TODO REMOVE
+					MenuService.getCurrentMenu().setDataFromPreviousMenu(null);
+				}
+				MenuService.setCurrentMenu(MenuService.getCurrentMenu().getExitMenu()); // no setting of args ie. clean state
 				MenuService.getCurrentMenu().display();
 			}
 		}

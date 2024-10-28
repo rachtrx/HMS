@@ -11,6 +11,7 @@ import app.model.user_credentials.MedicalRecord;
 import app.model.users.Patient;
 import app.model.users.staff.Doctor;
 import app.utils.DateTimeUtil;
+import java.awt.Event;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -34,7 +35,6 @@ public class AppointmentService {
 
     private static List<DoctorEvent> doctorEvents = new ArrayList<>();
     private static List<MedicalRecord> medicalRecords = new ArrayList<>();
-    private static AppointmentDisplay appointmentDisplay;
 
     public static List<DoctorEvent> getAllEvents() {
         return doctorEvents;
@@ -136,48 +136,6 @@ public class AppointmentService {
     
         return outcomesMap;
     }
-    
-
-    public void printAppointmentDetails(int appointmentId) {
-        Appointment appointment = getAppointment(appointmentId);
-        AppointmentOutcomeRecord record = getAppointmentRecordById(appointmentId);
-        System.out.println("Appointment Date: " + DateTimeUtil.printShortDateTime(appointment.getTimeslot()));
-        System.out.println("Service Type: " + record.getServiceType());
-        System.out.println("Prescription Details: " + record.getPrescription().toString());
-        System.out.println("Consultation Notes: " + record.getConsultationNotes());
-    }
-    
-    // IMPT Previous implementation by Luke
-    // public static List<Appointment> getAllAppointments() {
-    //     List<Appointment> appointments = new ArrayList<>();
-    //     UserService.getAllUsers()
-    //         .stream()
-    //         .forEach(user -> {
-    //             if (Patient.class.isInstance(user)) {
-    //                 appointments.addAll(((Patient) user).getAppointments());
-    //             } else if (Doctor.class.isInstance(user)) {
-    //                 appointments.addAll(((Doctor) user).getDoctorEvents()
-    //                     .stream()
-    //                     .filter(event -> event.isAppointment(event))
-    //                     .map(Appointment.class::cast)
-    //                     .collect(Collectors.toList())
-    //                 );
-    //             }
-    //         });
-    //     return appointments;
-    // }
-
-    // public static ArrayList<Appointment> getAppointments() throws UserNotFound {
-    //     if (UserService.isLoggedIn()) {
-    //         return (ArrayList<Appointment>) this.appointments
-    //             .stream()
-    //             .filter(appointment -> {
-    //                 this.userIdMatches(appointment)
-    //                 throw new AssertionError();
-    //             }).collect(Collectors.toList());
-    //     }
-    //     throw new UserNotFound();
-    // }
 
     private boolean userIdMatches(Patient patient, Appointment appointment) {
         return appointment.getPatientId() == UserService.getCurrentUser().getUserId();
@@ -197,63 +155,42 @@ public class AppointmentService {
     // }
 
     // TODO: requires testing
-    public static List<Timeslot> getAvailableAppointmentSlot(LocalDateTime date) {
-
+    public static Map<Doctor, List<Timeslot>> getAvailableAppointmentSlotsByDoctor(LocalDateTime date) {
         LocalDateTime dateTimeNow = LocalDateTime.now();
         LocalTime currentSlotStartTime = LocalTime.of(dateTimeNow.getHour(), 0);
-
+    
+        // Determine earliest slot time based on current time and provided date
         if (LocalDate.now().equals(date.toLocalDate()) && dateTimeNow.getHour() == date.getHour()) {
             LocalDateTime dateTimeOffset = date.plusHours(1);
             currentSlotStartTime = LocalTime.of(dateTimeOffset.getHour(), 0);
         }
-        
         LocalTime earliestSlotTime = currentSlotStartTime.compareTo(Timeslot.firstSlotStartTime) < 0 ?
-            Timeslot.firstSlotStartTime : currentSlotStartTime;
-
-        return IntStream.range(
-            0,
-            (int) (earliestSlotTime.until(Timeslot.lastSlotStartTime, ChronoUnit.HOURS) /
-                Timeslot.timeslotLengthInHours + Timeslot.timeslotLengthInHours)
-        ).mapToObj(timeslotOffset -> {
-            try {
-                Timeslot checkTimeslot = new Timeslot(LocalDateTime.of(
-                    date.toLocalDate(), earliestSlotTime)
-                );
-                List<Doctor> availableDoctors = AppointmentService
-                    .getAvailableDoctorsAtTimeslot(checkTimeslot.getTimeSlot());
-                if (
-                    availableDoctors != null &&
-                    availableDoctors.stream().findFirst().isPresent()
-                ) {
-                    try {
-                        return new Timeslot(
-                            LocalDateTime.of(dateTimeNow.toLocalDate(),
-                                    LocalTime.of(earliestSlotTime.getHour()+timeslotOffset, 0)
-                            ));
-                    } catch (InvalidTimeslotException ex) {}
+                Timeslot.firstSlotStartTime : currentSlotStartTime;
+    
+        Map<Doctor, List<Timeslot>> availableSlotsByDoctor = new HashMap<>();
+    
+        IntStream.range(0, (int) (earliestSlotTime.until(Timeslot.lastSlotStartTime, ChronoUnit.HOURS) /
+                Timeslot.timeslotLengthInHours))
+            .forEach(timeslotOffset -> {
+                LocalDateTime slotDateTime = LocalDateTime.of(date.toLocalDate(),
+                        earliestSlotTime.plusHours(timeslotOffset * Timeslot.timeslotLengthInHours));
+                try {
+                    Timeslot timeslot = new Timeslot(slotDateTime);
+                    List<Doctor> availableDoctors = AppointmentService.getAvailableDoctorsAtTimeslot(slotDateTime);
+    
+                    if (availableDoctors != null) {
+                        availableDoctors.forEach(doctor -> {
+                            availableSlotsByDoctor
+                                    .computeIfAbsent(doctor, k -> new ArrayList<>())
+                                    .add(timeslot);
+                        });
+                    }
+                } catch (InvalidTimeslotException ex) {
+                    // Ignore invalid timeslot
                 }
-            } catch (InvalidTimeslotException e) {
-                return null;
-            }
-            
-            return null;
-        }).collect(Collectors.toList());
-        // LocalTime offsetTime = LocalTime.of(dateTimeOffset.getHour(), dateTimeOffset.getMinute());
-        // Timeslot nextAvailableTimeslot = new Timeslot(LocalDateTime.of(
-        //     (
-        //         offsetTime.isAfter(Timeslot.lastSlotStartTime) ?
-        //         DateTimeUtil.addWorkingDays(dateTimeNow, 1) :
-        //         dateTimeOffset
-        //     ).toLocalDate(),
-        //     (
-        //         dateTimeNow.toLocalTime().isBefore(Timeslot.firstSlotStartTime) ||
-        //         dateTimeNow.toLocalTime().isAfter(Timeslot.lastSlotStartTime)
-        //     ) ? Timeslot.firstSlotStartTime : dateTimeNow.toLocalTime()
-        // ));
-        // Timeslot lastAvailableTimeslot = new Timeslot(LocalDateTime.of(
-        //     DateTimeUtil.addWorkingDays(dateTimeNow, 7).toLocalDate(),
-        //     Timeslot.lastSlotStartTime
-        // ));
+            });
+    
+        return availableSlotsByDoctor;
     }
 
     // TODO: requires testing
@@ -288,17 +225,29 @@ public class AppointmentService {
             doctorId, timeslot, patientId, AppointmentStatus.CONFIRMED
         );
         AppointmentService.addEvent(appointment);
+        System.out.println("Appointment successfully scheduled");
     }
 
-    // public void rescheduleAppointment (int appointmentId) throws ItemNotFoundException, UserNotFound {
-    //     Appointment appointment = this.(appointmentId);
-        
-    // }
+    public static void cancelAppointment(
+        Appointment oldAppointment
+    ) throws Exception {
+        List<DoctorEvent> events = AppointmentService.getAllEvents();
+        boolean removed = events.removeIf(event -> 
+            event instanceof Appointment &&
+            event.getId() == oldAppointment.getId()
+        );
+        if (!removed) {
+            throw new Exception("Old appointment was not found");
+        }
+        System.out.println("Old Appointment successfully cancelled");
+    }
 
-    // public void cancelAppointment(int appointmentId) throws ItemNotFoundException, UserNotFound {
-    //     Appointment appointment = this.findAppointmentById(appointmentId);
-    //     appointment.cancel();
-    // }
+    public static void rescheduleAppointment(
+        int patientId, int doctorId, LocalDateTime timeslot, Appointment oldAppointment
+    ) throws Exception {
+        cancelAppointment(oldAppointment);
+        scheduleAppointment(patientId, doctorId, timeslot);
+    }
 
     // public void confirmAppointment(int appointmentId) throws ItemNotFoundException, UserNotFound {
     //     Appointment appointment = this.findAppointmentById(appointmentId);
