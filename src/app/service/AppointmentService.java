@@ -222,10 +222,10 @@ public class AppointmentService {
         }
 
         Appointment appointment = new Appointment(
-            doctorId, timeslot, patientId, AppointmentStatus.CONFIRMED
+            doctorId, timeslot, patientId, AppointmentStatus.PENDING
         );
         AppointmentService.addEvent(appointment);
-        System.out.println("Appointment successfully scheduled");
+        System.out.println("Appointment successfully scheduled. Pending doctor confirmation...");
     }
 
     public static void cancelAppointment(

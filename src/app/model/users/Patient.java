@@ -118,7 +118,7 @@ public class Patient extends User {
             String.format("3. Date of Birth: %s", DateTimeUtil.printLongDate(this.dateOfBirth)),
             String.format("4. Gender: %s", this.getGender()),
             String.format("5. Mobile number: +65%d", this.getMobileNumber()),
-            String.format("6. Home number: +65%d", this.getMobileNumber()),
+            String.format("6. Home number: +65%d", this.getHomeNumber()),
             String.format("7. Email: %s", this.getEmail()),
             String.format("8. Blood Type: %s", this.getBloodType())
         ));

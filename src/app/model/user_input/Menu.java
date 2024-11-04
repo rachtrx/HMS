@@ -208,7 +208,7 @@ public enum Menu {
                 UserService.login((String) args.get("username"), userInput);
                 MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu()); // pass in menugenerator
                 return null;
-            }).setExitMenu(Menu.LOGIN_USERNAME);
+            }).setExitMenu(()-> Menu.LOGIN_USERNAME);
         Menu.PATIENT_MAIN_MENU // exit menu should be itself
             .setOptionGenerator(() -> new ArrayList<>(List.of(
                 // TODO: complete remaining options
@@ -532,13 +532,16 @@ public enum Menu {
                 }
                 MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu());
                 throw new Exception("No doctors available.");
-            }).setExitMenu(Menu.getUserMainMenu());
+            }).setExitMenu(() -> Menu.getUserMainMenu());
         Menu.PATIENT_RESCHEDULE_SELECTION
             .setOptionGenerator(() -> {
                 Patient patient = (Patient) UserService.getCurrentUser();
                 List<Appointment> appointments = AppointmentService.getAllAppointmentsForPatient(patient.getRoleId())
                     .stream()
-                    .filter(appointment -> appointment.getAppointmentStatus() == Appointment.AppointmentStatus.CONFIRMED)
+                    .filter(appointment -> new ArrayList<AppointmentStatus>(){{
+                        add(AppointmentStatus.CONFIRMED);
+                        add(AppointmentStatus.PENDING);
+                    }}.contains(appointment.getAppointmentStatus()))
                     .collect(Collectors.toList());
                 if (appointments != null && !appointments.isEmpty()) {
                     return IntStream.range(0, appointments.size())
@@ -557,7 +560,7 @@ public enum Menu {
                 }
                 MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu());
                 throw new Exception("No appointments available.");
-            }).setExitMenu(Menu.getUserMainMenu());
+            }).setExitMenu(() -> Menu.getUserMainMenu());
         Menu.PATIENT_CANCEL_SELECTION
             .setOptionGenerator(() -> {
                 Patient patient = (Patient) UserService.getCurrentUser();
@@ -582,7 +585,7 @@ public enum Menu {
                 }
                 MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu());
                 throw new Exception("No appointments available.");
-            }).setExitMenu(Menu.getUserMainMenu());
+            }).setExitMenu(() -> Menu.getUserMainMenu());
         Menu.PATIENT_VIEW_OUTCOMES
             .setDisplayGenerator(() -> {
                 Patient patient = (Patient) UserService.getCurrentUser();
@@ -594,7 +597,7 @@ public enum Menu {
                 } else {
                     System.out.println("No appointment outcomes found. Start scheduling an appointment today.\n");
                 }
-            }).setExitMenu(Menu.getUserMainMenu())
+            }).setExitMenu(() -> Menu.getUserMainMenu())
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
         }
@@ -676,15 +679,6 @@ public enum Menu {
             return this;
         }
 
-        protected final Option setExitMenu(Menu exitMenu) {
-            return this.setExitMenu(() -> exitMenu);
-        }
-
-        protected Option setExitMenu(MenuGenerator exitMenuGenerator) {
-            this.exitMenuGenerator = exitMenuGenerator;
-            return this;
-        }
-    
         private Option setNextAction(NextAction nextAction) {
             this.nextAction = nextAction;
             return this;
@@ -1014,10 +1008,6 @@ public enum Menu {
     private Menu setNextMenu(MenuGenerator nextMenuGenerator) {
         this.nextMenuGenerator = nextMenuGenerator;
         return this;
-    }
-
-    private Menu setExitMenu(Menu exitMenu) {
-        return setExitMenu(() -> exitMenu);
     }
 
     private Menu setExitMenu(MenuGenerator exitMenuGenerator) {
