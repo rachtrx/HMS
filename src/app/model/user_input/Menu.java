@@ -6,6 +6,7 @@ import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentDisplay;
 import app.model.appointments.AppointmentOutcomeRecord;
+import app.model.appointments.DoctorEvent;
 import app.model.appointments.Timeslot;
 import app.model.users.Patient;
 import app.model.users.staff.Doctor;
@@ -18,22 +19,21 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-import javax.swing.text.html.Option;
-
 /**
 * Controls which menus to show (Equivalent to machine in FSM)
 *
 * @author Luke Eng (@LEPK02)
+* @author Rachmiel Teo (@rachtrx)
 * @version 1.0
 * @since 2024-10-24
 */
@@ -84,6 +84,21 @@ public enum Menu {
         MenuType.SELECT,
         "Patient Main Menu",
         null
+    )),
+    DOCTOR_MAIN_MENU(new MenuBuilder(
+        MenuType.SELECT,
+        "Doctor Main Menu",
+        null
+    )),
+    SELECT_PATIENT_VIEW_MEDICAL_RECORD(new MenuBuilder(
+        MenuType.SELECT,
+        "Select Patient To View Medical Record",
+        "Enter 'M' or 'Menu' to return to the main menu."
+    )),
+    SELECT_PATIENT_EDIT_MEDICAL_RECORD(new MenuBuilder(
+        MenuType.SELECT,
+        "Select Patient To Edit Medical Record",
+        "Enter 'M' or 'Menu' to return to the main menu."
     )),
     PATIENT_VIEW_MEDICAL_RECORD(new MenuBuilder(
         MenuType.SELECT,
@@ -156,41 +171,46 @@ public enum Menu {
         "Past Appointment Outcome Records",
         null
     )),
-    // TODO 
-    DOCTOR_VIEW_RECORDS(new MenuBuilder(
-        MenuType.SELECT,
-        "Past Appointment Outcome Records",
-        null
-    )),
-    DOCTOR_UPDATE_RECORDS(new MenuBuilder(
-        MenuType.SELECT,
-        "Past Appointment Outcome Records",
-        null
-    )),
+    // TODO: doctor menu
+    // DOCTOR_UPDATE_RECORDS(new MenuBuilder(
+    //     MenuType.SELECT,
+    //     "Past Appointment Outcome Records",
+    //     null
+    // )),
     DOCTOR_VIEW_SCHEDULE(new MenuBuilder(
         MenuType.SELECT,
-        "Past Appointment Outcome Records",
-        null
+        "Doctor Schedule",
+        "Select 'M' to return to the main menu."
     )),
-    DOCTOR_SET_AVAIL(new MenuBuilder(
+    // DOCTOR_SET_AVAIL(new MenuBuilder(
+    //     MenuType.SELECT,
+    //     "Past Appointment Outcome Records",
+    //     null
+    // )),
+    // DOCTOR_RESPOND(new MenuBuilder(
+    //     MenuType.SELECT,
+    //     "Past Appointment Outcome Records",
+    //     null
+    // )),
+    // DOCTOR_VIEW_CONFIRMED(new MenuBuilder(
+    //     MenuType.SELECT,
+    //     "Past Appointment Outcome Records",
+    //     null
+    // )),
+    // DOCTOR_ADD_OUTCOME(new MenuBuilder(
+    //     MenuType.SELECT,
+    //     "Past Appointment Outcome Records",
+    //     null
+    // )),
+    SELECT_PATIENT_APPOINTMENT(new MenuBuilder(
         MenuType.SELECT,
-        "Past Appointment Outcome Records",
-        null
+        "Edit Appointment",
+        "Select an appointment to edit:"
     )),
-    DOCTOR_RESPOND(new MenuBuilder(
+    EDIT_PATIENT_APPOINTMENT(new MenuBuilder(
         MenuType.SELECT,
-        "Past Appointment Outcome Records",
-        null
-    )),
-    DOCTOR_VIEW_CONFIRMED(new MenuBuilder(
-        MenuType.SELECT,
-        "Past Appointment Outcome Records",
-        null
-    )),
-    DOCTOR_ADD_OUTCOME(new MenuBuilder(
-        MenuType.SELECT,
-        "Past Appointment Outcome Records",
-        null
+        "Edit Appointment",
+        "Select a field to edit:"
     ));
 
 
@@ -211,7 +231,6 @@ public enum Menu {
             }).setExitMenu(()-> Menu.LOGIN_USERNAME);
         Menu.PATIENT_MAIN_MENU // exit menu should be itself
             .setOptionGenerator(() -> new ArrayList<>(List.of(
-                // TODO: complete remaining options
                 new Option(
                         "View Medical Record", 
                         "(view( )?)?medical(( )?record)?", 
@@ -268,9 +287,27 @@ public enum Menu {
                         true
                     ).setNextMenu(() -> PATIENT_VIEW_OUTCOMES)
             ))).shouldAddLogoutOptions();
+        Menu.DOCTOR_MAIN_MENU // exit menu should be itself
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                new Option(
+                        "View Patient's Medical Record", 
+                        "view( )?(patient(\\'s)?( )?')?(medical( )?)?record", 
+                        true
+                    ).setNextMenu(() -> SELECT_PATIENT_VIEW_MEDICAL_RECORD),
+                new Option(
+                        "Update Patient's Medical Record", 
+                        "(edit( )?)?(patient( )?('s)?)?(medical( )?)?record", 
+                        true
+                    ).setNextMenu(() -> SELECT_PATIENT_EDIT_MEDICAL_RECORD),
+                new Option(
+                        "View Personal Schedule", 
+                        "(view( )?)?(personal( )?)?schedule", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_VIEW_SCHEDULE)
+            ))).shouldAddLogoutOptions();
         Menu.PATIENT_VIEW_MEDICAL_RECORD
             .setDisplayGenerator(() -> {
-                Patient patient = (Patient) UserService.getCurrentUser();
+                Patient patient = Menu.getTargetPatientFromArgs();
                 System.out.println();
                 System.out.println("Patient Information");
                 Menu.printLineBreak(10);
@@ -285,47 +322,64 @@ public enum Menu {
             .shouldAddLogoutOptions();
         Menu.PATIENT_EDIT_MEDICAL_RECORD
             .setOptionGenerator(() -> {
-                Patient patient = (Patient) UserService.getCurrentUser();
-                return new ArrayList<>(List.of(
-                    new EditOption(
-                            String.format("Mobile Number: +65%d", patient.getMobileNumber()),
-                            "mobile(( )?number)?",
+                Patient patient = Menu.getTargetPatientFromArgs();
+                List<Option> result = new ArrayList<>();
+                if (
+                    List.of(Doctor.class).contains(UserService.getCurrentUser().getClass())
+                ) {
+                    result.addAll(new ArrayList<>(List.of(
+                        // TODO: blood type, diagnosis, appointment records
+                        new EditOption(
+                            String.format("Blood type: %s", patient.getBloodType()),
+                            "blood|type|blood(( )?type)?|(blood( )?)?type",
                             true,
                             (input, args) -> {
-                                patient.setMobileNumber((String) input);
+                                patient.setBloodType((String) input);
                                 return null;
                             }
-                        )
-                    ,
-                    new EditOption(
-                            String.format("Home Number: +65%d", patient.getHomeNumber()),
-                            "home(( )?number)?",
-                            true,
-                            (input, args) -> {
-                                patient.setHomeNumber((String) input);
-                                return null;
-                            }
-                        )
-                        ,
-                    new EditOption(
-                            String.format("Email: %s", patient.getEmail()),
-                            "email",
-                            true,
-                            (input, args) -> {
-                                patient.setEmail((String) input);
-                                return null;
-                            }
-                        )
-                        
-                    // new Option(
-                    //         String.format("Name: %s", UserService.getCurrentUser().getName()),
-                    //         "name|" + UserService.getCurrentUser().getName(),
-                    //         true
-                    //     ).setNextMenuAsEdit((userInput, args) -> {
-                    //         UserService.getCurrentUser().setName((String) args.get("confirm"));
-                    //         return null;
-                    //     })
-                ));
+                        ),
+                        new Option(
+                            "Edit Appointment",
+                            "(edit( )?)?appointment",
+                            true
+                        ).setNextMenu(() -> SELECT_PATIENT_APPOINTMENT)
+                        .setNextAction((userInput, args) -> args)
+                    )));
+                }
+                if (
+                    List.of(Patient.class, Doctor.class).contains(UserService.getCurrentUser().getClass())
+                ) {
+                    result.addAll(new ArrayList<>(List.of(
+                        new EditOption(
+                                String.format("Mobile Number: +65%d", patient.getMobileNumber()),
+                                "mobile(( )?number)?",
+                                true,
+                                (input, args) -> {
+                                    patient.setMobileNumber((String) input);
+                                    return null;
+                                }
+                            ),
+                        new EditOption(
+                                String.format("Home Number: +65%d", patient.getHomeNumber()),
+                                "home(( )?number)?",
+                                true,
+                                (input, args) -> {
+                                    patient.setHomeNumber((String) input);
+                                    return null;
+                                }
+                            ),
+                        new EditOption(
+                                String.format("Email: %s", patient.getEmail()),
+                                "email",
+                                true,
+                                (input, args) -> {
+                                    patient.setEmail((String) input);
+                                    return null;
+                                }
+                            )
+                    )));
+                }
+                return result;
             }).shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
         Menu.PATIENT_VIEW_AVAIL_APPOINTMENTS
@@ -538,7 +592,7 @@ public enum Menu {
                 Patient patient = (Patient) UserService.getCurrentUser();
                 List<Appointment> appointments = AppointmentService.getAllAppointmentsForPatient(patient.getRoleId())
                     .stream()
-                    .filter(appointment -> new ArrayList<AppointmentStatus>(){{
+                    .filter(appointment -> new ArrayList<Appointment.AppointmentStatus>(){{
                         add(AppointmentStatus.CONFIRMED);
                         add(AppointmentStatus.PENDING);
                     }}.contains(appointment.getAppointmentStatus()))
@@ -576,7 +630,7 @@ public enum Menu {
                                 DateTimeUtil.printLongDateTime(appointment.getTimeslot()),
                                 DateTimeUtil.printShortDateTime(appointment.getTimeslot()),
                                 true
-                            ).setNextMenu(Menu.PATIENT_MAIN_MENU)
+                            ).setNextMenu(() -> Menu.PATIENT_MAIN_MENU)
                             .setNextAction((input, args) -> {
                                 AppointmentService.cancelAppointment(appointment);
                                 return null;
@@ -600,8 +654,95 @@ public enum Menu {
             }).setExitMenu(() -> Menu.getUserMainMenu())
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
-        }
-
+        Menu.SELECT_PATIENT_VIEW_MEDICAL_RECORD
+            .setPatientListOptionGenerator(() -> PATIENT_VIEW_MEDICAL_RECORD)
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.SELECT_PATIENT_EDIT_MEDICAL_RECORD
+            .setPatientListOptionGenerator(() -> PATIENT_EDIT_MEDICAL_RECORD)
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.SELECT_PATIENT_APPOINTMENT
+            .setOptionGenerator(() -> {
+                List<Option> options = AppointmentService
+                    .getAllAppointmentsForPatient(Menu.getTargetPatientFromArgs().getRoleId())
+                    .stream()
+                    .filter(appointment -> appointment.getAppointmentStatus().equals(AppointmentStatus.COMPLETED))
+                    .map(appointment -> 
+                        new Option(
+                            String.format(
+                                "%s (Status: %s)",
+                                DateTimeUtil.printLongDateTime(appointment.getTimeslot()),
+                                appointment.getAppointmentStatus().toString()
+                            ),
+                            DateTimeUtil.printLongDateTime(appointment.getTimeslot()),
+                            true
+                        ).setNextAction((userInput, args) -> new HashMap<String, Object>(){{
+                            put("appointmentId", Integer.toString(appointment.getAppointmentId()));
+                        }}).setNextMenu(() -> EDIT_PATIENT_APPOINTMENT)
+                    ).collect(Collectors.toList());
+                    if (options.isEmpty()) {
+                        throw new Exception("No confirmed appointments found.");
+                    }
+                return options;
+            }).shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();;
+        Menu.EDIT_PATIENT_APPOINTMENT
+            .setOptionGenerator(() -> {
+                Appointment appointment = null;
+                try {
+                    appointment = AppointmentService.getAppointment(
+                        Integer.parseInt(
+                            (String) MenuService.getCurrentMenu().dataFromPreviousMenu.get("appointmentId")
+                        )
+                    );
+                } catch (Exception e) {}
+                if (appointment == null) {
+                    throw new Exception("Appointment not found");
+                }
+                return new ArrayList<>(List.of(
+                    // TODO: redirect to appointment accept
+                    // new Option(
+                    //     appointment.getAppointmentStatus().toString(),
+                    //     appointment.getAppointmentStatus().toString(),
+                    //     true
+                    // ).setNextAction((userInput, args) -> args)
+                    // .setNextMenu(() -> CHANGE_APPOINTMENT_STATUS)),
+                    // TODO: redirect to update prescription
+                    // new Option(appointment., null, false)
+                ));
+            }).shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_VIEW_SCHEDULE
+            .setOptionGenerator(() -> {
+                AppointmentService.getAllEvents().stream().forEach(event -> System.out.println(event.getDoctorId()));
+                System.out.println(UserService.getCurrentUser().getRoleId());
+                List<Option> options = AppointmentService.getAllEvents()
+                    .stream()
+                    .filter(event ->
+                        event.getDoctorId() == UserService.getCurrentUser().getRoleId()
+                        // &&
+                        // event.getTimeslot().plusHours(Timeslot.timeslotLengthInHours)
+                        //     .isAfter(LocalDateTime.now())
+                    ).sorted(Comparator.comparing(DoctorEvent::getTimeslot))
+                    .map(event -> new Option(
+                            DateTimeUtil.printLongDateTime(event.getTimeslot()),
+                            "\n",
+                            true
+                        ).setNextAction((userInput, args) -> {
+                            MenuService.setCurrentMenu(Menu.getUserMainMenu());
+                            throw new Exception("");
+                        })
+                    ).collect(Collectors.toList());
+                if (options == null || options.isEmpty()) {
+                    MenuService.setCurrentMenu(Menu.getUserMainMenu());
+                    throw new Exception("No upcoming events scheduled.");
+                }
+                return options;
+            }).setNextMenu(() -> Menu.getUserMainMenu())
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+    }
     // Init END
 
     // Helper START
@@ -707,7 +848,7 @@ public enum Menu {
                 Menu.EDIT
                     .setNextAction((innerInput, innerArgs) -> {
                         finalNextAction.apply(innerInput, innerArgs);
-                        return null;
+                        return innerArgs;
                     })
                     .setNextMenu(currentMenu);
                 // return any args that might be required
@@ -723,6 +864,27 @@ public enum Menu {
         } catch (NumberFormatException e) {
             throw new Exception("Please enter an integer/number.");
         }
+    }
+
+    private static Patient getTargetPatientFromArgs() throws Exception {
+        Patient patient = (Patient) (
+            MenuService.getCurrentMenu().dataFromPreviousMenu != null &&
+            MenuService.getCurrentMenu().dataFromPreviousMenu.containsKey("patientId") ?
+                UserService.findUserByIdAndType(
+                    Integer.parseInt(
+                        (String) MenuService.getCurrentMenu().dataFromPreviousMenu.get("patientId")
+                    ),
+                    Patient.class,
+                    true
+                ) : (
+                    Patient.class.equals(UserService.getCurrentUser().getClass()) ?
+                        UserService.getCurrentUser() : null
+                )
+        );
+        if (patient == null) {
+            throw new Exception("No patient found.");
+        }
+        return patient;
     }
     // Helper END
 
@@ -796,7 +958,6 @@ public enum Menu {
                      // refresh options after editing
                     this.matchingOptions = this.getNumberedOptions(true);
                 }
-
             }
 
             if (this.shouldHaveMainMenuOption) {
@@ -1026,6 +1187,9 @@ public enum Menu {
             if (Patient.class.equals(UserService.getCurrentUser().getClass())) {
                 return Menu.PATIENT_MAIN_MENU;
             }
+            if (Doctor.class.equals(UserService.getCurrentUser().getClass())) {
+                return Menu.DOCTOR_MAIN_MENU;
+            }
             throw new Exception();
         } catch (Exception e) {
             UserService.logout();
@@ -1039,6 +1203,33 @@ public enum Menu {
     private Menu setOptionGenerator(OptionGenerator optionGenerator) {
         this.optionGenerator = optionGenerator;
         return this;
+    }
+
+    private Menu setPatientListOptionGenerator(MenuGenerator nextMenu) {
+        return this.setOptionGenerator(() -> {
+            List<Option> userOptions = UserService.getAllUserByType(Patient.class)
+                .stream()
+                .map(patient -> new Option(
+                        String.format("%s (P%d)", patient.getName(), patient.getRoleId()),
+                        String.format(
+                            "%s|\\(?P?%d\\)?|%s( )?\\(?P?%d\\)?",
+                            patient.getName(),
+                            patient.getRoleId(),
+                            patient.getName(),
+                            patient.getRoleId()
+                        ),
+                        true
+                    ).setNextMenu(nextMenu)
+                    .setNextAction((userinput, args) -> new HashMap<String, Object>() {{
+                        put("patientId", Integer.toString(patient.getRoleId()));
+                    }})
+                ).collect(Collectors.toList());
+            if (userOptions != null && !userOptions.isEmpty()) {
+                return userOptions;
+            }
+            MenuService.getCurrentMenu().setNextMenu(() -> Menu.getUserMainMenu());
+            throw new Exception("No patients found.");
+        });
     }
 
     private Menu addOption(Option option) {
