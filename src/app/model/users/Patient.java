@@ -1,14 +1,16 @@
 package app.model.users;
 
 import app.constants.BloodType;
+import app.model.appointments.Appointment;
 import app.model.user_credentials.Email;
+import app.model.user_credentials.MedicalRecord;
 import app.model.user_credentials.PhoneNumber;
 import app.utils.DateTimeUtil;
 import app.utils.EnumUtils;
 import java.time.LocalDate;
 import java.util.List;
 
-public class Patient extends User {
+public class Patient extends User implements AppointmentManager{
 
     private static int patientUuid = 1;
     private final int patientId;
@@ -22,12 +24,14 @@ public class Patient extends User {
     private final Email email;
     private final LocalDate dateOfBirth;
     private final BloodType bloodType;
+    private final MedicalRecord medicalRecord;
 
     // IMPT medical record is built from patient's appointmentHistory
-    
+
     public Patient(
         List<String> patientRow,
-        List<String> userRow
+        List<String> userRow,
+        MedicalRecord medicalRecord
     ) throws Exception {
         super(userRow);
         this.patientId = Integer.parseInt(patientRow.get(0));
@@ -37,6 +41,7 @@ public class Patient extends User {
         this.dateOfBirth = DateTimeUtil.parseShortDate(patientRow.get(5));
         this.bloodType = EnumUtils.fromString(BloodType.class, patientRow.get(6)); // TODO
         Patient.setPatientUuid(Math.max(Patient.patientUuid, this.patientId)+1);
+        this.medicalRecord = medicalRecord;
     }
 
     public Patient(
@@ -58,6 +63,26 @@ public class Patient extends User {
         this.email = new Email(email);
         this.dateOfBirth = DateTimeUtil.parseShortDate(dateOfBirth);
         this.bloodType = EnumUtils.fromString(BloodType.class, bloodType);
+        this.medicalRecord = new MedicalRecord(this.patientId); // Medical record created upon instantiation of patient
+    }
+
+    public MedicalRecord getMedicalRecord() {
+        return medicalRecord;
+    }
+
+    @Override
+    public List<Appointment> getAppointments() {
+        return this.getMedicalRecord().getAppointments();
+    }
+
+    @Override
+    public void addAppointment(Appointment appointment) {
+        this.getMedicalRecord().addAppointment(appointment);
+    }
+
+    @Override
+    public void deleteAppointment(int appointmentId) {
+        this.getMedicalRecord().deleteAppointment(appointmentId);
     }
 
     @Override

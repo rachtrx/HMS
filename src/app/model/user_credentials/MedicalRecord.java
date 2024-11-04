@@ -1,8 +1,11 @@
 package app.model.user_credentials;
 
 import app.constants.exceptions.MissingAppointmentException;
-import app.model.appointments.AppointmentOutcomeRecord;
+import app.model.appointments.Appointment;
+import app.model.users.AppointmentManager;
+
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -12,25 +15,26 @@ import java.util.List;
 * @version 1.0
 * @since 2024-10-17
 */
-public class MedicalRecord {
+public class MedicalRecord implements AppointmentManager {
 
     // Constructor START
-    private List<AppointmentOutcomeRecord> appointmentHistory;
     private int patientId;
+    private List<Appointment> appointments;
     // TODO: diagnoses and treatments
 
     public MedicalRecord(
-        int patientId,
-        List<AppointmentOutcomeRecord> appointmentHistory
+        String patientId,
+        List<Appointment> appointments
     ) {
-        this.patientId = patientId;
-        this.appointmentHistory = appointmentHistory;
+        this.patientId = Integer.parseInt(patientId);
+        this.appointments = appointments;
     }
 
     public MedicalRecord(
         int patientId
     ) {
-        this(patientId, new ArrayList<>());
+        this.patientId = patientId;
+        this.appointments = new ArrayList<>();
     }
     // Constructor END
 
@@ -40,12 +44,26 @@ public class MedicalRecord {
         return this.patientId;
     }
 
-    public List<AppointmentOutcomeRecord> getAppointmentOutcomes() {
-        return appointmentHistory;
+    @Override
+    public List<Appointment> getAppointments() {
+        return appointments;
     }
 
-    public void addAppointmentOutcome(AppointmentOutcomeRecord outcome) {
-        this.appointmentHistory.add(outcome);
+    @Override
+    public void addAppointment(Appointment appointment) {
+        this.appointments.add(appointment);
+    }
+
+    @Override
+    public void deleteAppointment(int appointmentId) {
+        Iterator<Appointment> iterator = appointments.iterator();
+        while (iterator.hasNext()) {
+            Appointment appointment = iterator.next();
+            if (appointment.getAppointmentId() == appointmentId) {
+                iterator.remove();
+                break;
+            }
+        }
     }
 
     public void print() throws MissingAppointmentException {
@@ -55,7 +73,7 @@ public class MedicalRecord {
     public void printAppointmentHistory() throws MissingAppointmentException {
     
         // Check if the appointment history is empty
-        if (appointmentHistory.isEmpty()) {
+        if (appointments.isEmpty()) {
             throw new MissingAppointmentException("No appointments found.");
         }
     

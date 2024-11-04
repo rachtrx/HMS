@@ -20,8 +20,10 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 /**
 * CRUD functionality for appointments.
@@ -33,107 +35,76 @@ import java.util.stream.IntStream;
 public class AppointmentService {
 // public class AppointmentService extends Service {
 
-    private static List<DoctorEvent> doctorEvents = new ArrayList<>();
-    private static List<MedicalRecord> medicalRecords = new ArrayList<>();
-
-    public static List<DoctorEvent> getAllEvents() {
-        return doctorEvents;
-    }
-
-    public static void setAllEvents(List<DoctorEvent> newEvents) {
-        AppointmentService.doctorEvents = newEvents;
-    }
-
-    public static void addEvent(DoctorEvent newEvent) {
-        AppointmentService.doctorEvents.add(newEvent);
-    }
-
-    public static List<MedicalRecord> getAllMedicalRecords() {
-        return medicalRecords;
-    }
-
-    public static void setAllMedicalRecords(List<MedicalRecord> medicalRecords) {
-        AppointmentService.medicalRecords = medicalRecords;
-    }
-
-    public static void addMedicalRecord(MedicalRecord medicalRecord) {
-        AppointmentService.medicalRecords.add(medicalRecord);
-    }
-
     // private AppointmentParse appointmentParse;
     // public static ArrayList<Appointment> appointments;
 
     public static Appointment getAppointment(int appointmentId) {
-        return getAllEvents()
+        Optional<Appointment> appointment = UserService.getAllUsers()
             .stream()
-            .filter(event -> event.isAppointment() && ((Appointment) event).getAppointmentId() == appointmentId)
-            .map(Appointment.class::cast)
-            .findFirst()
-            .orElse(null);
+            .filter(user -> user instanceof Patient || user instanceof Doctor)
+            // transform each user into their list of appointments
+            .flatMap(user -> {
+                if (user instanceof Patient patient) {
+                    return patient.getAppointments().stream()
+                        .filter(app -> app.getAppointmentId() == appointmentId);
+                } else if (user instanceof Doctor doctor) {
+                    return doctor.getAppointments().stream()
+                        .filter(app -> app.getAppointmentId() == appointmentId);
+                }
+                return Stream.empty(); // return an empty stream if not a Patient or Doctor, 
+            })
+            .findFirst(); // Get the first found appointment
+
+        return appointment.orElse(null);
     }
     
     public static List<Appointment> getAllAppointmentsForPatient(int patientId) {
-        return getAllEvents()
-            .stream()
-            .filter(event -> event.isAppointment() && ((Appointment) event).getPatientId() == patientId)
-            .map(Appointment.class::cast)
-            .collect(Collectors.toList());
+        Patient patient = UserService.findUserByIdAndType(patientId, Patient.class, true);
+        return patient != null ? patient.getAppointments() : new ArrayList<>();
     }
     
     public static List<Appointment> getAllAppointmentsForDoctor(int doctorId) {
-        return getAllEvents()
-            .stream()
-            .filter(event -> event.isAppointment() && ((Appointment) event).getDoctorId() == doctorId)
-            .map(Appointment.class::cast)
-            .collect(Collectors.toList());
+        Doctor doctor = UserService.findUserByIdAndType(doctorId, Doctor.class, true);
+        return doctor != null ? doctor.getAppointments() : new ArrayList<>();
     }
     
     public static MedicalRecord getMedicalRecord(int patientId) {
-        return getAllMedicalRecords()
-            .stream()
-            .filter(record -> record.getPatientId() == patientId)
-            .findFirst()
-            .orElse(null);
+        Patient patient = UserService.findUserByIdAndType(patientId, Patient.class, true);
+        return patient != null ? patient.getMedicalRecord() : null;
     }
     
     public static AppointmentOutcomeRecord getAppointmentRecordById(int appointmentId) {
         Appointment appointment = getAppointment(appointmentId);
         if (appointment == null) return null;
-    
-        MedicalRecord medicalRecord = getMedicalRecord(appointment.getPatientId());
-        if (medicalRecord == null) return null;
-    
-        return medicalRecord.getAppointmentOutcomes()
-            .stream()
-            .filter(outcome -> outcome.getAppointmentId() == appointmentId)
-            .findFirst()
-            .orElse(null);
+        return appointment.getAppointmentOutcome();
+    }
+
+    public static List<AppointmentOutcomeRecord> getAppointmentOutcomes(List<Appointment> appointments) {
+        return appointments.stream()
+            .map(Appointment::getAppointmentOutcome)
+            .collect(Collectors.toList());
     }
     
-    public static List<AppointmentOutcomeRecord> getAppointmentRecordsByPatientId(int patientId) {
-        MedicalRecord medicalRecord = getMedicalRecord(patientId);
-        if (medicalRecord == null) return new ArrayList<>();
-    
-        return new ArrayList<>(medicalRecord.getAppointmentOutcomes());
+    public static List<AppointmentOutcomeRecord> getAppointmentRecordsByPatientId(int patientId) {  
+        List<Appointment> appointments = getAllAppointmentsForPatient(patientId);
+        return !appointments.isEmpty() ? getAppointmentOutcomes(appointments) : new ArrayList<>();
     }
     
     public static Map<Patient, List<AppointmentOutcomeRecord>> getAppointmentRecordsByDoctorId(int doctorId) {
-        List<Integer> patientIds = getAllAppointmentsForDoctor(doctorId)
-            .stream()
-            .map(Appointment::getPatientId)
-            .distinct()
-            .collect(Collectors.toList());
+        List<Appointment> appointments = getAllAppointmentsForDoctor(doctorId);
     
         Map<Patient, List<AppointmentOutcomeRecord>> outcomesMap = new HashMap<>();
     
-        for (int patientId : patientIds) {
+        for (Appointment appointment : appointments) {
+            int patientId = appointment.getPatientId();
             Patient patient = UserService.findUserByIdAndType(patientId, Patient.class, true);
-            MedicalRecord medicalRecord = getMedicalRecord(patientId);
-            if (medicalRecord != null) {
-                outcomesMap.put(patient, new ArrayList<>(medicalRecord.getAppointmentOutcomes()));
+            
+            if (patient != null) {
+                AppointmentOutcomeRecord outcomeRecord = appointment.getAppointmentOutcome();
+                outcomesMap.putIfAbsent(patient, new ArrayList<>()); // TODO maybe skip patient since this means appointment pending, no record yet
+                outcomesMap.get(patient).add(outcomeRecord);
             }
         }
-    
         return outcomesMap;
     }
 
@@ -199,9 +170,9 @@ public class AppointmentService {
             .stream()
             .filter(user -> {
                 Doctor doctor = (Doctor) user;
-                return getAllEvents()
+                return doctor.getDoctorEvents()
                     .stream()
-                    .filter(event -> event.getDoctorId() == doctor.getRoleId() && event.getTimeslot().isEqual(timeslotDateTime))
+                    .filter(event -> event.getTimeslot().isEqual(timeslotDateTime))
                     .findFirst()
                     .isEmpty();
             }).map(Doctor.class::cast)
@@ -221,24 +192,16 @@ public class AppointmentService {
             throw new Exception("Patient not found.");
         }
 
-        Appointment appointment = new Appointment(
-            doctorId, timeslot, patientId, AppointmentStatus.CONFIRMED
-        );
-        AppointmentService.addEvent(appointment);
+        Appointment appointment = new Appointment(doctorId, timeslot, patientId);
+        doctor.addAppointment(appointment);
+        patient.addAppointment(appointment);
         System.out.println("Appointment successfully scheduled");
     }
 
     public static void cancelAppointment(
         Appointment oldAppointment
     ) throws Exception {
-        List<DoctorEvent> events = AppointmentService.getAllEvents();
-        boolean removed = events.removeIf(event -> 
-            event instanceof Appointment &&
-            event.getId() == oldAppointment.getId()
-        );
-        if (!removed) {
-            throw new Exception("Old appointment was not found");
-        }
+        oldAppointment.cancel();
         System.out.println("Old Appointment successfully cancelled");
     }
 

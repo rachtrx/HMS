@@ -21,14 +21,11 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import javax.swing.text.html.Option;
 
 /**
 * Controls which menus to show (Equivalent to machine in FSM)
@@ -90,7 +87,7 @@ public enum Menu {
         "Patient Medical Record",
         "Enter 'M' or 'Menu' to return to the main menu."
     )),
-    PATIENT_EDIT_MEDICAL_RECORD(new MenuBuilder(
+    PATIENT_EDIT_MEDICAL_RECORD(new MenuBuilder( // TODO implement treatments?
         MenuType.SELECT,
         "Patient Medical Record",
         "Please select a field to edit:"
@@ -347,7 +344,10 @@ public enum Menu {
                 Patient patient = (Patient) UserService.getCurrentUser();
                     List<Appointment> appointments = AppointmentService.getAllAppointmentsForPatient(patient.getRoleId())
                         .stream()
-                        .filter(appointment -> appointment.getAppointmentStatus() == AppointmentStatus.CONFIRMED)
+                        .filter(appointment -> AppointmentStatus.isIn(appointment.getAppointmentStatus(), 
+                            AppointmentStatus.CONFIRMED,
+                            AppointmentStatus.PENDING)
+                        )
                         .collect(Collectors.toList());
                     if (!appointments.isEmpty()) {
                         AppointmentDisplay.printAppointmentDetails(appointments);

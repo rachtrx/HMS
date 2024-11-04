@@ -210,14 +210,12 @@ public class db {
         // START LOADING
 
         // LOAD UP PATIENTS
-        Map<String, Appointment> createdAppointmentMap = new HashMap<>();
-        List<MedicalRecord> medicalRecordList = new ArrayList<>();
-        List<DoctorEvent> eventList = new ArrayList<>(); // List of all events
+        Map<String, Appointment> createdAppointmentMap = new HashMap<>(); // to ensure that doctor does not recreate the same appointment
         List<User> usersList = new ArrayList<>();
 
         patientsMap.forEach((patientId, patientRow) -> {
 
-            List<AppointmentOutcomeRecord> appointmentOutcomeList = new ArrayList<>();
+            List<Appointment> currentPatientApptList = new ArrayList<>();
 
             List<String> userRow = userMap.get(patientRow.get(1));
 
@@ -272,11 +270,10 @@ public class db {
     
                         try {
                             Prescription prescription = new Prescription(prescriptionRow, medicationOrders);
-                            Appointment appointment = new Appointment(appointmentRow, doctorEventRow);
                             AppointmentOutcomeRecord appointmentOutcomeRecord = new AppointmentOutcomeRecord(outcomeRow, prescription);
+                            Appointment appointment = new Appointment(appointmentRow, doctorEventRow, appointmentOutcomeRecord);
     
-                            eventList.add(appointment);
-                            appointmentOutcomeList.add(appointmentOutcomeRecord);
+                            currentPatientApptList.add(appointment);
                             createdAppointmentMap.put(String.valueOf(appointment.getAppointmentId()), appointment);
                         } catch (Exception e) {
                             System.out.println("Failed to load Appointment ID " + appointmentId);
@@ -288,8 +285,8 @@ public class db {
     
                         else {
                             try {
-                                Appointment appointment = new Appointment(appointmentRow, doctorEventRow);
-                                eventList.add(appointment);
+                                Appointment appointment = new Appointment(appointmentRow, doctorEventRow, null);
+                                currentPatientApptList.add(appointment);
                                 createdAppointmentMap.put(String.valueOf(appointment.getAppointmentId()), appointment);
                             } catch (Exception e) {
                                 System.out.println(e.getMessage());
@@ -300,10 +297,9 @@ public class db {
             }
             
             try {
-                Patient patient = new Patient(patientRow, userRow);
-                MedicalRecord medicalRecord = new MedicalRecord(patient.getRoleId(), appointmentOutcomeList);
+                MedicalRecord medicalRecord = new MedicalRecord(patientId, currentPatientApptList);
+                Patient patient = new Patient(patientRow, userRow, medicalRecord);
                 usersList.add(patient);
-                medicalRecordList.add(medicalRecord);
             } catch (Exception e) {
                 System.out.println("Failed to initialise Patient ID" + patientId + ". This can have issues as appointments, outcomes, prescriptions and orders may have been initialised.");
             }
@@ -313,6 +309,8 @@ public class db {
 
         // Creating Doctor Records
         doctorsMap.forEach((doctorId, doctorRow) -> {
+
+            List<DoctorEvent> currentDoctorEventList = new ArrayList<>(); // List of all events
             
             List<String> eventIds = doctorToEventMap.get(doctorId);
             for (String eventId : eventIds) {
@@ -320,11 +318,11 @@ public class db {
                 List<String> appointmentRow = eventToAppointmentMap.get(eventId);
                 if (appointmentRow != null) {
                     Appointment appointment = createdAppointmentMap.get(appointmentRow.get(0));
-                    if (appointment != null) eventList.add(appointment); // may not have init properly in patient 
+                    if (appointment != null) currentDoctorEventList.add(appointment); // may not have init properly in patient 
                 } else {
                     try {
                         DoctorEvent doctorEvent = new DoctorEvent(doctorEventRow);
-                        eventList.add(doctorEvent);
+                        currentDoctorEventList.add(doctorEvent);
                     } catch (Exception e) {
                         System.out.println("There was an error setting up Doctor Event ID " + eventId);
                     }
@@ -334,7 +332,7 @@ public class db {
             List<String> staffRow = staffMap.get(doctorRow.get(1));
             List<String> userRow = userMap.get(staffRow.get(1));
             try {
-                Doctor doctor = new Doctor(doctorRow, staffRow, userRow);
+                Doctor doctor = new Doctor(doctorRow, staffRow, userRow, currentDoctorEventList);
                 usersList.add(doctor);
             } catch (Exception e) {
                 System.out.println("Failed to initialise Doctor ID" + doctorId + ". This can have issues as appointments have been added to users.");
@@ -376,12 +374,6 @@ public class db {
         }
 
         // Print users list
-        System.out.println("\nEvent List:");
-        for (DoctorEvent event : eventList) {
-            System.out.println(event);
-        }
-
-        // Print users list
         System.out.println("\nUsers List:");
         for (User user : usersList) {
             System.out.println(user);
@@ -389,7 +381,9 @@ public class db {
 
         // Load data into services
         UserService.addUsers(usersList);
-        AppointmentService.setAllEvents(eventList);
-        AppointmentService.setAllMedicalRecords(medicalRecordList);
     }
 }
+
+// To write back,
+// Loop all doctor events and filter for appointments
+// Loop all appointments, filter for appointment outcomes → prescription → Medication List 

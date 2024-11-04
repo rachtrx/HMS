@@ -2,6 +2,7 @@ package app.model.appointments;
 
 import app.utils.EnumUtils;
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -13,7 +14,7 @@ import java.util.List;
 */
 public class Appointment extends DoctorEvent {
 
-    public static enum AppointmentStatus {
+    public enum AppointmentStatus {
         CONFIRMED {
             @Override
             public String toString() {
@@ -31,8 +32,18 @@ public class Appointment extends DoctorEvent {
             public String toString() {
                 return "Completed";
             }
+        },
+        PENDING {
+            @Override
+            public String toString() {
+                return "Pending";
+            }
+        };
+
+        // Method to check if the status is in the allowed statuses
+        public static boolean isIn(AppointmentStatus status, AppointmentStatus... allowedStatuses) {
+            return Arrays.asList(allowedStatuses).contains(status);
         }
-        
     }
 
     private static int appointmentUuid = 1;
@@ -43,28 +54,32 @@ public class Appointment extends DoctorEvent {
 
     private final int patientId;
     private AppointmentStatus appointmentStatus;
+    private AppointmentOutcomeRecord appointmentOutcome;
 
     // Pending Appointment
     public Appointment(
         int doctorId,
         LocalDateTime timeslot,
-        int patientId,
-        AppointmentStatus appointmentStatus
+        int patientId
     ) throws Exception {
         super(doctorId, timeslot);
         this.appointmentId = Appointment.appointmentUuid++;
         this.patientId = patientId;
-        this.appointmentStatus = appointmentStatus;
+        this.appointmentStatus = AppointmentStatus.PENDING;
+        this.appointmentOutcome = null;
     }
 
     public Appointment(
-        List<String> row, List<String> doctorEventRow
+        List<String> row, List<String> doctorEventRow,
+        AppointmentOutcomeRecord appointmentOutcome
     ) throws Exception {
         super(doctorEventRow);
         this.appointmentId = Integer.parseInt(row.get(0));
         this.patientId = Integer.parseInt(row.get(2));
         this.appointmentStatus = EnumUtils.fromString(AppointmentStatus.class, row.get(3));
         Appointment.setAppointmentUuid(Math.max(Appointment.appointmentUuid, this.appointmentId)+1);
+        this.appointmentOutcome = appointmentOutcome;
+        
     }
 
     public Integer getAppointmentId() {
@@ -89,5 +104,13 @@ public class Appointment extends DoctorEvent {
 
     public void completed() {
         this.appointmentStatus = AppointmentStatus.COMPLETED;
+    }
+
+    public AppointmentOutcomeRecord getAppointmentOutcome() {
+        return appointmentOutcome;
+    }
+
+    public void setAppointmentOutcome(AppointmentOutcomeRecord appointmentOutcome) {
+        this.appointmentOutcome = appointmentOutcome;
     }
 }
