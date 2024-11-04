@@ -15,6 +15,13 @@ import java.util.List;
 public class Appointment extends DoctorEvent {
 
     public enum AppointmentStatus {
+    public static enum AppointmentStatus {
+        PENDING {
+            @Override
+            public String toString() {
+                return "Pending";
+            }
+        },
         CONFIRMED {
             @Override
             public String toString() {
