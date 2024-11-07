@@ -16,6 +16,7 @@ import app.service.UserService;
 import app.utils.DateTimeUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -182,16 +183,16 @@ public enum Menu {
         "Doctor Schedule",
         "Select 'M' to return to the main menu."
     )),
-    // DOCTOR_SET_AVAIL(new MenuBuilder(
-    //     MenuType.SELECT,
-    //     "Past Appointment Outcome Records",
-    //     null
-    // )),
-    // DOCTOR_RESPOND(new MenuBuilder(
-    //     MenuType.SELECT,
-    //     "Past Appointment Outcome Records",
-    //     null
-    // )),
+    DOCTOR_SET_AVAILABILITY(new MenuBuilder( // TODO
+        MenuType.SELECT,
+        "Doctor Availability",
+        "Set unavailable dates & times"
+    )),
+    DOCTOR_ACCEPT_APPOINTMENTS(new MenuBuilder(
+        MenuType.SELECT,
+        "Accept or Decline Appointment Requests",
+        "Please select an appointment to accept/reject:"
+    )),
     // DOCTOR_VIEW_CONFIRMED(new MenuBuilder(
     //     MenuType.SELECT,
     //     "Past Appointment Outcome Records",
@@ -211,6 +212,12 @@ public enum Menu {
         MenuType.SELECT,
         "Edit Appointment",
         "Select a field to edit:"
+    )),
+    DOCTOR_ACCEPT_OR_DECLINE_APPOINTMENT(new MenuBuilder(
+        MenuType.SELECT,
+        "Accept or Decline Pending Appointment",
+        null,
+        true
     ));
 
 
@@ -242,8 +249,8 @@ public enum Menu {
                         true
                     ).setNextMenu(() -> PATIENT_EDIT_MEDICAL_RECORD),
                 new Option(
-                        "View Available Appointments Today", 
-                        "view( )?(available( )?)?appointment(s)?|(view( )?)?today", 
+                        "View Available Appointments", 
+                        "view( )?(available( )?)?appointment(s)?", 
                         true
                     ).setNextMenu(() -> PATIENT_VIEW_AVAIL_APPOINTMENTS),
                 new Option(
@@ -286,24 +293,6 @@ public enum Menu {
                         "view( )?(appointment( )?)?outcomes(s)?|(view( )?)?history", 
                         true
                     ).setNextMenu(() -> PATIENT_VIEW_OUTCOMES)
-            ))).shouldAddLogoutOptions();
-        Menu.DOCTOR_MAIN_MENU // exit menu should be itself
-            .setOptionGenerator(() -> new ArrayList<>(List.of(
-                new Option(
-                        "View Patient's Medical Record", 
-                        "view( )?(patient(\\'s)?( )?')?(medical( )?)?record", 
-                        true
-                    ).setNextMenu(() -> SELECT_PATIENT_VIEW_MEDICAL_RECORD),
-                new Option(
-                        "Update Patient's Medical Record", 
-                        "(edit( )?)?(patient( )?('s)?)?(medical( )?)?record", 
-                        true
-                    ).setNextMenu(() -> SELECT_PATIENT_EDIT_MEDICAL_RECORD),
-                new Option(
-                        "View Personal Schedule", 
-                        "(view( )?)?(personal( )?)?schedule", 
-                        true
-                    ).setNextMenu(() -> DOCTOR_VIEW_SCHEDULE)
             ))).shouldAddLogoutOptions();
         Menu.PATIENT_VIEW_MEDICAL_RECORD
             .setDisplayGenerator(() -> {
@@ -385,13 +374,16 @@ public enum Menu {
         Menu.PATIENT_VIEW_AVAIL_APPOINTMENTS
             .setDisplayGenerator(() -> {
                     Map<Doctor, List<Timeslot>> timeslotsByDoctor = AppointmentService.getAvailableAppointmentSlotsByDoctor(LocalDateTime.now());
+                    // Get tomorrow's timeslots if hospital is closed today
+                    if (timeslotsByDoctor.isEmpty()) {
+                        timeslotsByDoctor = AppointmentService.getAvailableAppointmentSlotsByDoctor(
+                            LocalDateTime.of(LocalDateTime.now().plusDays(1).toLocalDate(), LocalTime.of(0, 0))
+                        );
+                    }
                     if (!timeslotsByDoctor.isEmpty()) {
                         AppointmentDisplay.printAvailableTimeslots(timeslotsByDoctor);
                     } else {
-                        System.out.println(String.format(
-                            "No available timeslots today. Try again tomorrow before %02d:00.\n",
-                            Timeslot.lastSlotStartTime.getHour()
-                        ));
+                        System.out.println("No available timeslots for today and tomorrow.");
                     }       
                 })
             .shouldAddMainMenuOption()
@@ -415,15 +407,7 @@ public enum Menu {
             .shouldAddLogoutOptions();
         Menu.PATIENT_APPOINTMENT_SELECTION_TYPE
             .setOptionGenerator(() -> {
-                return new ArrayList<>(Arrays.asList(
-                    new Option("Today", "today", true)
-                        .setNextAction((userInput, args) -> {
-                            LocalDate today = LocalDate.now();
-                            args.put("year", String.valueOf(today.getYear()));
-                            args.put("month", String.valueOf(today.getMonthValue()));
-                            args.put("day", String.valueOf(today.getDayOfMonth()));
-                            return args;
-                        }).setNextMenu(Menu.INPUT_APPOINTMENT_HOUR),
+                List<Option> options = new ArrayList<>(Arrays.asList(
                     new Option("Tomorrow", "tmr|tomorrow", true)
                         .setNextAction((userInput, args) -> {
                             LocalDate tmr = LocalDate.now().plusDays(1);
@@ -435,6 +419,18 @@ public enum Menu {
                     new Option("Custom", "custom", true)
                     .setNextAction((userInput, args) -> args).setNextMenu(Menu.INPUT_APPOINTMENT_YEAR)
                 ));
+                if (LocalTime.now().isBefore(Timeslot.lastSlotStartTime)) {
+                    options.add(0, new Option("Today", "today", true)
+                        .setNextAction((userInput, args) -> {
+                            LocalDate today = LocalDate.now();
+                            args.put("year", String.valueOf(today.getYear()));
+                            args.put("month", String.valueOf(today.getMonthValue()));
+                            args.put("day", String.valueOf(today.getDayOfMonth()));
+                            return args;
+                        }).setNextMenu(Menu.INPUT_APPOINTMENT_HOUR)
+                    );
+                }
+                return options;
             });
         Menu.INPUT_APPOINTMENT_YEAR
             .setNextMenu(Menu.INPUT_APPOINTMENT_MONTH)
@@ -657,6 +653,34 @@ public enum Menu {
             }).setExitMenu(() -> Menu.getUserMainMenu())
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
+        Menu.DOCTOR_MAIN_MENU // exit menu should be itself
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                new Option(
+                        "View Patient's Medical Record", 
+                        "view( )?(patient(\\'s)?( )?')?(medical( )?)?record", 
+                        true
+                    ).setNextMenu(() -> SELECT_PATIENT_VIEW_MEDICAL_RECORD),
+                new Option(
+                        "Update Patient's Medical Record", 
+                        "(edit( )?)?(patient( )?('s)?)?(medical( )?)?record", 
+                        true
+                    ).setNextMenu(() -> SELECT_PATIENT_EDIT_MEDICAL_RECORD),
+                new Option(
+                        "View Personal Schedule", 
+                        "(view( )?)?(personal( )?)?schedule", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_VIEW_SCHEDULE),
+                new Option(
+                        "Set Appointment Availability", 
+                        "(set( )?)?(appointment( )?)?availability", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_SET_AVAILABILITY),
+                new Option(
+                        "Accept or Decline Appointment Requests", 
+                        "accept|decline|(appointment)?( )?requests", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_ACCEPT_APPOINTMENTS)
+            ))).shouldAddLogoutOptions();
         Menu.SELECT_PATIENT_VIEW_MEDICAL_RECORD
             .setPatientListOptionGenerator(() -> PATIENT_VIEW_MEDICAL_RECORD)
             .shouldAddMainMenuOption()
@@ -719,7 +743,6 @@ public enum Menu {
         Menu.DOCTOR_VIEW_SCHEDULE
             .setOptionGenerator(() -> {
                 AppointmentService.getAllAppointments().stream().forEach(event -> System.out.println(event.getDoctorId()));
-                System.out.println(UserService.getCurrentUser().getRoleId());
                 List<Option> options = AppointmentService.getAllAppointments()
                     .stream()
                     .filter(event ->
@@ -743,6 +766,90 @@ public enum Menu {
                 }
                 return options;
             }).setNextMenu(() -> Menu.getUserMainMenu())
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_SET_AVAILABILITY
+            // .setOptionGenerator(() -> new ArrayList<>(List.of(
+            //     new Option(
+            //             "View Unavailable Periods", 
+            //             "view(( )?unavailable)?(( )?periods)?", 
+            //             true
+            //         ).setNextMenu(() -> DOCTOR_VIEW_UNAVAILABLE),
+            //     new Option(
+            //             "Add Unavailable Periods", 
+            //             "add(( )?unavailable)?(( )?periods)?", 
+            //             true
+            //         ).setNextMenu(() -> DOCTOR_ADD_UNAVAILABLE),
+            //     new Option(
+            //             "Delete Unavailable Periods", 
+            //             "delete(( )?unavailable)?(( )?periods)?", 
+            //             true
+            //         ).setNextMenu(() -> DOCTOR_DELETE_UNAVAILABLE),
+            //     new Option(
+            //             "Edit Unavailable Periods", 
+            //             "edit(( )?unavailable)?(( )?periods)?", 
+            //             true
+            //         ).setNextMenu(() -> DOCTOR_EDIT_UNAVAILABLE)
+            // ))).setNextMenu(() -> Menu.getUserMainMenu())
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_ACCEPT_APPOINTMENTS
+            .setOptionGenerator(() -> {
+                List<Option> options = AppointmentService
+                    .getAppointmentByStatus(AppointmentStatus.PENDING)
+                    .stream()
+                    .filter(appointment ->
+                        appointment.getDoctorId() == UserService.getCurrentUser().getRoleId()
+                    ).sorted(Comparator.comparing(Appointment::getTimeslot))
+                    .map(appointment -> {
+                        Patient patient = UserService.findUserByIdAndType(
+                            appointment.getPatientId(),
+                            Patient.class,
+                            true
+                        );
+                        String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
+                        return new Option(
+                            patient == null ? timeslot : String.format(
+                                "%s - %s (P%d)",
+                                timeslot,
+                                patient.getName(),
+                                patient.getRoleId()
+                            ),
+                            timeslot,
+                            true
+                        ).setNextAction((userInput, args) -> {
+                            args = args == null ? new HashMap<>() : args;
+                            args.put("appointmentId", Integer.toString(appointment.getAppointmentId()));
+                            return args;
+                        }).setNextMenu(() -> DOCTOR_ACCEPT_OR_DECLINE_APPOINTMENT);
+                }).collect(Collectors.toList());
+                if (options == null || options.isEmpty()) {
+                    MenuService.setCurrentMenu(Menu.getUserMainMenu());
+                    throw new Exception("No pending appointments.");
+                }
+                return options;
+            })
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_ACCEPT_OR_DECLINE_APPOINTMENT
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                new Option("Accept", "accept", true)
+                    .setNextMenu(() -> DOCTOR_ACCEPT_APPOINTMENTS)
+                    .setNextAction((input, args) -> {
+                        AppointmentService
+                            .getAppointment(Integer.parseInt((String)args.get("appointmentId")))
+                            .confirm();
+                        return null;
+                    }),
+                new Option("Decline", "decline", true)
+                    .setNextMenu(() -> DOCTOR_ACCEPT_APPOINTMENTS)
+                    .setNextAction((input, args) -> {
+                        AppointmentService
+                            .getAppointment(Integer.parseInt((String)args.get("appointmentId")))
+                            .cancel();
+                        return null;
+                    })
+            ))).setExitMenu(() -> Menu.getUserMainMenu())
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
     }
@@ -1068,9 +1175,13 @@ public enum Menu {
         if (this.menuType == MenuType.INPUT && this.requiresConfirmation) {
             String trueInput = userInput;
             System.out.printf("Input Next Menu: %s%n, Input Exit Menu: %s%n", this.getNextMenu(), this.getExitMenu());
-            this.setConfirmMenu(this.getNextMenuGenerator(), this.getExitMenuGenerator(), (input, args) -> {
-                return this.nextAction.apply(trueInput, args); // input MenuType.INPUT should have all nextAction() set, unlike MenuType.OPTION
-            });
+            this.setConfirmMenu(
+                this.getNextMenuGenerator(),
+                this.getExitMenuGenerator(),
+                (input, args) -> {
+                    return this.nextAction.apply(trueInput, args); // input MenuType.INPUT should have all nextAction() set, unlike MenuType.OPTION
+                }
+            );
             Menu.CONFIRM.setDataFromPreviousMenu(this.dataFromPreviousMenu);
             // this.setDataFromPreviousMenu(null);
             return Menu.CONFIRM;

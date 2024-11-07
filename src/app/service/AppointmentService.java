@@ -2,12 +2,12 @@ package app.service;
 
 import app.constants.exceptions.InvalidTimeslotException;
 import app.model.appointments.Appointment;
+import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.Timeslot;
 import app.model.user_credentials.MedicalRecord;
 import app.model.users.Patient;
 import app.model.users.staff.Doctor;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -42,7 +42,7 @@ public class AppointmentService {
                 if (user instanceof Patient patient) {
                     return patient.getAppointments().stream();
                 } else if (user instanceof Doctor doctor) {
-                    return doctor.getAppointments().stream();
+                    return doctor.getAppointments().stream().filter(event -> !event.isAppointment());
                 }
                 return Stream.empty(); // return an empty stream if not a Patient or Doctor, 
             }).collect(Collectors.toList());
@@ -108,6 +108,15 @@ public class AppointmentService {
         return outcomesMap;
     }
 
+    public static List<Appointment> getAppointmentByStatus(AppointmentStatus appointmentStatus) {
+        return AppointmentService.getAllAppointments()
+            .stream()
+            .filter(appointment ->
+                appointment.isAppointment() &&
+                appointment.getAppointmentStatus().equals(appointmentStatus)
+            ).collect(Collectors.toList());
+    }
+
     private boolean userIdMatches(Patient patient, Appointment appointment) {
         return appointment.getPatientId() == UserService.getCurrentUser().getUserId();
     }
@@ -131,7 +140,7 @@ public class AppointmentService {
         LocalTime currentSlotStartTime = LocalTime.of(dateTimeNow.getHour(), 0);
     
         // Determine earliest slot time based on current time and provided date
-        if (LocalDate.now().equals(date.toLocalDate()) && dateTimeNow.getHour() == date.getHour()) {
+        if (dateTimeNow.toLocalDate().equals(date.toLocalDate()) && dateTimeNow.getHour() == date.getHour()) {
             LocalDateTime dateTimeOffset = date.plusHours(1);
             currentSlotStartTime = LocalTime.of(dateTimeOffset.getHour(), 0);
         }
@@ -152,8 +161,8 @@ public class AppointmentService {
                     if (availableDoctors != null) {
                         availableDoctors.forEach(doctor -> {
                             availableSlotsByDoctor
-                                    .computeIfAbsent(doctor, k -> new ArrayList<>())
-                                    .add(timeslot);
+                                .computeIfAbsent(doctor, k -> new ArrayList<>())
+                                .add(timeslot);
                         });
                     }
                 } catch (InvalidTimeslotException ex) {
