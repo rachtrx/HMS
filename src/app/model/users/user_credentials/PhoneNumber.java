@@ -1,4 +1,4 @@
-package app.model.user_credentials;
+package app.model.users.user_credentials;
 
 import app.constants.exceptions.InvalidLengthException;
 import app.constants.exceptions.InvalidPhoneNumberException;

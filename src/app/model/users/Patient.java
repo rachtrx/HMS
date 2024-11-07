@@ -1,18 +1,18 @@
 package app.model.users;
 
 import app.constants.BloodType;
+import app.model.ISerializable;
 import app.model.appointments.Appointment;
-import app.model.user_credentials.Email;
-import app.model.user_credentials.MedicalRecord;
-import app.model.user_credentials.PhoneNumber;
+import app.model.users.user_credentials.Email;
+import app.model.users.user_credentials.PhoneNumber;
 import app.utils.DateTimeUtil;
 import app.utils.EnumUtils;
+import app.utils.LoggerUtils;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
-public class Patient extends User implements AppointmentManager{
+public class Patient extends User implements AppointmentManager {
 
     private static int patientUuid = 1;
     private final int patientId;
@@ -27,25 +27,7 @@ public class Patient extends User implements AppointmentManager{
     private final LocalDate dateOfBirth;
     private final BloodType bloodType;
     private final MedicalRecord medicalRecord;
-
-    // IMPT medical record is built from patient's appointmentHistory
-
-    public Patient(
-        List<String> patientRow,
-        List<String> userRow,
-        MedicalRecord medicalRecord
-    ) throws Exception {
-        super(userRow);
-        this.patientId = Integer.parseInt(patientRow.get(0));
-        this.mobileNumber = new PhoneNumber(patientRow.get(2));
-        this.homeNumber = new PhoneNumber(patientRow.get(3));
-        this.email = new Email(patientRow.get(4));
-        this.dateOfBirth = DateTimeUtil.parseShortDate(patientRow.get(5));
-        this.bloodType = EnumUtils.fromString(BloodType.class, patientRow.get(6)); // TODO
-        Patient.setPatientUuid(Math.max(Patient.patientUuid, this.patientId)+1);
-        this.medicalRecord = medicalRecord;
-    }
-
+    
     public Patient(
         String username,
         String password,
@@ -66,7 +48,47 @@ public class Patient extends User implements AppointmentManager{
         this.dateOfBirth = DateTimeUtil.parseShortDate(dateOfBirth);
         this.bloodType = EnumUtils.fromString(BloodType.class, bloodType);
         this.medicalRecord = new MedicalRecord(this.patientId); // Medical record created upon instantiation of patient
+        add(this); // TODO move to factory method?
+        LoggerUtils.info("Patient created");
     }
+    
+    // IMPT medical record is built from patient's appointmentHistory
+    protected Patient(
+            List<String> userRow,
+            List<String> patientRow,
+            List<Appointment> appointments
+    ) throws Exception {
+        super(userRow);
+        LoggerUtils.info(String.join(", ", patientRow));
+        String patientIdStr = patientRow.get(0);
+        this.patientId = Integer.parseInt(patientIdStr);
+        this.mobileNumber = new PhoneNumber(patientRow.get(2));
+        this.homeNumber = new PhoneNumber(patientRow.get(3));
+        this.email = new Email(patientRow.get(4));
+        this.dateOfBirth = DateTimeUtil.parseShortDate(patientRow.get(5));
+        this.bloodType = EnumUtils.fromString(BloodType.class, patientRow.get(6)); // TODO
+        Patient.setPatientUuid(Math.max(Patient.patientUuid, this.patientId) + 1);
+        this.medicalRecord = new MedicalRecord(patientIdStr, appointments);
+        LoggerUtils.info("Patient " + this.getName() + " created");
+    }
+
+    @Override
+    public List<String> serialize() {
+        List<String> accRow = super.serialize();
+        
+        List<String> row = new ArrayList<>();
+
+        row.add(String.valueOf(this.getRoleId()));
+        row.add(this.getMobileNumber().toString());
+        row.add(this.getHomeNumber().toString());
+        row.add(this.getEmail());
+        row.add(DateTimeUtil.printShortDate(this.getDateOfBirth()));
+        row.add(this.getBloodType());
+
+        accRow.addAll(row);
+        return accRow;
+    }
+
 
     public MedicalRecord getMedicalRecord() {
         return medicalRecord;
@@ -98,10 +120,12 @@ public class Patient extends User implements AppointmentManager{
 
     public void setMobileNumber(Integer mobileNumber) throws Exception {
         this.mobileNumber.setNumber(mobileNumber);
+        update(this);
     }
 
     public void setMobileNumber(String mobileNumber) throws Exception {
         this.mobileNumber.setNumber(mobileNumber);
+        update(this);
     }
 
     public Integer getHomeNumber() {
@@ -110,10 +134,12 @@ public class Patient extends User implements AppointmentManager{
 
     public void setHomeNumber(Integer homeNumber) throws Exception {
         this.homeNumber.setNumber(homeNumber);
+        update(this);
     }
 
     public void setHomeNumber(String homeNumber) throws Exception {
         this.homeNumber.setNumber(homeNumber);
+        update(this);
     }
 
     public String getEmail() {
@@ -122,6 +148,7 @@ public class Patient extends User implements AppointmentManager{
 
     public void setEmail(String email) throws Exception {
         this.email.setEmail(email);
+        update(this);
     }
 
     // No need to set

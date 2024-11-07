@@ -1,9 +1,12 @@
 package app.model.users;
 
 import app.constants.Gender;
-import app.model.user_credentials.Password;
-import app.model.user_credentials.Username;
+import app.model.ISerializable;
+import app.model.users.user_credentials.Password;
+import app.model.users.user_credentials.Username;
 import app.utils.EnumUtils;
+import app.utils.LoggerUtils;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -15,7 +18,7 @@ import java.util.List;
 * @version 1.0
 * @since 2024-10-17
 */
-public abstract class User {
+public abstract class User implements ISerializable {
     
     // public abstract void displayUserMenu();
     private static int uuid = 1;
@@ -47,12 +50,23 @@ public abstract class User {
     }
 
     public User(List<String> row) throws Exception {
+        LoggerUtils.info(String.join(", ", row));
         this.userId = Integer.parseInt(row.get(0));
         this.username = new Username(row.get(1));
         this.password = new Password(row.get(2));
         this.name = row.get(3);
         this.gender = EnumUtils.fromString(Gender.class, row.get(4));
         User.setUuid(Math.max(User.uuid, this.userId)+1);
+    }
+
+    public List<String> serialize() {
+        List<String> row = new ArrayList<>();
+        row.add(String.valueOf(this.getUserId()));
+        row.add(this.getUsername());
+        row.add(this.getPassword());
+        row.add(this.getName());
+        row.add(this.getGender());
+        return row;
     }
 
     public int getUserId() {
@@ -70,6 +84,7 @@ public abstract class User {
 
     public void setUsername(String username) throws Exception { // abstract password into its own class? parent class credentials?
         this.username.setUsername(username);
+        update(this);
     }
 
     // Who should be able to access this?
@@ -79,6 +94,7 @@ public abstract class User {
 
     public void setPassword(String password) throws Exception { // abstract password into its own class? parent class credentials?
         this.password.setPassword(password);
+        update(this);
     }
 
     // /**
@@ -95,6 +111,7 @@ public abstract class User {
      */
     public void setName(String name) {
         this.name = name;
+        update(this);
     }
 
     // /**
@@ -111,6 +128,7 @@ public abstract class User {
      */
     public void setGender(String gender) {
         this.gender = Gender.fromString(gender);
+        update(this);
     }
 
     @Override

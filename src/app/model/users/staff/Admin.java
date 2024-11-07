@@ -1,5 +1,6 @@
 package app.model.users.staff;
 
+import app.utils.LoggerUtils;
 import java.util.List;
 
 public class Admin extends Staff {
@@ -12,16 +13,6 @@ public class Admin extends Staff {
     }
 
     public Admin(
-        List<String> adminRow,
-        List<String> staffRow,
-        List<String> userRow
-    ) throws Exception {
-        super(staffRow, userRow);
-        this.adminId = Integer.parseInt(adminRow.get(0));
-        Admin.setAdminUuid(Math.max(Admin.adminUuid, this.adminId)+1);
-    }
-
-    public Admin(
         String username, 
         String password, 
         String name, 
@@ -30,7 +21,21 @@ public class Admin extends Staff {
     ) throws Exception {
         super(username, password, name, gender, age);
         this.adminId = Admin.adminUuid++;
+        add(this); // TODO move to factory method?
+        LoggerUtils.info("Admin created");
     }
+
+    protected Admin(
+        List<String> userRow,
+        List<String> staffRow,
+        List<String> adminRow
+    ) throws Exception {
+        super(userRow, staffRow);
+        LoggerUtils.info(String.join(", ", adminRow));
+        this.adminId = Integer.parseInt(adminRow.get(0));
+        Admin.setAdminUuid(Math.max(Admin.adminUuid, this.adminId)+1);
+        LoggerUtils.info("Admin " + this.getName() + " created");
+    } 
 
     @Override
     public int getRoleId() {

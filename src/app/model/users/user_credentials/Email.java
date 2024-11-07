@@ -1,4 +1,4 @@
-package app.model.user_credentials;
+package app.model.users.user_credentials;
 
 import app.constants.exceptions.InvalidCharacterException;
 import app.constants.exceptions.InvalidEmailException;

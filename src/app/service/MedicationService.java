@@ -1,16 +1,24 @@
 package app.service;
 
-import app.model.inventory.Medication;
-import java.util.ArrayList;
-import java.util.List;
-
+import app.model.appointments.Appointment;
+import app.model.appointments.AppointmentOutcomeRecord;
+import app.model.appointments.Prescription;
 import app.model.inventory.Medication;
 import app.model.inventory.Request;
-import java.util.*;
 
-// public class InventoryService {
-// 	private List<Medication> medicationList = new ArrayList<>();
-//     private List<Request> requestList = new ArrayList<>();
+import java.util.*;
+import java.util.stream.Collectors;
+
+public class MedicationService {
+	private static List<Medication> medicationList = new ArrayList<>();
+
+	public static void addMedication(List<Medication> medicationList) {
+		MedicationService.medicationList.addAll(medicationList);
+	}
+    
+	public static List<Medication> getAllMedications() {
+        return medicationList;
+    }
 
 //     public Medication getMedication(int medicationId) {
 //         for (Medication med : medicationList) {
@@ -89,4 +97,4 @@ import java.util.*;
 //         }
 //     }
 
-// }
+}

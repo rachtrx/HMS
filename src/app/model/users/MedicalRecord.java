@@ -1,8 +1,7 @@
-package app.model.user_credentials;
+package app.model.users;
 
 import app.constants.exceptions.MissingAppointmentException;
 import app.model.appointments.Appointment;
-import app.model.users.AppointmentManager;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -18,19 +17,24 @@ import java.util.List;
 public class MedicalRecord implements AppointmentManager {
 
     // Constructor START
-    private int patientId;
-    private List<Appointment> appointments;
+    private final int patientId;
+    private final List<Appointment> appointments;
     // TODO: diagnoses and treatments
 
-    public MedicalRecord(
+    protected MedicalRecord(
         String patientId,
         List<Appointment> appointments
     ) {
         this.patientId = Integer.parseInt(patientId);
-        this.appointments = appointments;
+
+        if (appointments == null) {
+            this.appointments = new ArrayList<>();
+        } else {
+            this.appointments = appointments;
+        }
     }
 
-    public MedicalRecord(
+    protected MedicalRecord(
         int patientId
     ) {
         this.patientId = patientId;

@@ -2,16 +2,11 @@ package app.service;
 
 import app.constants.exceptions.InvalidTimeslotException;
 import app.model.appointments.Appointment;
-import app.model.appointments.Appointment.AppointmentStatus;
-import app.model.appointments.AppointmentDisplay;
 import app.model.appointments.AppointmentOutcomeRecord;
-import app.model.appointments.DoctorEvent;
 import app.model.appointments.Timeslot;
-import app.model.user_credentials.MedicalRecord;
+import app.model.users.MedicalRecord;
 import app.model.users.Patient;
 import app.model.users.staff.Doctor;
-import app.utils.DateTimeUtil;
-import java.awt.Event;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -20,6 +15,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -82,6 +78,7 @@ public class AppointmentService {
     public static List<AppointmentOutcomeRecord> getAppointmentOutcomes(List<Appointment> appointments) {
         return appointments.stream()
             .map(Appointment::getAppointmentOutcome)
+            .filter(Objects::nonNull)
             .collect(Collectors.toList());
     }
     

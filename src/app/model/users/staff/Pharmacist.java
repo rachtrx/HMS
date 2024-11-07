@@ -1,5 +1,6 @@
 package app.model.users.staff;
 
+import app.utils.LoggerUtils;
 import java.util.List;
 
 public class Pharmacist extends Staff {
@@ -11,17 +12,7 @@ public class Pharmacist extends Staff {
         pharmacistUuid = value;
     }
 
-    public Pharmacist(
-        List<String> pharmacistRow,
-        List<String> staffRow,
-        List<String> userRow
-    ) throws Exception {
-        super(staffRow, userRow);
-        this.pharmacistId = Integer.parseInt(pharmacistRow.get(0));
-        Pharmacist.setPharmacistUuid(Math.max(Pharmacist.pharmacistUuid, this.pharmacistId)+1);
-    }
-
-    public Pharmacist(
+    protected Pharmacist(
         String username, 
         String password, 
         String name, 
@@ -30,6 +21,20 @@ public class Pharmacist extends Staff {
     ) throws Exception {
         super(username, password, name, gender, age);
         this.pharmacistId = Pharmacist.pharmacistUuid++;
+        add(this); // TODO move to factory method?
+        LoggerUtils.info("Pharmacist created");
+    }
+
+    public Pharmacist(
+        List<String> userRow,
+        List<String> staffRow,
+        List<String> pharmacistRow
+    ) throws Exception {
+        super(userRow, staffRow);
+        LoggerUtils.info(String.join(", ", pharmacistRow));
+        this.pharmacistId = Integer.parseInt(pharmacistRow.get(0));
+        Pharmacist.setPharmacistUuid(Math.max(Pharmacist.pharmacistUuid, this.pharmacistId)+1);
+        LoggerUtils.info("Pharmacist " + this.getName() + " created");
     }
 
     @Override

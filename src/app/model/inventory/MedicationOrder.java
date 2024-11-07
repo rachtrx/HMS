@@ -1,11 +1,10 @@
 package app.model.inventory;
 
-import java.util.List;
-
 import app.constants.exceptions.NonNegativeException;
-import app.model.appointments.AppointmentOutcomeRecord;
-import app.model.appointments.Prescription;
-import app.model.users.User;
+import app.model.ISerializable;
+import app.utils.LoggerUtils;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
 * Order for each medication. Tracks any consumption of a medication type.
@@ -14,7 +13,7 @@ import app.model.users.User;
 * @version 1.0
 * @since 2024-10-17
 */
-public class MedicationOrder {
+public class MedicationOrder implements ISerializable {
 
     private static int uuid = 1;
     private final int id;
@@ -23,24 +22,39 @@ public class MedicationOrder {
         uuid = value;
     }
 
-    private int medicationId;
-    private int quantity;
-    private int prescriptionId;
+    private final int medicationId;
+    private final int quantity;
+    private final int prescriptionId;
 
-    public MedicationOrder(int medicationId, int quantity, int prescriptionId) {
+    public MedicationOrder(int medicationId, int quantity, int prescriptionId) throws NonNegativeException {
         this.id = MedicationOrder.uuid++;
         this.medicationId = medicationId;
+        if (quantity < 0) {
+            throw new NonNegativeException("Quantity cannot be less than zero");
+        }
         this.quantity = quantity;
         this.prescriptionId = prescriptionId;
-
+        add(this); // TODO move to factory method?
+        LoggerUtils.info("Order created");
     }
 
-    public MedicationOrder(List<String> row) {
+    protected MedicationOrder(List<String> row) {
+        LoggerUtils.info(String.join(", ", row));
         this.id = Integer.parseInt(row.get(0));
         this.prescriptionId = Integer.parseInt(row.get(1));
         this.medicationId = Integer.parseInt(row.get(2));
         this.quantity = Integer.parseInt(row.get(3));
         MedicationOrder.setUuid(Math.max(MedicationOrder.uuid, this.id)+1);
+    }
+
+    @Override
+    public List<String> serialize() {
+        List<String> row = new ArrayList<>();
+        row.add(String.valueOf(this.getId()));
+        row.add(String.valueOf(this.getPrescriptionId()));
+        row.add(String.valueOf(this.getMedicationId()));
+        row.add(String.valueOf(this.getQuantity()));
+        return row;
     }
 
     public int getId() {
@@ -51,26 +65,11 @@ public class MedicationOrder {
         return prescriptionId;
     }
 
-    public void setPrescriptionId(int prescriptionId) {
-        this.prescriptionId = prescriptionId;
-    }
-
     public int getMedicationId() {
         return this.medicationId;
     }
 
-    public void setMedicationId(int medicationId) {
-        this.medicationId = medicationId;
-    }
-
     public int getQuantity() {
         return this.quantity;
-    }
-
-    public void setQuantity(int quantity) throws NonNegativeException {
-        if (quantity < 0) {
-            throw new NonNegativeException("Quantity cannot be less than zero");
-        }
-        this.quantity = quantity;
     }
 }

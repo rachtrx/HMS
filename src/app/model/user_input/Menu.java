@@ -334,7 +334,7 @@ public enum Menu {
                             "blood|type|blood(( )?type)?|(blood( )?)?type",
                             true,
                             (input, args) -> {
-                                patient.setBloodType((String) input);
+                                // patient.setBloodType((String) input); // TODO BUG commented out
                                 return null;
                             }
                         ),
@@ -718,9 +718,9 @@ public enum Menu {
             .shouldAddLogoutOptions();
         Menu.DOCTOR_VIEW_SCHEDULE
             .setOptionGenerator(() -> {
-                AppointmentService.getAllEvents().stream().forEach(event -> System.out.println(event.getDoctorId()));
+                // AppointmentService.getAllEvents().stream().forEach(event -> System.out.println(event.getDoctorId())); // BUG due to updated Appointment Service code
                 System.out.println(UserService.getCurrentUser().getRoleId());
-                List<Option> options = AppointmentService.getAllEvents()
+                List<Option> options = AppointmentService.getAllAppointmentsForDoctor(UserService.getCurrentUser().getRoleId())
                     .stream()
                     .filter(event ->
                         event.getDoctorId() == UserService.getCurrentUser().getRoleId()

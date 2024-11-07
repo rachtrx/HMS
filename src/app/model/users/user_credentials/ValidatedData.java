@@ -1,4 +1,4 @@
-package app.model.user_credentials;
+package app.model.users.user_credentials;
 /**
 * Validator template.
 *

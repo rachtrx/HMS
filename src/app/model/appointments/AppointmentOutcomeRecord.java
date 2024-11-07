@@ -1,6 +1,9 @@
 package app.model.appointments;
 
+import app.model.ISerializable;
 import app.utils.EnumUtils;
+import app.utils.LoggerUtils;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,7 +13,7 @@ import java.util.List;
 * @version 1.0
 * @since 2024-10-17
 */
-public class AppointmentOutcomeRecord {
+public class AppointmentOutcomeRecord implements ISerializable {
     private static int uuid = 1;
     private final int id;
 
@@ -55,18 +58,35 @@ public class AppointmentOutcomeRecord {
         this.serviceType = EnumUtils.fromString(ServiceType.class, serviceType);
         this.prescription = prescription;
         this.consultationNotes = consultationNotes;
+        add(this); // TODO move to factory method?
+        LoggerUtils.info("Appointment record created");
     }
 
-    public AppointmentOutcomeRecord(
+    protected AppointmentOutcomeRecord(
         List<String> row,
         Prescription prescription
     ) {
+        LoggerUtils.info(String.join(", ", row));
         this.id = Integer.parseInt(row.get(0));
         this.appointmentId = Integer.parseInt(row.get(1));
         this.serviceType = EnumUtils.fromString(ServiceType.class, row.get(2));
-        this.prescription = prescription;
         this.consultationNotes = row.get(3);
+        this.prescription = prescription;
         AppointmentOutcomeRecord.setUuid(Math.max(AppointmentOutcomeRecord.uuid, this.id)+1);
+    }
+
+    public static AppointmentOutcomeRecord deserialize (List<String> row, Prescription prescription) {
+        return new AppointmentOutcomeRecord(row, prescription);
+    }
+
+    @Override
+    public List<String> serialize() {
+        List<String> row = new ArrayList<>();
+        row.add(String.valueOf(this.getId()));
+        row.add(String.valueOf(this.getAppointmentId()));
+        row.add(this.getServiceType()); // Store serviceType as a string
+        row.add(this.getConsultationNotes());
+        return row;
     }
 
     public int getId() {

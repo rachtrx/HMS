@@ -1,14 +1,18 @@
 package app.model.appointments;
 
 import app.constants.exceptions.InvalidTimeslotException;
+import app.model.ISerializable;
 import app.utils.DateTimeUtil;
+import app.utils.LoggerUtils;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
-public class DoctorEvent {
+public class DoctorEvent implements ISerializable {
 
     private static int uuid = 1;
     private final int id;
+    public final String filename = "src/resources/Doctor_Event_List.csv";
 
     public static void setUuid(int value) {
         uuid = value;
@@ -17,16 +21,32 @@ public class DoctorEvent {
     private int doctorId;
     private Timeslot timeslot;
 
-    public DoctorEvent(List<String> row) throws InvalidTimeslotException {
+    public DoctorEvent(int doctorId, LocalDateTime timeSlot) throws InvalidTimeslotException {
+        this.id = DoctorEvent.uuid++;
+        this.doctorId = doctorId;
+        this.timeslot = new Timeslot(timeSlot);
+        add(this); // TODO move to factory method?
+        LoggerUtils.info("Event created");
+    }
+
+    protected DoctorEvent(List<String> row) throws InvalidTimeslotException {
+        LoggerUtils.info(String.join(", ", row));
         this.id = Integer.parseInt(row.get(0));
         this.doctorId = Integer.parseInt(row.get(1));
         this.timeslot = new Timeslot(DateTimeUtil.parseShortDateTime(row.get(2)));
     }
 
-    public DoctorEvent(int doctorId, LocalDateTime timeSlot) throws InvalidTimeslotException {
-        this.id = DoctorEvent.uuid++;
-        this.doctorId = doctorId;
-        this.timeslot = new Timeslot(timeSlot);
+    public static DoctorEvent deserialize (List<String> row) throws Exception {
+        return new DoctorEvent(row);
+    }
+
+    @Override
+    public List<String> serialize() {
+        List<String> row = new ArrayList<>();
+        row.add(String.valueOf(this.getId()));
+        row.add(String.valueOf(this.getDoctorId())); // doctor event id
+        row.add(String.valueOf(this.getTimeslot()));
+        return row;
     }
 
     public int getId() {
@@ -39,6 +59,7 @@ public class DoctorEvent {
 
     public void setDoctorId(int doctorId) {
         this.doctorId = doctorId;
+        update(this);
     }
 
     public LocalDateTime getTimeslot() {
@@ -47,6 +68,7 @@ public class DoctorEvent {
 
     public void setTimeslot(Timeslot timeslot) {
         this.timeslot = timeslot;
+        update(this);
     }
 
     public boolean isAppointment() {

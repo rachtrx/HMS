@@ -1,8 +1,9 @@
 package app;
 
 import app.constants.exceptions.ExitApplication;
-import app.db.db;
+import app.db.DatabaseManager;
 import app.service.MenuService;
+import app.utils.LoggerUtils;
 import java.util.NoSuchElementException;
 import java.util.Scanner;
 
@@ -10,15 +11,22 @@ public class App {
 	private static Scanner scanner = new Scanner(System.in);
 
 	private static void exitApplication() {
-		MenuService.clearScreen();
+		// MenuService.clearScreen();
 		System.out.println(new ExitApplication().getMessage());
 		App.scanner.close();
+		try {
+			DatabaseManager.stop();
+		} catch (Exception e) {
+			System.out.println("Error saving database: " + e.getMessage());
+			e.printStackTrace();
+		}
+		
 	}
 
     public static void main(String[] args) throws Exception {
-		db.init();
+		DatabaseManager.start();
 		
-		MenuService.clearScreen();
+		// MenuService.clearScreen();
         MenuService.getCurrentMenu().display();
 		
 		while (true) {
@@ -36,11 +44,11 @@ public class App {
 				App.exitApplication();
 				break;
 			} catch (Exception e) {
-				System.out.println(e.getMessage() + "\n");
-				System.out.println("Exception Caught!");
+				LoggerUtils.info(e.getMessage() + "\n");
+				LoggerUtils.info("Exception Caught!");
 
 				if (MenuService.getCurrentMenu() != MenuService.getCurrentMenu().getExitMenu()) {
-					System.out.println("Same singleton instance"); // TODO REMOVE
+					LoggerUtils.info("Same singleton instance"); // TODO REMOVE
 					MenuService.getCurrentMenu().setDataFromPreviousMenu(null);
 				}
 				MenuService.setCurrentMenu(MenuService.getCurrentMenu().getExitMenu()); // no setting of args ie. clean state

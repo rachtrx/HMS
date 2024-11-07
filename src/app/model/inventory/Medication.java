@@ -1,6 +1,9 @@
 package app.model.inventory;
 
 import app.constants.exceptions.NonNegativeException;
+import app.model.ISerializable;
+import app.utils.LoggerUtils;
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -10,13 +13,15 @@ import java.util.List;
 * @version 1.0
 * @since 2024-10-17
 */
-public class Medication {
+public class Medication implements ISerializable {
     private static int uuid = 1;
     private final int id;
     
     private int stock;
     private final String name;
     private int lowAlertLevel;
+
+    private List<Request> requestList;
 
     /**
      * @param stock
@@ -28,13 +33,36 @@ public class Medication {
         this.name = name;
         this.stock = stock;
         this.lowAlertLevel = lowAlertLevel;
+        this.requestList = new ArrayList<>();
+        add(this); // TODO move to factory method?
+        LoggerUtils.info("Medication created");
     }
 
-    public Medication(List<String> data) {
-        this.id = Integer.parseInt(data.get(0));
-        this.name = data.get(1);
-        this.stock = Integer.parseInt(data.get(2));
-        this.lowAlertLevel = Integer.parseInt(data.get(3));
+    protected Medication(List<String> row) {
+        LoggerUtils.info(String.join(", ", row));
+        this.id = Integer.parseInt(row.get(0));
+        this.name = row.get(1);
+        this.stock = Integer.parseInt(row.get(2));
+        this.lowAlertLevel = Integer.parseInt(row.get(3));
+        this.requestList = new ArrayList<>();
+    }
+
+    @Override
+    public List<String> serialize() {
+        List<String> row = new ArrayList<>();
+        row.add(String.valueOf(this.getId()));
+        row.add(String.valueOf(this.getName()));
+        row.add(String.valueOf(this.getStock()));
+        row.add(String.valueOf(this.getLowAlertLevel()));
+        return row;
+    }
+    
+    public List<Request> getRequestList() {
+        return requestList;
+    }
+
+    public void setRequestList(List<Request> requestList) {
+        this.requestList = requestList;
     }
 
     public static void setStartId(int i) {
@@ -67,6 +95,7 @@ public class Medication {
      */
     public void setLowAlertLevel(int lowAlertLevel) {
         this.lowAlertLevel = lowAlertLevel;
+        update(this);
     }
 
     /**
@@ -78,6 +107,7 @@ public class Medication {
             throw new NonNegativeException("Stock cannot be less than 0");
         }
         this.stock = stock;
+        update(this);
     }
 
     /**

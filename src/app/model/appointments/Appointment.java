@@ -1,7 +1,9 @@
 package app.model.appointments;
 
 import app.utils.EnumUtils;
+import app.utils.LoggerUtils;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,6 +50,8 @@ public class Appointment extends DoctorEvent {
 
     private static int appointmentUuid = 1;
     private final int appointmentId;
+    public final String filename = "src/resources/Appointment_List.csv";
+
     public static void setAppointmentUuid(int value) {
         appointmentUuid = value;
     }
@@ -67,19 +71,36 @@ public class Appointment extends DoctorEvent {
         this.patientId = patientId;
         this.appointmentStatus = AppointmentStatus.PENDING;
         this.appointmentOutcome = null;
+        add(this); // TODO move to factory method?
+        LoggerUtils.info("Appointment created");
     }
 
-    public Appointment(
-        List<String> row, List<String> doctorEventRow,
+    protected Appointment(
+        List<String> doctorEventRow, List<String> row,
         AppointmentOutcomeRecord appointmentOutcome
     ) throws Exception {
         super(doctorEventRow);
+        LoggerUtils.info(String.join(", ", row));
         this.appointmentId = Integer.parseInt(row.get(0));
         this.patientId = Integer.parseInt(row.get(2));
         this.appointmentStatus = EnumUtils.fromString(AppointmentStatus.class, row.get(3));
         Appointment.setAppointmentUuid(Math.max(Appointment.appointmentUuid, this.appointmentId)+1);
         this.appointmentOutcome = appointmentOutcome;
-        
+    }
+
+    @Override
+    public List<String> serialize() {
+        List<String> accRow = super.serialize();
+
+        List<String> row = new ArrayList<>();
+        row.add(String.valueOf(this.getAppointmentId()));
+        row.add(String.valueOf(this.getId())); // doctor event id
+        row.add(String.valueOf(this.getPatientId()));
+        row.add(String.valueOf(this.getAppointmentStatus().toString()));
+
+        accRow.addAll(row);
+
+        return accRow;
     }
 
     public Integer getAppointmentId() {
@@ -94,16 +115,21 @@ public class Appointment extends DoctorEvent {
         return this.appointmentStatus;
     }
 
+    public void setAppointmentStatus(AppointmentStatus appointmentStatus) {
+        this.appointmentStatus = appointmentStatus;
+        update(this);
+    }
+
     public void cancel() {
-        this.appointmentStatus = AppointmentStatus.CANCELLED;
+        this.setAppointmentStatus(AppointmentStatus.CANCELLED);
     }
 
     public void confirm() {
-        this.appointmentStatus = AppointmentStatus.CONFIRMED;
+        this.setAppointmentStatus(AppointmentStatus.CONFIRMED);
     }
 
     public void completed() {
-        this.appointmentStatus = AppointmentStatus.COMPLETED;
+        this.setAppointmentStatus(AppointmentStatus.COMPLETED);
     }
 
     public AppointmentOutcomeRecord getAppointmentOutcome() {
@@ -112,5 +138,6 @@ public class Appointment extends DoctorEvent {
 
     public void setAppointmentOutcome(AppointmentOutcomeRecord appointmentOutcome) {
         this.appointmentOutcome = appointmentOutcome;
+        update(this);
     }
 }

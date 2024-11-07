@@ -1,4 +1,4 @@
-package app.model.user_credentials;
+package app.model.users.user_credentials;
 
 import app.constants.exceptions.InvalidCharacterException;
 import app.constants.exceptions.InvalidLengthException;
@@ -6,6 +6,7 @@ import app.model.users.User;
 import app.model.validators.IntegerValidator;
 import app.model.validators.StringValidator;
 import app.service.UserService;
+import app.utils.LoggerUtils;
 import app.utils.StringUtils;
 import java.util.Optional;
 
@@ -90,6 +91,7 @@ public final class Username extends ValidatedData<String, String> implements Int
     @Override
     public final void validateInteger(int length) throws InvalidLengthException {
         if (length < MIN_LENGTH || length > MAX_LENGTH) {
+            LoggerUtils.info("Username must be " + MIN_LENGTH + " to " + MAX_LENGTH + " characters long.");
             throw new InvalidLengthException("Username must be " + MIN_LENGTH + " to " + MAX_LENGTH + " characters long.");
         }
     }
