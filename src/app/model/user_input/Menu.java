@@ -16,6 +16,7 @@ import app.service.UserService;
 import app.utils.DateTimeUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -182,16 +183,16 @@ public enum Menu {
         "Doctor Schedule",
         "Select 'M' to return to the main menu."
     )),
-    // DOCTOR_SET_AVAIL(new MenuBuilder(
-    //     MenuType.SELECT,
-    //     "Past Appointment Outcome Records",
-    //     null
-    // )),
-    // DOCTOR_RESPOND(new MenuBuilder(
-    //     MenuType.SELECT,
-    //     "Past Appointment Outcome Records",
-    //     null
-    // )),
+    DOCTOR_SET_AVAILABILITY(new MenuBuilder( // TODO
+        MenuType.SELECT,
+        "Doctor Availability",
+        "Set unavailable dates & times"
+    )),
+    DOCTOR_ACCEPT_APPOINTMENTS(new MenuBuilder(
+        MenuType.SELECT,
+        "Accept or Decline Appointment Requests",
+        "Please select an appointment to accept/reject:"
+    )),
     // DOCTOR_VIEW_CONFIRMED(new MenuBuilder(
     //     MenuType.SELECT,
     //     "Past Appointment Outcome Records",
@@ -211,6 +212,12 @@ public enum Menu {
         MenuType.SELECT,
         "Edit Appointment",
         "Select a field to edit:"
+    )),
+    DOCTOR_ACCEPT_OR_DECLINE_APPOINTMENT(new MenuBuilder(
+        MenuType.SELECT,
+        "Accept or Decline Pending Appointment",
+        null,
+        true
     ));
 
 
@@ -242,8 +249,8 @@ public enum Menu {
                         true
                     ).setNextMenu(() -> PATIENT_EDIT_MEDICAL_RECORD),
                 new Option(
-                        "View Available Appointments Today", 
-                        "view( )?(available( )?)?appointment(s)?|(view( )?)?today", 
+                        "View Available Appointments", 
+                        "view( )?(available( )?)?appointment(s)?", 
                         true
                     ).setNextMenu(() -> PATIENT_VIEW_AVAIL_APPOINTMENTS),
                 new Option(
@@ -286,24 +293,6 @@ public enum Menu {
                         "view( )?(appointment( )?)?outcomes(s)?|(view( )?)?history", 
                         true
                     ).setNextMenu(() -> PATIENT_VIEW_OUTCOMES)
-            ))).shouldAddLogoutOptions();
-        Menu.DOCTOR_MAIN_MENU // exit menu should be itself
-            .setOptionGenerator(() -> new ArrayList<>(List.of(
-                new Option(
-                        "View Patient's Medical Record", 
-                        "view( )?(patient(\\'s)?( )?')?(medical( )?)?record", 
-                        true
-                    ).setNextMenu(() -> SELECT_PATIENT_VIEW_MEDICAL_RECORD),
-                new Option(
-                        "Update Patient's Medical Record", 
-                        "(edit( )?)?(patient( )?('s)?)?(medical( )?)?record", 
-                        true
-                    ).setNextMenu(() -> SELECT_PATIENT_EDIT_MEDICAL_RECORD),
-                new Option(
-                        "View Personal Schedule", 
-                        "(view( )?)?(personal( )?)?schedule", 
-                        true
-                    ).setNextMenu(() -> DOCTOR_VIEW_SCHEDULE)
             ))).shouldAddLogoutOptions();
         Menu.PATIENT_VIEW_MEDICAL_RECORD
             .setDisplayGenerator(() -> {
@@ -351,32 +340,32 @@ public enum Menu {
                 ) {
                     result.addAll(new ArrayList<>(List.of(
                         new EditOption(
-                                String.format("Mobile Number: +65%d", patient.getMobileNumber()),
-                                "mobile(( )?number)?",
-                                true,
-                                (input, args) -> {
-                                    patient.setMobileNumber((String) input);
-                                    return null;
-                                }
-                            ),
+                            String.format("Mobile Number: +65%d", patient.getMobileNumber()),
+                            "mobile(( )?number)?",
+                            true,
+                            (input, args) -> {
+                                patient.setMobileNumber((String) input);
+                                return args;
+                            }
+                        ),
                         new EditOption(
-                                String.format("Home Number: +65%d", patient.getHomeNumber()),
-                                "home(( )?number)?",
-                                true,
-                                (input, args) -> {
-                                    patient.setHomeNumber((String) input);
-                                    return null;
-                                }
-                            ),
+                            String.format("Home Number: +65%d", patient.getHomeNumber()),
+                            "home(( )?number)?",
+                            true,
+                            (input, args) -> {
+                                patient.setHomeNumber((String) input);
+                                return args;
+                            }
+                        ),
                         new EditOption(
-                                String.format("Email: %s", patient.getEmail()),
-                                "email",
-                                true,
-                                (input, args) -> {
-                                    patient.setEmail((String) input);
-                                    return null;
-                                }
-                            )
+                            String.format("Email: %s", patient.getEmail()),
+                            "email",
+                            true,
+                            (input, args) -> {
+                                patient.setEmail((String) input);
+                                return args;
+                            }
+                        )
                     )));
                 }
                 return result;
@@ -385,13 +374,16 @@ public enum Menu {
         Menu.PATIENT_VIEW_AVAIL_APPOINTMENTS
             .setDisplayGenerator(() -> {
                     Map<Doctor, List<Timeslot>> timeslotsByDoctor = AppointmentService.getAvailableAppointmentSlotsByDoctor(LocalDateTime.now());
+                    // Get tomorrow's timeslots if hospital is closed today
+                    if (timeslotsByDoctor.isEmpty()) {
+                        timeslotsByDoctor = AppointmentService.getAvailableAppointmentSlotsByDoctor(
+                            LocalDateTime.of(LocalDateTime.now().plusDays(1).toLocalDate(), LocalTime.of(0, 0))
+                        );
+                    }
                     if (!timeslotsByDoctor.isEmpty()) {
                         AppointmentDisplay.printAvailableTimeslots(timeslotsByDoctor);
                     } else {
-                        System.out.println(String.format(
-                            "No available timeslots today. Try again tomorrow before %02d:00.\n",
-                            Timeslot.lastSlotStartTime.getHour()
-                        ));
+                        System.out.println("No available timeslots for today and tomorrow.");
                     }       
                 })
             .shouldAddMainMenuOption()
@@ -415,15 +407,7 @@ public enum Menu {
             .shouldAddLogoutOptions();
         Menu.PATIENT_APPOINTMENT_SELECTION_TYPE
             .setOptionGenerator(() -> {
-                return new ArrayList<>(Arrays.asList(
-                    new Option("Today", "today", true)
-                        .setNextAction((userInput, args) -> {
-                            LocalDate today = LocalDate.now();
-                            args.put("year", String.valueOf(today.getYear()));
-                            args.put("month", String.valueOf(today.getMonthValue()));
-                            args.put("day", String.valueOf(today.getDayOfMonth()));
-                            return args;
-                        }).setNextMenu(Menu.INPUT_APPOINTMENT_HOUR),
+                List<Option> options = new ArrayList<>(Arrays.asList(
                     new Option("Tomorrow", "tmr|tomorrow", true)
                         .setNextAction((userInput, args) -> {
                             LocalDate tmr = LocalDate.now().plusDays(1);
@@ -435,6 +419,18 @@ public enum Menu {
                     new Option("Custom", "custom", true)
                     .setNextAction((userInput, args) -> args).setNextMenu(Menu.INPUT_APPOINTMENT_YEAR)
                 ));
+                if (LocalTime.now().isBefore(Timeslot.lastSlotStartTime)) {
+                    options.add(0, new Option("Today", "today", true)
+                        .setNextAction((userInput, args) -> {
+                            LocalDate today = LocalDate.now();
+                            args.put("year", String.valueOf(today.getYear()));
+                            args.put("month", String.valueOf(today.getMonthValue()));
+                            args.put("day", String.valueOf(today.getDayOfMonth()));
+                            return args;
+                        }).setNextMenu(Menu.INPUT_APPOINTMENT_HOUR)
+                    );
+                }
+                return options;
             });
         Menu.INPUT_APPOINTMENT_YEAR
             .setNextMenu(Menu.INPUT_APPOINTMENT_MONTH)
@@ -636,7 +632,7 @@ public enum Menu {
                             ).setNextMenu(() -> Menu.PATIENT_MAIN_MENU)
                             .setNextAction((input, args) -> {
                                 AppointmentService.cancelAppointment(appointment);
-                                return null;
+                                return args;
                             });
                         }).collect(Collectors.toList());
                 }
@@ -657,6 +653,34 @@ public enum Menu {
             }).setExitMenu(() -> Menu.getUserMainMenu())
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
+        Menu.DOCTOR_MAIN_MENU // exit menu should be itself
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                new Option(
+                        "View Patient's Medical Record", 
+                        "view( )?(patient(\\'s)?( )?')?(medical( )?)?record", 
+                        true
+                    ).setNextMenu(() -> SELECT_PATIENT_VIEW_MEDICAL_RECORD),
+                new Option(
+                        "Update Patient's Medical Record", 
+                        "(edit( )?)?(patient( )?('s)?)?(medical( )?)?record", 
+                        true
+                    ).setNextMenu(() -> SELECT_PATIENT_EDIT_MEDICAL_RECORD),
+                new Option(
+                        "View Personal Schedule", 
+                        "(view( )?)?(personal( )?)?schedule", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_VIEW_SCHEDULE),
+                new Option(
+                        "Set Appointment Availability", 
+                        "(set( )?)?(appointment( )?)?availability", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_SET_AVAILABILITY),
+                new Option(
+                        "Accept or Decline Appointment Requests", 
+                        "accept|decline|(appointment)?( )?requests", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_ACCEPT_APPOINTMENTS)
+            ))).shouldAddLogoutOptions();
         Menu.SELECT_PATIENT_VIEW_MEDICAL_RECORD
             .setPatientListOptionGenerator(() -> PATIENT_VIEW_MEDICAL_RECORD)
             .shouldAddMainMenuOption()
@@ -745,6 +769,90 @@ public enum Menu {
             }).setNextMenu(() -> Menu.getUserMainMenu())
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
+        Menu.DOCTOR_SET_AVAILABILITY
+            // .setOptionGenerator(() -> new ArrayList<>(List.of(
+            //     new Option(
+            //             "View Unavailable Periods", 
+            //             "view(( )?unavailable)?(( )?periods)?", 
+            //             true
+            //         ).setNextMenu(() -> DOCTOR_VIEW_UNAVAILABLE),
+            //     new Option(
+            //             "Add Unavailable Periods", 
+            //             "add(( )?unavailable)?(( )?periods)?", 
+            //             true
+            //         ).setNextMenu(() -> DOCTOR_ADD_UNAVAILABLE),
+            //     new Option(
+            //             "Delete Unavailable Periods", 
+            //             "delete(( )?unavailable)?(( )?periods)?", 
+            //             true
+            //         ).setNextMenu(() -> DOCTOR_DELETE_UNAVAILABLE),
+            //     new Option(
+            //             "Edit Unavailable Periods", 
+            //             "edit(( )?unavailable)?(( )?periods)?", 
+            //             true
+            //         ).setNextMenu(() -> DOCTOR_EDIT_UNAVAILABLE)
+            // ))).setNextMenu(() -> Menu.getUserMainMenu())
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_ACCEPT_APPOINTMENTS
+            .setOptionGenerator(() -> {
+                List<Option> options = AppointmentService
+                    .getAppointmentByStatus(AppointmentStatus.PENDING)
+                    .stream()
+                    .filter(appointment ->
+                        appointment.getDoctorId() == UserService.getCurrentUser().getRoleId()
+                    ).sorted(Comparator.comparing(Appointment::getTimeslot))
+                    .map(appointment -> {
+                        Patient patient = UserService.findUserByIdAndType(
+                            appointment.getPatientId(),
+                            Patient.class,
+                            true
+                        );
+                        String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
+                        return new Option(
+                            patient == null ? timeslot : String.format(
+                                "%s - %s (P%d)",
+                                timeslot,
+                                patient.getName(),
+                                patient.getRoleId()
+                            ),
+                            timeslot,
+                            true
+                        ).setNextAction((userInput, args) -> {
+                            args = args == null ? new HashMap<>() : args;
+                            args.put("appointmentId", Integer.toString(appointment.getAppointmentId()));
+                            return args;
+                        }).setNextMenu(() -> DOCTOR_ACCEPT_OR_DECLINE_APPOINTMENT);
+                }).collect(Collectors.toList());
+                if (options == null || options.isEmpty()) {
+                    MenuService.setCurrentMenu(Menu.getUserMainMenu());
+                    throw new Exception("No pending appointments.");
+                }
+                return options;
+            })
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_ACCEPT_OR_DECLINE_APPOINTMENT
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                new Option("Accept", "accept", true)
+                    .setNextMenu(() -> DOCTOR_ACCEPT_APPOINTMENTS)
+                    .setNextAction((input, args) -> {
+                        AppointmentService
+                            .getAppointment(Integer.parseInt((String)args.get("appointmentId")))
+                            .confirm();
+                        return null;
+                    }),
+                new Option("Decline", "decline", true)
+                    .setNextMenu(() -> DOCTOR_ACCEPT_APPOINTMENTS)
+                    .setNextAction((input, args) -> {
+                        AppointmentService
+                            .getAppointment(Integer.parseInt((String)args.get("appointmentId")))
+                            .cancel();
+                        return null;
+                    })
+            ))).setExitMenu(() -> Menu.getUserMainMenu())
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
     }
     // Init END
 
@@ -790,7 +898,7 @@ public enum Menu {
         private final boolean isNumberedOption;
         private MenuGenerator nextMenuGenerator;
         private MenuGenerator exitMenuGenerator;
-        protected NextAction nextAction;
+        protected NextAction nextAction = (input, args) -> args;
     
         public Option(
             String label,
@@ -922,7 +1030,7 @@ public enum Menu {
     // Transitions & Actions START
     private MenuGenerator nextMenuGenerator;
     private MenuGenerator exitMenuGenerator;
-    private NextAction nextAction;
+    private NextAction nextAction = (input, args) -> args;
     private Map<String, Object> dataFromPreviousMenu;
     private String userInput;
     // Transitions & Actions END
@@ -983,7 +1091,7 @@ public enum Menu {
 
         if (!(this.label == null || this.label.length() < 1)) {
             System.out.print("\n" + this.label + (
-                this.menuType == MenuType.INPUT ? " " : "\n"
+                this.menuType == MenuType.INPUT ? " " : "\n\n"
             ));
         } else if (
             this.menuType == MenuType.SELECT &&
@@ -1068,11 +1176,15 @@ public enum Menu {
         if (this.menuType == MenuType.INPUT && this.requiresConfirmation) {
             String trueInput = userInput;
             System.out.printf("Input Next Menu: %s%n, Input Exit Menu: %s%n", this.getNextMenu(), this.getExitMenu());
-            this.setConfirmMenu(this.getNextMenuGenerator(), this.getExitMenuGenerator(), (input, args) -> {
-                return this.nextAction.apply(trueInput, args); // input MenuType.INPUT should have all nextAction() set, unlike MenuType.OPTION
-            });
+            this.setConfirmMenu(
+                this.getNextMenuGenerator(),
+                this.getExitMenuGenerator(),
+                (input, args) -> {
+                    return this.nextAction.apply(trueInput, args); // input MenuType.INPUT should have all nextAction() set, unlike MenuType.OPTION
+                }
+            );
             Menu.CONFIRM.setDataFromPreviousMenu(this.dataFromPreviousMenu);
-            this.setDataFromPreviousMenu(null);
+            // this.setDataFromPreviousMenu(null);
             return Menu.CONFIRM;
         }
 
@@ -1145,8 +1257,12 @@ public enum Menu {
         if (this.nextAction == null) {
             return null;
         }
-            
-        return this.nextAction.apply(this.userInput, this.dataFromPreviousMenu);
+        try {
+            return this.nextAction.apply(this.userInput, this.dataFromPreviousMenu);    
+        } catch (Exception e) {
+            this.getNextMenuGenerator().apply().setDataFromPreviousMenu(this.dataFromPreviousMenu);
+            throw e;
+        }
     }
 
     public MenuGenerator getNextMenuGenerator() throws Exception {
@@ -1345,7 +1461,8 @@ public enum Menu {
                 if(optionFound) {
                     System.out.println(option.label);
                     return option;
-                } else return null;
+                }
+                return null;
                 // return matcher.find() ? option : null;
             }).filter(Objects::nonNull)
             .collect(Collectors.toList());
