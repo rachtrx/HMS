@@ -1,5 +1,6 @@
 package app.model.users.staff;
 
+import app.db.DatabaseManager;
 import app.utils.LoggerUtils;
 import java.util.List;
 
@@ -12,7 +13,7 @@ public class Admin extends Staff {
         adminUuid = value;
     }
 
-    public Admin(
+    private Admin(
         String username, 
         String password, 
         String name, 
@@ -21,8 +22,13 @@ public class Admin extends Staff {
     ) throws Exception {
         super(username, password, name, gender, age);
         this.adminId = Admin.adminUuid++;
-        add(this); // TODO move to factory method?
+    }
+
+    public static Admin create(String username, String password, String name, String gender, String age) throws Exception {
+        Admin admin = new Admin(username, password, name, gender, age);
+        DatabaseManager.add(admin);
         LoggerUtils.info("Admin created");
+        return admin;
     }
 
     protected Admin(

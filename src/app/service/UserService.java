@@ -1,6 +1,7 @@
 package app.service;
 
 import app.model.users.User;
+import app.utils.LoggerUtils;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -23,6 +24,10 @@ public class UserService {
 
     public static void addUsers(List<User> users) {
         UserService.users.addAll(users);
+        String userNames = users.stream()
+                                .map(User::getName)
+                                .collect(Collectors.joining(", "));
+        LoggerUtils.info("users added: " + userNames);
     }
 
     public static List<? extends User> getAllUserByType(Class<? extends User> userType) {

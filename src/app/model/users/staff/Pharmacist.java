@@ -1,5 +1,6 @@
 package app.model.users.staff;
 
+import app.db.DatabaseManager;
 import app.utils.LoggerUtils;
 import java.util.List;
 
@@ -12,7 +13,7 @@ public class Pharmacist extends Staff {
         pharmacistUuid = value;
     }
 
-    protected Pharmacist(
+    private Pharmacist(
         String username, 
         String password, 
         String name, 
@@ -21,8 +22,13 @@ public class Pharmacist extends Staff {
     ) throws Exception {
         super(username, password, name, gender, age);
         this.pharmacistId = Pharmacist.pharmacistUuid++;
-        add(this); // TODO move to factory method?
+    }
+
+    public static Pharmacist create(String username, String password, String name, String gender, String age) throws Exception {
+        Pharmacist pharmacist = new Pharmacist(username, password, name, gender, age);
+        DatabaseManager.add(pharmacist);
         LoggerUtils.info("Pharmacist created");
+        return pharmacist;
     }
 
     public Pharmacist(

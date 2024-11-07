@@ -1,5 +1,6 @@
 package app.model.appointments;
 
+import app.db.DatabaseManager;
 import app.utils.EnumUtils;
 import app.utils.LoggerUtils;
 import java.time.LocalDateTime;
@@ -61,7 +62,7 @@ public class Appointment extends DoctorEvent {
     private AppointmentOutcomeRecord appointmentOutcome;
 
     // Pending Appointment
-    public Appointment(
+    private Appointment(
         int doctorId,
         LocalDateTime timeslot,
         int patientId
@@ -71,8 +72,17 @@ public class Appointment extends DoctorEvent {
         this.patientId = patientId;
         this.appointmentStatus = AppointmentStatus.PENDING;
         this.appointmentOutcome = null;
-        add(this); // TODO move to factory method?
+    }
+
+    public static Appointment create(
+        int doctorId,
+        LocalDateTime timeslot,
+        int patientId
+    ) throws Exception {
+        Appointment a = new Appointment(doctorId, timeslot, patientId);
         LoggerUtils.info("Appointment created");
+        DatabaseManager.add(a);
+        return a;
     }
 
     protected Appointment(
@@ -117,7 +127,7 @@ public class Appointment extends DoctorEvent {
 
     public void setAppointmentStatus(AppointmentStatus appointmentStatus) {
         this.appointmentStatus = appointmentStatus;
-        update(this);
+        DatabaseManager.update(this);
     }
 
     public void cancel() {
@@ -138,6 +148,6 @@ public class Appointment extends DoctorEvent {
 
     public void setAppointmentOutcome(AppointmentOutcomeRecord appointmentOutcome) {
         this.appointmentOutcome = appointmentOutcome;
-        update(this);
+        DatabaseManager.update(this);
     }
 }

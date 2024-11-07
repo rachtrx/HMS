@@ -1257,12 +1257,7 @@ public enum Menu {
         if (this.nextAction == null) {
             return null;
         }
-        try {
-            return this.nextAction.apply(this.userInput, this.dataFromPreviousMenu);    
-        } catch (Exception e) {
-            this.getNextMenuGenerator().apply().setDataFromPreviousMenu(this.dataFromPreviousMenu);
-            throw e;
-        }
+        return this.nextAction.apply(this.userInput, this.dataFromPreviousMenu);    
     }
 
     public MenuGenerator getNextMenuGenerator() throws Exception {

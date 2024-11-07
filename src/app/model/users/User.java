@@ -1,6 +1,7 @@
 package app.model.users;
 
 import app.constants.Gender;
+import app.db.DatabaseManager;
 import app.model.ISerializable;
 import app.model.users.user_credentials.Password;
 import app.model.users.user_credentials.Username;
@@ -84,7 +85,7 @@ public abstract class User implements ISerializable {
 
     public void setUsername(String username) throws Exception { // abstract password into its own class? parent class credentials?
         this.username.setUsername(username);
-        update(this);
+        DatabaseManager.update(this);
     }
 
     // Who should be able to access this?
@@ -94,7 +95,7 @@ public abstract class User implements ISerializable {
 
     public void setPassword(String password) throws Exception { // abstract password into its own class? parent class credentials?
         this.password.setPassword(password);
-        update(this);
+        DatabaseManager.update(this);
     }
 
     // /**
@@ -111,7 +112,7 @@ public abstract class User implements ISerializable {
      */
     public void setName(String name) {
         this.name = name;
-        update(this);
+        DatabaseManager.update(this);
     }
 
     // /**
@@ -128,7 +129,7 @@ public abstract class User implements ISerializable {
      */
     public void setGender(String gender) {
         this.gender = Gender.fromString(gender);
-        update(this);
+        DatabaseManager.update(this);
     }
 
     @Override

@@ -85,8 +85,8 @@ public class DatabaseManager {
         userTable.addRelationship(patientTable, 0, 1, DeleteBehavior.CASCADE);
         patientTable.addRelationship(userTable, 1, 0, DeleteBehavior.CASCADE);
 
-        eventTable.addRelationship(doctorTable, 0, 1, DeleteBehavior.CASCADE);
-        doctorTable.addRelationship(eventTable, 1, 0, DeleteBehavior.NO_ACTION);
+        doctorTable.addRelationship(eventTable, 0, 1, DeleteBehavior.CASCADE);
+        eventTable.addRelationship(doctorTable, 1, 0, DeleteBehavior.NO_ACTION);
 
         eventTable.addRelationship(appointmentTable, 0, 1, DeleteBehavior.NO_ACTION);
         appointmentTable.addRelationship(eventTable, 1, 0, DeleteBehavior.CASCADE);

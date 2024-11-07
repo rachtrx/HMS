@@ -7,11 +7,11 @@ public interface ISerializable {
     
     public List<String> serialize();
 
-    default void update(Object instance) {
-        DatabaseManager.update(instance);
-    }
+    // default void update(Object instance) {
+    //     DatabaseManager.update(instance);
+    // }
 
-    default void add(Object instance) {
-        DatabaseManager.add(instance);
-    }
+    // default void add(Object instance) {
+    //     DatabaseManager.add(instance);
+    // }
 }

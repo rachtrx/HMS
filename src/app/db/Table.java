@@ -62,10 +62,10 @@ public final class Table {
     
         if (existingRow == null) {
             rows.add(new Row(pKeyCol, row));
-            LoggerUtils.info("Existing entry with primary key " + pKey + " added.");
+            LoggerUtils.info(this.getTableName() + ": New entry with primary key " + pKey + " added.");
         } else {
             existingRow.setData(row);
-            LoggerUtils.info("Existing entry with primary key " + pKey + " already found, not added!");
+            LoggerUtils.info(this.getTableName() + ": Existing entry with primary key " + pKey + " already found, not added!");
         }
     }
 
@@ -74,10 +74,10 @@ public final class Table {
         Row existingRow = findByVal(pKey, pKeyCol);
     
         if (existingRow == null) {
-            LoggerUtils.info("Existing entry with primary key " + pKey + " not found, not updated!");
+            LoggerUtils.info(this.getTableName() + ": Existing entry with primary key " + pKey + " not found, not updated!");
         } else {
             existingRow.setData(row);
-            LoggerUtils.info("Existing entry with primary key " + pKey + " updated.");
+            LoggerUtils.info(this.getTableName() + ": Existing entry with primary key " + pKey + " updated.");
         }
     }
 

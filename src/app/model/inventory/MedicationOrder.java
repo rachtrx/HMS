@@ -1,6 +1,7 @@
 package app.model.inventory;
 
 import app.constants.exceptions.NonNegativeException;
+import app.db.DatabaseManager;
 import app.model.ISerializable;
 import app.utils.LoggerUtils;
 import java.util.ArrayList;
@@ -26,7 +27,7 @@ public class MedicationOrder implements ISerializable {
     private final int quantity;
     private final int prescriptionId;
 
-    public MedicationOrder(int medicationId, int quantity, int prescriptionId) throws NonNegativeException {
+    private MedicationOrder(int medicationId, int quantity, int prescriptionId) throws NonNegativeException {
         this.id = MedicationOrder.uuid++;
         this.medicationId = medicationId;
         if (quantity < 0) {
@@ -34,8 +35,16 @@ public class MedicationOrder implements ISerializable {
         }
         this.quantity = quantity;
         this.prescriptionId = prescriptionId;
-        add(this); // TODO move to factory method?
+    }
+
+    public static MedicationOrder create(int medicationId, int quantity, int prescriptionId) throws NonNegativeException {
+        if (quantity < 0) {
+            throw new NonNegativeException("Quantity cannot be less than zero");
+        }
+        MedicationOrder order = new MedicationOrder(medicationId, quantity, prescriptionId);
+        DatabaseManager.add(order);
         LoggerUtils.info("Order created");
+        return order;
     }
 
     protected MedicationOrder(List<String> row) {

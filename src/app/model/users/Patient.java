@@ -1,6 +1,7 @@
 package app.model.users;
 
 import app.constants.BloodType;
+import app.db.DatabaseManager;
 import app.model.ISerializable;
 import app.model.appointments.Appointment;
 import app.model.users.user_credentials.Email;
@@ -11,6 +12,8 @@ import app.utils.LoggerUtils;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public class Patient extends User implements AppointmentManager {
 
@@ -28,11 +31,10 @@ public class Patient extends User implements AppointmentManager {
     private BloodType bloodType;
     private final MedicalRecord medicalRecord;
     
-    public Patient(
+    private Patient(
         String username,
         String password,
         String name,
-        String patientId,
         String gender,
         String mobileNumber,
         String homeNumber,
@@ -48,8 +50,13 @@ public class Patient extends User implements AppointmentManager {
         this.dateOfBirth = DateTimeUtil.parseShortDate(dateOfBirth);
         this.bloodType = EnumUtils.fromString(BloodType.class, bloodType);
         this.medicalRecord = new MedicalRecord(this.patientId); // Medical record created upon instantiation of patient
-        add(this); // TODO move to factory method?
+    }
+
+    public static Patient create(String username, String password, String name, String gender, String mobileNumber, String homeNumber, String email, String dateOfBirth, String bloodType) throws Exception {
+        Patient patient = new Patient(username, password, name, gender, mobileNumber, homeNumber, email, dateOfBirth, bloodType);
+        DatabaseManager.add(patient);
         LoggerUtils.info("Patient created");
+        return patient;
     }
     
     // IMPT medical record is built from patient's appointmentHistory
@@ -120,12 +127,12 @@ public class Patient extends User implements AppointmentManager {
 
     public void setMobileNumber(Integer mobileNumber) throws Exception {
         this.mobileNumber.setNumber(mobileNumber);
-        update(this);
+        DatabaseManager.update(this);
     }
 
     public void setMobileNumber(String mobileNumber) throws Exception {
         this.mobileNumber.setNumber(mobileNumber);
-        update(this);
+        DatabaseManager.update(this);
     }
 
     public Integer getHomeNumber() {
@@ -134,12 +141,12 @@ public class Patient extends User implements AppointmentManager {
 
     public void setHomeNumber(Integer homeNumber) throws Exception {
         this.homeNumber.setNumber(homeNumber);
-        update(this);
+        DatabaseManager.update(this);
     }
 
     public void setHomeNumber(String homeNumber) throws Exception {
         this.homeNumber.setNumber(homeNumber);
-        update(this);
+        DatabaseManager.update(this);
     }
 
     public String getEmail() {
@@ -148,7 +155,7 @@ public class Patient extends User implements AppointmentManager {
 
     public void setEmail(String email) throws Exception {
         this.email.setEmail(email);
-        update(this);
+        DatabaseManager.update(this);
     }
 
     // No need to set

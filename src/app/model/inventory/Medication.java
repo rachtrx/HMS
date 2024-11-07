@@ -1,6 +1,7 @@
 package app.model.inventory;
 
 import app.constants.exceptions.NonNegativeException;
+import app.db.DatabaseManager;
 import app.model.ISerializable;
 import app.utils.LoggerUtils;
 import java.util.ArrayList;
@@ -28,14 +29,19 @@ public class Medication implements ISerializable {
      * @param name
      * @param lowAlertLevel
      */
-    public Medication(int id, String name, int stock, int lowAlertLevel) {
+    private Medication(String name, int stock, int lowAlertLevel) {
         this.id = Medication.uuid++;
         this.name = name;
         this.stock = stock;
         this.lowAlertLevel = lowAlertLevel;
         this.requestList = new ArrayList<>();
-        add(this); // TODO move to factory method?
+    }
+
+    public static Medication create(String name, int stock, int lowAlertLevel) {
+        Medication medication = new Medication(name, stock, lowAlertLevel);
+        DatabaseManager.add(medication);
         LoggerUtils.info("Medication created");
+        return medication;
     }
 
     protected Medication(List<String> row) {
@@ -95,7 +101,7 @@ public class Medication implements ISerializable {
      */
     public void setLowAlertLevel(int lowAlertLevel) {
         this.lowAlertLevel = lowAlertLevel;
-        update(this);
+        DatabaseManager.update(this);
     }
 
     /**
@@ -107,7 +113,7 @@ public class Medication implements ISerializable {
             throw new NonNegativeException("Stock cannot be less than 0");
         }
         this.stock = stock;
-        update(this);
+        DatabaseManager.update(this);
     }
 
     /**

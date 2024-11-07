@@ -46,6 +46,7 @@ public class App {
 			} catch (Exception e) {
 				LoggerUtils.info(e.getMessage() + "\n");
 				LoggerUtils.info("Exception Caught!");
+				e.printStackTrace();
 
 				if (MenuService.getCurrentMenu() != MenuService.getCurrentMenu().getExitMenu()) {
 					LoggerUtils.info("Same singleton instance"); // TODO REMOVE

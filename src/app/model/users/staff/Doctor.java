@@ -1,5 +1,6 @@
 package app.model.users.staff;
 
+import app.db.DatabaseManager;
 import app.model.appointments.Appointment;
 import app.model.appointments.DoctorEvent;
 import app.model.users.AppointmentManager;
@@ -19,7 +20,7 @@ public class Doctor extends Staff implements AppointmentManager {
         doctorUuid = value;
     }
 
-    public Doctor(
+    private Doctor(
         String username, 
         String password, 
         String name, 
@@ -29,8 +30,13 @@ public class Doctor extends Staff implements AppointmentManager {
         super(username, password, name, gender, age);
         this.doctorId = Doctor.doctorUuid++;
         this.doctorEvents = new ArrayList<>();
-        add(this); // TODO move to factory method?
+    }
+
+    public static Doctor create(String username, String password, String name, String gender, String age) throws Exception {
+        Doctor doctor = new Doctor(username, password, name, gender, age);
+        DatabaseManager.add(doctor);
         LoggerUtils.info("Doctor created");
+        return doctor;
     }
 
     protected Doctor(

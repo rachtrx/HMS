@@ -1,5 +1,6 @@
 package app.model.appointments;
 
+import app.db.DatabaseManager;
 import app.model.ISerializable;
 import app.utils.EnumUtils;
 import app.utils.LoggerUtils;
@@ -47,7 +48,7 @@ public class AppointmentOutcomeRecord implements ISerializable {
     private final Prescription prescription;
     private final String consultationNotes;
 
-    public AppointmentOutcomeRecord(
+    private AppointmentOutcomeRecord(
         int appointmentId,
         String serviceType,
         Prescription prescription,
@@ -58,8 +59,18 @@ public class AppointmentOutcomeRecord implements ISerializable {
         this.serviceType = EnumUtils.fromString(ServiceType.class, serviceType);
         this.prescription = prescription;
         this.consultationNotes = consultationNotes;
-        add(this); // TODO move to factory method?
+    }
+
+    public static AppointmentOutcomeRecord create(
+            int appointmentId,
+            String serviceType,
+            Prescription prescription,
+            String consultationNotes
+    ) {
+        AppointmentOutcomeRecord record = new AppointmentOutcomeRecord(appointmentId, serviceType, prescription, consultationNotes);
+        DatabaseManager.add(record);
         LoggerUtils.info("Appointment record created");
+        return record;
     }
 
     protected AppointmentOutcomeRecord(

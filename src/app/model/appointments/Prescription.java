@@ -1,5 +1,6 @@
 package app.model.appointments;
 
+import app.db.DatabaseManager;
 import app.model.ISerializable;
 import app.model.inventory.MedicationOrder;
 import app.utils.EnumUtils;
@@ -47,13 +48,18 @@ public class Prescription implements ISerializable {
     private PrescriptionStatus status;
     private final int outcomeId;
 
-    public Prescription(int outcomeId, List<MedicationOrder> medicationOrders, PrescriptionStatus status) {
+    private Prescription(int outcomeId, List<MedicationOrder> medicationOrders, PrescriptionStatus status) {
         this.id = Prescription.uuid++;
         this.outcomeId = outcomeId;
         this.medicationOrders = medicationOrders;
         this.status = status;
-        add(this); // TODO move to factory method?
+    }
+
+    public static Prescription create(int outcomeId, List<MedicationOrder> medicationOrders, PrescriptionStatus status) {
+        Prescription prescription = new Prescription(outcomeId, medicationOrders, status);
+        DatabaseManager.add(prescription);
         LoggerUtils.info("Prescription created");
+        return prescription;
     }
 
     public Prescription(List<String> row, List<MedicationOrder> medicationOrders) {
@@ -88,7 +94,7 @@ public class Prescription implements ISerializable {
 
     public void setStatus(PrescriptionStatus status) {
         this.status = status;
-        update(this);
+        DatabaseManager.update(this);
     }
 
     @Override

@@ -1,6 +1,7 @@
 package app.model.appointments;
 
 import app.constants.exceptions.InvalidTimeslotException;
+import app.db.DatabaseManager;
 import app.model.ISerializable;
 import app.utils.DateTimeUtil;
 import app.utils.LoggerUtils;
@@ -21,12 +22,17 @@ public class DoctorEvent implements ISerializable {
     private int doctorId;
     private Timeslot timeslot;
 
-    public DoctorEvent(int doctorId, LocalDateTime timeSlot) throws InvalidTimeslotException {
+    protected DoctorEvent(int doctorId, LocalDateTime timeSlot) throws InvalidTimeslotException {
         this.id = DoctorEvent.uuid++;
         this.doctorId = doctorId;
         this.timeslot = new Timeslot(timeSlot);
-        add(this); // TODO move to factory method?
+    }
+
+    public static DoctorEvent create(int doctorId, LocalDateTime timeSlot) throws InvalidTimeslotException {
+        DoctorEvent event = new DoctorEvent(doctorId, timeSlot);
+        DatabaseManager.add(event);
         LoggerUtils.info("Event created");
+        return event;
     }
 
     protected DoctorEvent(List<String> row) throws InvalidTimeslotException {
@@ -59,7 +65,7 @@ public class DoctorEvent implements ISerializable {
 
     public void setDoctorId(int doctorId) {
         this.doctorId = doctorId;
-        update(this);
+        DatabaseManager.update(this);
     }
 
     public LocalDateTime getTimeslot() {
@@ -68,7 +74,7 @@ public class DoctorEvent implements ISerializable {
 
     public void setTimeslot(Timeslot timeslot) {
         this.timeslot = timeslot;
-        update(this);
+        DatabaseManager.update(this);
     }
 
     public boolean isAppointment() {

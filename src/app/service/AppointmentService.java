@@ -207,7 +207,7 @@ public class AppointmentService {
             throw new Exception("Patient not found.");
         }
 
-        Appointment appointment = new Appointment(doctorId, timeslot, patientId);
+        Appointment appointment = Appointment.create(doctorId, timeslot, patientId);
         doctor.addAppointment(appointment);
         patient.addAppointment(appointment);
         System.out.println("Appointment successfully scheduled");
