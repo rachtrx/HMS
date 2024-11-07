@@ -2,16 +2,11 @@ package app.service;
 
 import app.constants.exceptions.InvalidTimeslotException;
 import app.model.appointments.Appointment;
-import app.model.appointments.Appointment.AppointmentStatus;
-import app.model.appointments.AppointmentDisplay;
 import app.model.appointments.AppointmentOutcomeRecord;
-import app.model.appointments.DoctorEvent;
 import app.model.appointments.Timeslot;
 import app.model.user_credentials.MedicalRecord;
 import app.model.users.Patient;
 import app.model.users.staff.Doctor;
-import app.utils.DateTimeUtil;
-import java.awt.Event;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -38,21 +33,26 @@ public class AppointmentService {
     // private AppointmentParse appointmentParse;
     // public static ArrayList<Appointment> appointments;
 
-    public static Appointment getAppointment(int appointmentId) {
-        Optional<Appointment> appointment = UserService.getAllUsers()
+    public static List<Appointment> getAllAppointments() {
+        List<Appointment> appointments = UserService.getAllUsers()
             .stream()
             .filter(user -> user instanceof Patient || user instanceof Doctor)
             // transform each user into their list of appointments
             .flatMap(user -> {
                 if (user instanceof Patient patient) {
-                    return patient.getAppointments().stream()
-                        .filter(app -> app.getAppointmentId() == appointmentId);
+                    return patient.getAppointments().stream();
                 } else if (user instanceof Doctor doctor) {
-                    return doctor.getAppointments().stream()
-                        .filter(app -> app.getAppointmentId() == appointmentId);
+                    return doctor.getAppointments().stream();
                 }
                 return Stream.empty(); // return an empty stream if not a Patient or Doctor, 
-            })
+            }).collect(Collectors.toList());
+        return appointments;
+    }
+
+    public static Appointment getAppointment(int appointmentId) {
+        Optional<Appointment> appointment = AppointmentService.getAllAppointments()
+            .stream()
+            .filter(app -> app.getAppointmentId() == appointmentId)
             .findFirst(); // Get the first found appointment
 
         return appointment.orElse(null);

@@ -335,7 +335,7 @@ public enum Menu {
                             true,
                             (input, args) -> {
                                 patient.setBloodType((String) input);
-                                return null;
+                                return args;
                             }
                         ),
                         new Option(
@@ -351,32 +351,32 @@ public enum Menu {
                 ) {
                     result.addAll(new ArrayList<>(List.of(
                         new EditOption(
-                                String.format("Mobile Number: +65%d", patient.getMobileNumber()),
-                                "mobile(( )?number)?",
-                                true,
-                                (input, args) -> {
-                                    patient.setMobileNumber((String) input);
-                                    return null;
-                                }
-                            ),
+                            String.format("Mobile Number: +65%d", patient.getMobileNumber()),
+                            "mobile(( )?number)?",
+                            true,
+                            (input, args) -> {
+                                patient.setMobileNumber((String) input);
+                                return args;
+                            }
+                        ),
                         new EditOption(
-                                String.format("Home Number: +65%d", patient.getHomeNumber()),
-                                "home(( )?number)?",
-                                true,
-                                (input, args) -> {
-                                    patient.setHomeNumber((String) input);
-                                    return null;
-                                }
-                            ),
+                            String.format("Home Number: +65%d", patient.getHomeNumber()),
+                            "home(( )?number)?",
+                            true,
+                            (input, args) -> {
+                                patient.setHomeNumber((String) input);
+                                return args;
+                            }
+                        ),
                         new EditOption(
-                                String.format("Email: %s", patient.getEmail()),
-                                "email",
-                                true,
-                                (input, args) -> {
-                                    patient.setEmail((String) input);
-                                    return null;
-                                }
-                            )
+                            String.format("Email: %s", patient.getEmail()),
+                            "email",
+                            true,
+                            (input, args) -> {
+                                patient.setEmail((String) input);
+                                return args;
+                            }
+                        )
                     )));
                 }
                 return result;
@@ -636,7 +636,7 @@ public enum Menu {
                             ).setNextMenu(() -> Menu.PATIENT_MAIN_MENU)
                             .setNextAction((input, args) -> {
                                 AppointmentService.cancelAppointment(appointment);
-                                return null;
+                                return args;
                             });
                         }).collect(Collectors.toList());
                 }
@@ -718,9 +718,9 @@ public enum Menu {
             .shouldAddLogoutOptions();
         Menu.DOCTOR_VIEW_SCHEDULE
             .setOptionGenerator(() -> {
-                AppointmentService.getAllEvents().stream().forEach(event -> System.out.println(event.getDoctorId()));
+                AppointmentService.getAllAppointments().stream().forEach(event -> System.out.println(event.getDoctorId()));
                 System.out.println(UserService.getCurrentUser().getRoleId());
-                List<Option> options = AppointmentService.getAllEvents()
+                List<Option> options = AppointmentService.getAllAppointments()
                     .stream()
                     .filter(event ->
                         event.getDoctorId() == UserService.getCurrentUser().getRoleId()
@@ -790,7 +790,7 @@ public enum Menu {
         private final boolean isNumberedOption;
         private MenuGenerator nextMenuGenerator;
         private MenuGenerator exitMenuGenerator;
-        protected NextAction nextAction;
+        protected NextAction nextAction = (input, args) -> args;
     
         public Option(
             String label,
@@ -922,7 +922,7 @@ public enum Menu {
     // Transitions & Actions START
     private MenuGenerator nextMenuGenerator;
     private MenuGenerator exitMenuGenerator;
-    private NextAction nextAction;
+    private NextAction nextAction = (input, args) -> args;
     private Map<String, Object> dataFromPreviousMenu;
     private String userInput;
     // Transitions & Actions END
@@ -983,7 +983,7 @@ public enum Menu {
 
         if (!(this.label == null || this.label.length() < 1)) {
             System.out.print("\n" + this.label + (
-                this.menuType == MenuType.INPUT ? " " : "\n"
+                this.menuType == MenuType.INPUT ? " " : "\n\n"
             ));
         } else if (
             this.menuType == MenuType.SELECT &&
@@ -1072,7 +1072,7 @@ public enum Menu {
                 return this.nextAction.apply(trueInput, args); // input MenuType.INPUT should have all nextAction() set, unlike MenuType.OPTION
             });
             Menu.CONFIRM.setDataFromPreviousMenu(this.dataFromPreviousMenu);
-            this.setDataFromPreviousMenu(null);
+            // this.setDataFromPreviousMenu(null);
             return Menu.CONFIRM;
         }
 
@@ -1145,8 +1145,12 @@ public enum Menu {
         if (this.nextAction == null) {
             return null;
         }
-            
-        return this.nextAction.apply(this.userInput, this.dataFromPreviousMenu);
+        try {
+            return this.nextAction.apply(this.userInput, this.dataFromPreviousMenu);    
+        } catch (Exception e) {
+            this.getNextMenuGenerator().apply().setDataFromPreviousMenu(this.dataFromPreviousMenu);
+            throw e;
+        }
     }
 
     public MenuGenerator getNextMenuGenerator() throws Exception {
@@ -1345,7 +1349,8 @@ public enum Menu {
                 if(optionFound) {
                     System.out.println(option.label);
                     return option;
-                } else return null;
+                }
+                return null;
                 // return matcher.find() ? option : null;
             }).filter(Objects::nonNull)
             .collect(Collectors.toList());

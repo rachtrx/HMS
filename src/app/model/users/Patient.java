@@ -25,7 +25,7 @@ public class Patient extends User implements AppointmentManager{
     private final PhoneNumber homeNumber;
     private final Email email;
     private final LocalDate dateOfBirth;
-    private final BloodType bloodType;
+    private BloodType bloodType;
     private final MedicalRecord medicalRecord;
 
     // IMPT medical record is built from patient's appointmentHistory
@@ -131,6 +131,32 @@ public class Patient extends User implements AppointmentManager{
 
     public String getBloodType() {
         return bloodType.toString();
+    }
+
+    public void setBloodType(String bloodType) throws Exception {
+        try {
+            for (BloodType bt : BloodType.values()) {
+                if (bt.toString().equalsIgnoreCase(bloodType)) {
+                    this.setBloodType(bt);
+                    return;
+                }
+            }
+            this.setBloodType(BloodType.valueOf(bloodType.trim().toUpperCase()));
+        } catch (Exception e) {
+            throw new Exception(String.format(
+                "Invalid blood type. Try one of: %s",
+                String.join(
+                    ", ",
+                    Stream.of(BloodType.values())
+                        .map(Object::toString)
+                        .collect(Collectors.toList())
+                )
+            ));
+        }
+    }
+
+    public void setBloodType(BloodType bloodType) {
+        this.bloodType = bloodType;
     }
 
     // public void addAppointmentRecord(AppointmentOutcomeRecord appointmentRecord) {
