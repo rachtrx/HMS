@@ -44,8 +44,8 @@ public class App {
 				App.exitApplication();
 				break;
 			} catch (Exception e) {
-				LoggerUtils.info(e.getMessage() + "\n");
 				LoggerUtils.info("Exception Caught!");
+				LoggerUtils.info(e.getMessage() + "\n");
 				e.printStackTrace();
 
 				if (MenuService.getCurrentMenu() != MenuService.getCurrentMenu().getExitMenu()) {

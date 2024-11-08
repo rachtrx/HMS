@@ -45,7 +45,7 @@ public class Medication implements ISerializable {
     }
 
     protected Medication(List<String> row) {
-        LoggerUtils.info(String.join(", ", row));
+        // LoggerUtils.info(String.join(", ", row));
         this.id = Integer.parseInt(row.get(0));
         this.name = row.get(1);
         this.stock = Integer.parseInt(row.get(2));

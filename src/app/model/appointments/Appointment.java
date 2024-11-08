@@ -90,7 +90,7 @@ public class Appointment extends DoctorEvent {
         AppointmentOutcomeRecord appointmentOutcome
     ) throws Exception {
         super(doctorEventRow);
-        LoggerUtils.info(String.join(", ", row));
+        // LoggerUtils.info(String.join(", ", row));
         this.appointmentId = Integer.parseInt(row.get(0));
         this.patientId = Integer.parseInt(row.get(2));
         this.appointmentStatus = EnumUtils.fromString(AppointmentStatus.class, row.get(3));

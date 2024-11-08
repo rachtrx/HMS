@@ -66,7 +66,7 @@ public class Patient extends User implements AppointmentManager {
             List<Appointment> appointments
     ) throws Exception {
         super(userRow);
-        LoggerUtils.info(String.join(", ", patientRow));
+        // LoggerUtils.info(String.join(", ", patientRow));
         String patientIdStr = patientRow.get(0);
         this.patientId = Integer.parseInt(patientIdStr);
         this.mobileNumber = new PhoneNumber(patientRow.get(2));

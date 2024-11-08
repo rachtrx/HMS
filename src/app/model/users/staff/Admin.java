@@ -37,7 +37,7 @@ public class Admin extends Staff {
         List<String> adminRow
     ) throws Exception {
         super(userRow, staffRow);
-        LoggerUtils.info(String.join(", ", adminRow));
+        // LoggerUtils.info(String.join(", ", adminRow));
         this.adminId = Integer.parseInt(adminRow.get(0));
         Admin.setAdminUuid(Math.max(Admin.adminUuid, this.adminId)+1);
         LoggerUtils.info("Admin " + this.getName() + " created");

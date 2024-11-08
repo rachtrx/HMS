@@ -36,7 +36,7 @@ public class DoctorEvent implements ISerializable {
     }
 
     protected DoctorEvent(List<String> row) throws InvalidTimeslotException {
-        LoggerUtils.info(String.join(", ", row));
+        // LoggerUtils.info(String.join(", ", row));
         this.id = Integer.parseInt(row.get(0));
         this.doctorId = Integer.parseInt(row.get(1));
         this.timeslot = new Timeslot(DateTimeUtil.parseShortDateTime(row.get(2)));

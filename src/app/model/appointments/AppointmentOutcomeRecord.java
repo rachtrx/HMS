@@ -77,7 +77,7 @@ public class AppointmentOutcomeRecord implements ISerializable {
         List<String> row,
         Prescription prescription
     ) {
-        LoggerUtils.info(String.join(", ", row));
+        // LoggerUtils.info(String.join(", ", row));
         this.id = Integer.parseInt(row.get(0));
         this.appointmentId = Integer.parseInt(row.get(1));
         this.serviceType = EnumUtils.fromString(ServiceType.class, row.get(2));

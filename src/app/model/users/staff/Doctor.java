@@ -46,7 +46,7 @@ public class Doctor extends Staff implements AppointmentManager {
         List<DoctorEvent> doctorEvents
     ) throws Exception {
         super(userRow, staffRow);
-        LoggerUtils.info(String.join(", ", doctorRow));
+        // LoggerUtils.info(String.join(", ", doctorRow));
         this.doctorId = Integer.parseInt(doctorRow.get(0));
         Doctor.setDoctorUuid(Math.max(Doctor.doctorUuid, this.doctorId)+1);
 

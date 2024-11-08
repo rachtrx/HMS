@@ -51,7 +51,7 @@ public abstract class User implements ISerializable {
     }
 
     public User(List<String> row) throws Exception {
-        LoggerUtils.info(String.join(", ", row));
+        // LoggerUtils.info(String.join(", ", row));
         this.userId = Integer.parseInt(row.get(0));
         this.username = new Username(row.get(1));
         this.password = new Password(row.get(2));

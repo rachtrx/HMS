@@ -63,7 +63,7 @@ public class Prescription implements ISerializable {
     }
 
     public Prescription(List<String> row, List<MedicationOrder> medicationOrders) {
-        LoggerUtils.info(String.join(", ", row));
+        // LoggerUtils.info(String.join(", ", row));
         this.id = Integer.parseInt(row.get(0));
         this.status = EnumUtils.fromString(PrescriptionStatus.class, row.get(1));
         this.outcomeId = Integer.parseInt(row.get(2));

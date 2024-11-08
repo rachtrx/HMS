@@ -33,7 +33,7 @@ public abstract class Staff extends User {
         List<String> staffRow
     ) throws Exception {
         super(userRow); // General User Information
-        LoggerUtils.info(String.join(", ", staffRow));
+        // LoggerUtils.info(String.join(", ", staffRow));
         this.staffId = Integer.parseInt(staffRow.get(0));
         this.age = Integer.parseInt(staffRow.get(2));
         Staff.setStaffUuid(Math.max(Staff.staffUuid, this.staffId)+1);
