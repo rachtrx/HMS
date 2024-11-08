@@ -223,10 +223,8 @@ public class DatabaseManager {
                     List<String> combinedData = Row.combineData(List.of(userRow, patientRow));
                     List<Appointment> appointments = patientToApptMap.get(patientRow.getpKey());
 
-                    if (appointments == null) {
-                        Patient p = new PatientBuilder(combinedData, appointments).buildInstance().getInstance();
-                        users.add(p);
-                    }
+                    Patient p = new PatientBuilder(combinedData, appointments).buildInstance().getInstance();
+                    users.add(p);
 
                 } else {
                     Row staffRow = tables.get(TableConfig.STAFF.getTableName()).findByVal(userRow.getpKey(), 1);
