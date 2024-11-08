@@ -96,7 +96,7 @@ public class Appointment extends DoctorEvent {
         this.appointmentStatus = EnumUtils.fromString(AppointmentStatus.class, row.get(3));
         Appointment.setAppointmentUuid(Math.max(Appointment.appointmentUuid, this.appointmentId)+1);
         this.appointmentOutcome = appointmentOutcome;
-        LoggerUtils.info(String.valueOf(Appointment.appointmentUuid));
+        // LoggerUtils.info(String.valueOf(Appointment.appointmentUuid));
     }
 
     @Override

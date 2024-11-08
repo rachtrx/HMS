@@ -9,10 +9,14 @@ import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.DoctorEvent;
 import app.model.appointments.Timeslot;
 import app.model.users.Patient;
+import app.model.users.staff.Admin;
 import app.model.users.staff.Doctor;
+import app.model.users.staff.Pharmacist;
+import app.model.users.staff.Staff;
 import app.service.AppointmentService;
 import app.service.MenuService;
 import app.service.UserService;
+import app.service.UserService.SortFilter;
 import app.utils.DateTimeUtil;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -87,6 +91,11 @@ public enum Menu {
         null
     )),
     DOCTOR_MAIN_MENU(new MenuBuilder(
+        MenuType.SELECT,
+        "Doctor Main Menu",
+        null
+    )),
+    ADMIN_MAIN_MENU(new MenuBuilder(
         MenuType.SELECT,
         "Doctor Main Menu",
         null
@@ -218,8 +227,107 @@ public enum Menu {
         "Accept or Decline Pending Appointment",
         null,
         true
+    )),
+    ADMIN_VIEW_APPOINTMENTS(new MenuBuilder(
+        MenuType.SELECT,
+        "All Appointments",
+        null
+    )),
+    ADMIN_VIEW_USERS(new MenuBuilder(
+        MenuType.SELECT,
+        "All Staff",
+        null
+    )),
+    ADMIN_VIEW_USER(new MenuBuilder(
+        MenuType.SELECT,
+        "Staff details",
+        null
+    )),
+    ADMIN_INPUT_USER(new MenuBuilder(
+        MenuType.SELECT,
+        "All Staff",
+        "Select a Staff ID"
+    )),
+    ADMIN_EDIT_USER(new MenuBuilder(
+        MenuType.SELECT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_USER_TYPE(new MenuBuilder( // user start
+        MenuType.SELECT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_USER_NAME(new MenuBuilder( 
+        MenuType.INPUT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_PASSWORD(new MenuBuilder(
+        MenuType.INPUT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_NAME(new MenuBuilder(
+        MenuType.INPUT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_GENDER(new MenuBuilder( // user end
+        MenuType.INPUT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_MOBILE_NO(new MenuBuilder( // patient start
+        MenuType.INPUT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_HOME_NO(new MenuBuilder(
+        MenuType.INPUT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_EMAIL(new MenuBuilder(
+        MenuType.INPUT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_DOB(new MenuBuilder(
+        MenuType.INPUT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_BLOODTYPE(new MenuBuilder( // patient end
+        MenuType.SELECT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_AGE(new MenuBuilder( // staff
+        MenuType.INPUT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_VIEW_INVENTORY(new MenuBuilder(
+        MenuType.INPUT,
+        "All Medications",
+        "Select a medication to manage"
+    )),
+    ADMIN_EDIT_MEDICATION(new MenuBuilder(
+        MenuType.SELECT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_VIEW_REQUEST(new MenuBuilder(
+        MenuType.INPUT,
+        "All medication requests",
+        "Select a request to approve or reject"
+    )),
+    ADMIN_APPROVE_REQUEST(new MenuBuilder(
+        MenuType.SELECT,
+        "Approve or reject Replenish Request",
+        null
     ));
-
 
     // Transitions
     static {
@@ -297,10 +405,9 @@ public enum Menu {
         Menu.PATIENT_VIEW_MEDICAL_RECORD
             .setDisplayGenerator(() -> {
                 Patient patient = Menu.getTargetPatientFromArgs();
-                System.out.println();
-                System.out.println("Patient Information");
+                System.out.println("\nPatient Information");
                 Menu.printLineBreak(10);
-                patient.print();
+                System.out.println(patient.toString());
 
                 System.out.println("\nAppointment History");
                 Menu.printLineBreak(10);
@@ -713,7 +820,7 @@ public enum Menu {
                     }
                 return options;
             }).shouldAddMainMenuOption()
-            .shouldAddLogoutOptions();;
+            .shouldAddLogoutOptions();
         Menu.EDIT_PATIENT_APPOINTMENT
             .setOptionGenerator(() -> {
                 Appointment appointment = null;
@@ -853,6 +960,221 @@ public enum Menu {
             ))).setExitMenu(() -> Menu.getUserMainMenu())
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
+        Menu.ADMIN_MAIN_MENU
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                new Option(
+                        "View Users", 
+                        "(view( )?)?user(s)?", 
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                    .setNextAction((a, b) -> new HashMap<String, Object>() {{
+                        put("filter", SortFilter.ROLE);
+                        put("asc", true);
+                    }}),
+                new Option(
+                        "View Appointments", 
+                        "view( )?appointment(s)?", 
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_APPOINTMENTS),
+                new Option(
+                        "Add User", 
+                        "add( )?user(s)?",
+                        true
+                    ).setNextMenu(() -> ADMIN_ADD_USER_TYPE),
+                new Option(
+                        "View Inventory", 
+                        "(view( )?)?inventory", 
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_INVENTORY),
+                new Option(
+                        "View Requests", 
+                        "(view( )?)?requests(s)?",
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_REQUEST)
+            ))).shouldAddLogoutOptions();
+        Menu.ADMIN_VIEW_APPOINTMENTS.setDisplayGenerator(() -> {
+                List<Appointment> appointments = AppointmentService.getAllAppointments()
+                    .stream()
+                    .collect(Collectors.toList());
+                if (!appointments.isEmpty()) {
+                    AppointmentDisplay.printAppointmentDetails(appointments);
+                } else {
+                    System.out.println("No appointments scheduled.\n");
+                }
+        }).shouldAddMainMenuOption()
+        .shouldAddLogoutOptions();
+        Menu.ADMIN_VIEW_USERS
+            .setDisplayGenerator(() -> {
+                Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                if (
+                    values != null && values.containsKey("filter") && values.containsKey("asc")
+                ) {
+                    SortFilter filter = (SortFilter) values.get("filter");
+                    UserService.printUserDetailsAsTable(filter, (Boolean) values.get("asc"));
+                } else UserService.printUserDetailsAsTable(SortFilter.ROLE, true);
+            })
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                new Option(
+                        "Gender Desc (GA)", 
+                        "gender( )?(asc)?", 
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                    .setNextAction((input,args) -> {
+                        args.put("filter", SortFilter.GENDER);
+                        args.put("asc", true);
+                        return args;
+                    }),
+                new Option(
+                        "Gender Desc", 
+                        "gender( )?desc",
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                    .setNextAction((input,args) -> {
+                        args.put("filter", SortFilter.GENDER);
+                        args.put("asc", false);
+                        return args;
+                    }),
+                new Option(
+                        "Age Desc", 
+                        "age( )?(asc)?",
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                    .setNextAction((input,args) -> {
+                        args.put("filter", SortFilter.AGE);
+                        args.put("asc", true);
+                        return args;
+                    }),
+                    
+                new Option(
+                        "Age Desc", 
+                        "age( )?desc",
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                    .setNextAction((input,args) -> {
+                        args.put("filter", SortFilter.AGE);
+                        args.put("asc", false);
+                        return args;
+                    }),
+                new Option(
+                        "Add a user", 
+                        "add( )?user(s)?",
+                        false
+                    ).setNextMenu(() -> ADMIN_ADD_USER_TYPE)
+                    .setNextAction((input,args) -> new HashMap<String, Object>() {{
+                        put("type", Control.ADD);
+                    }}),
+                new Option(
+                        "Edit a user", 
+                        "update( )?user(s)?",
+                        false
+                    ).setNextMenu(() -> ADMIN_INPUT_USER)
+                    .setNextAction((input,args) -> {
+                        Menu.ADMIN_INPUT_USER.requiresConfirmation = true;
+                        return new HashMap<String, Object>() {{
+                            put("type", Control.EDIT);
+                        }};
+                    }),
+                new Option(
+                        "Delete a user", 
+                        "del(ete)?( )?user(s)?",
+                        false
+                    ).setNextMenu(() -> ADMIN_INPUT_USER)
+                    .setNextAction((input,args) -> {
+                        Menu.ADMIN_INPUT_USER.requiresConfirmation = true;
+                        return new HashMap<String, Object>() {{
+                            put("type", Control.DELETE);
+                        }};
+                    })
+            )))
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+
+        Menu.ADMIN_INPUT_USER.setNextMenu(() -> {
+            Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                if (
+                    values != null && values.containsKey("type")
+                ) {
+                    Control ctl = (Control) values.get("type");
+                    return ctl == Control.EDIT ? ADMIN_EDIT_USER : ADMIN_VIEW_USER;
+                } else throw new Exception();
+            })
+            .setNextAction((userInput, args) -> {
+                if (args.containsKey("type")) {
+                    Control ctl = (Control) args.get("type");
+                    int userIntInput = Menu.parseUserIntInput(userInput);
+                    Staff s = UserService.findStaffById(userIntInput);
+                    if (ctl == Control.EDIT) {
+                        args.put("staff", s);
+                    } else {
+                        UserService.deleteUser()
+                    }
+                    
+                    
+                }
+
+                args.put("month", userInput);
+                return args;
+            });
+
+        Menu.ADMIN_VIEW_USER.setNextMenu(() -> {
+            Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                if (
+                    values != null && values.containsKey("type")
+                ) {
+                    Control ctl = (Control) values.get("type");
+                    return ctl == Control.EDIT ? ADMIN_EDIT_USER : ADMIN_VIEW_USER;
+                } else throw new Exception();
+            })
+            .setNextAction((userInput, args) -> {
+                if (args.containsKey("type")) {
+                    Control ctl = (Control) args.get("type");
+                    int userIntInput = Menu.parseUserIntInput(userInput);
+                    Staff s = UserService.findStaffById(userIntInput);
+                    if (ctl == Control.EDIT) {
+                        args.put("staff", s);
+                    } else {
+                        UserService.deleteUser()
+                    }
+                    
+                    
+                }
+
+                args.put("month", userInput);
+                return args;
+            });
+                
+
+        Menu.ADMIN_EDIT_USER.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_USER_TYPE.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_USER_NAME.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_PASSWORD.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_NAME.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_GENDER.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_MOBILE_NO.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_HOME_NO.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_EMAIL.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_DOB.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_BLOODTYPE.setNextMenu(EDIT);
+        
+        Menu.ADMIN_ADD_AGE.setNextMenu(EDIT);
+        
+        Menu.ADMIN_VIEW_INVENTORY.setNextMenu(EDIT);
+        
+        Menu.ADMIN_EDIT_MEDICATION.setNextMenu(EDIT);
+        
+        Menu.ADMIN_VIEW_REQUEST.setNextMenu(EDIT);
+        
+        Menu.ADMIN_APPROVE_REQUEST.setNextMenu(EDIT);
     }
     // Init END
 
@@ -862,6 +1184,19 @@ public enum Menu {
         INPUT,
         SELECT
     }
+
+    private enum Control {
+        ADD,
+        EDIT,
+        DELETE,
+    }
+
+    private static final Map<Class<?>, Menu> USER_MENU_MAP = Map.of(
+        Patient.class, Menu.PATIENT_MAIN_MENU,
+        Doctor.class, Menu.DOCTOR_MAIN_MENU,
+        // Pharmacist.class, Menu.PHARMACIST_MAIN_MENU,
+        Admin.class, Menu.ADMIN_MAIN_MENU
+    );
 
     public interface DisplayGenerator {
         void apply() throws Exception;
@@ -1042,7 +1377,7 @@ public enum Menu {
     private DisplayGenerator displayGenerator;
     private boolean shouldHaveMainMenuOption;
     private boolean shouldHaveLogoutOption;
-    private final boolean requiresConfirmation;
+    private boolean requiresConfirmation;
     // Options END
         
     Menu(MenuBuilder menuBuilder) {
@@ -1248,11 +1583,6 @@ public enum Menu {
         return this;
     }
 
-    /**
-     * @return
-     * @throws Exception
-     * 
-     */
     private Map<String, Object> executeNextAction() throws Exception {
         if (this.nextAction == null) {
             return null;
@@ -1297,19 +1627,14 @@ public enum Menu {
 
     private static Menu getUserMainMenu() {
         try {
-            // TODO: set remaining user types' menus
-            if (Patient.class.equals(UserService.getCurrentUser().getClass())) {
-                return Menu.PATIENT_MAIN_MENU;
-            }
-            if (Doctor.class.equals(UserService.getCurrentUser().getClass())) {
-                return Menu.DOCTOR_MAIN_MENU;
-            }
-            throw new Exception();
+            Class<?> userClass = UserService.getCurrentUser().getClass();
+            return USER_MENU_MAP.getOrDefault(userClass, Menu.LANDING);  // Use a valid Menu default
         } catch (Exception e) {
             UserService.logout();
             return Menu.LOGIN_USERNAME;
         }
     }
+
     // Next state (transition + action) handling END
 
     // Options handling START

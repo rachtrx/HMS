@@ -27,8 +27,8 @@ public class PatientBuilder extends Builder<Patient> {
     }
 
     public void setSubRows() {
-        this.userRow = this.getSubRow(0, 5);
-        this.patientRow = this.getSubRow(5, this.row.size());
+        this.userRow = this.getSubRow(0, 6);
+        this.patientRow = this.getSubRow(6, this.row.size());
     }
     
     @Override

@@ -41,16 +41,9 @@ public class AppointmentService {
     public static List<Appointment> getAllAppointments() {
         List<Appointment> appointments = UserService.getAllUsers()
             .stream()
-            .filter(user -> user instanceof Patient || user instanceof Doctor)
-            // transform each user into their list of appointments
-            .flatMap(user -> {
-                if (user instanceof Patient patient) {
-                    return patient.getAppointments().stream();
-                } else if (user instanceof Doctor doctor) {
-                    return doctor.getAppointments().stream().filter(event -> !event.isAppointment());
-                }
-                return Stream.empty(); // return an empty stream if not a Patient or Doctor, 
-            }).collect(Collectors.toList());
+            .filter(user -> user instanceof Patient)
+            .flatMap(user -> ((Patient) user).getAppointments().stream())
+            .collect(Collectors.toList());
         return appointments;
     }
 

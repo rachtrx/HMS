@@ -46,8 +46,8 @@ public class StaffBuilder extends Builder<Staff> {
 
     @Override
     public void setSubRows() {
-        this.userRow = this.getSubRow(0, 5);
-        this.staffRow = this.getSubRow(5, 8);
+        this.userRow = this.getSubRow(0, 6);
+        this.staffRow = this.getSubRow(6, 8);
         this.deptRow = this.getSubRow(8, this.row.size());
     }
     

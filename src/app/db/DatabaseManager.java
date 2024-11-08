@@ -12,6 +12,8 @@ import app.model.inventory.Medication;
 import app.model.inventory.MedicationBuilder;
 import app.model.inventory.MedicationOrder;
 import app.model.inventory.MedicationOrderBuilder;
+import app.model.inventory.Request;
+import app.model.inventory.RequestBuilder;
 import app.model.users.Patient;
 import app.model.users.PatientBuilder;
 import app.model.users.User;
@@ -23,6 +25,7 @@ import app.model.users.staff.StaffBuilder;
 import app.model.users.staff.StaffBuilder.Role;
 import app.service.MedicationService;
 import app.service.UserService;
+import app.utils.LoggerUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,17 +43,21 @@ public class DatabaseManager {
     public static void start() throws Exception {
 
         Table medicationTable = new Table(TableConfig.MEDICATIONS);
+        Table requestTable = new Table(TableConfig.REQUESTS);
+        Table orderTable = new Table(TableConfig.MEDICATION_ORDERS);
+        Table prescriptionTable = new Table(TableConfig.PRESCRIPTIONS);
+        Table appointmentOutcomeTable = new Table(TableConfig.APPOINTMENT_OUTCOMES);
+        Table appointmentTable = new Table(TableConfig.APPOINTMENTS);
+        Table eventTable = new Table(TableConfig.DOCTOR_EVENTS);
         Table userTable = new Table(TableConfig.USERS);
         Table patientTable = new Table(TableConfig.PATIENTS);
         Table staffTable = new Table(TableConfig.STAFF);
         Table doctorTable = new Table(TableConfig.DOCTORS);
         Table pharmacistTable = new Table(TableConfig.PHARMACISTS);
         Table adminTable = new Table(TableConfig.ADMINS);
-        Table eventTable = new Table(TableConfig.DOCTOR_EVENTS);
-        Table appointmentTable = new Table(TableConfig.APPOINTMENTS);
-        Table appointmentOutcomeTable = new Table(TableConfig.APPOINTMENT_OUTCOMES);
-        Table prescriptionTable = new Table(TableConfig.PRESCRIPTIONS);
-        Table orderTable = new Table(TableConfig.MEDICATION_ORDERS);
+        
+        medicationTable.addRelationship(requestTable, 0, 1, DeleteBehavior.CASCADE);
+        requestTable.addRelationship(medicationTable, 1, 0, DeleteBehavior.NO_ACTION);
 
         medicationTable.addRelationship(orderTable, 0, 2, DeleteBehavior.CASCADE);
         orderTable.addRelationship(medicationTable, 2, 0, DeleteBehavior.NO_ACTION);
@@ -104,6 +111,7 @@ public class DatabaseManager {
         appointmentTable.delRowsWithMissingParentIds(patientTable);
         eventTable.delRowsWithMissingParentIds(doctorTable);
 
+        requestTable.delRowsWithMissingParentIds(medicationTable);
         orderTable.delRowsWithMissingParentIds(medicationTable);
 
         orderTable.delRowsWithMissingParentIds(prescriptionTable); // TODO merge the 2 methods somehow?
@@ -115,18 +123,19 @@ public class DatabaseManager {
         appointmentOutcomeTable.delRowsWithMissingParentIds(appointmentTable);
 
         tables.put(TableConfig.MEDICATIONS.getTableName(), medicationTable);
+        tables.put(TableConfig.REQUESTS.getTableName(), requestTable);
+        tables.put(TableConfig.MEDICATION_ORDERS.getTableName(), orderTable);
+        tables.put(TableConfig.PRESCRIPTIONS.getTableName(), prescriptionTable);
+        tables.put(TableConfig.APPOINTMENT_OUTCOMES.getTableName(), appointmentOutcomeTable);
+        tables.put(TableConfig.APPOINTMENTS.getTableName(), appointmentTable);
+        tables.put(TableConfig.DOCTOR_EVENTS.getTableName(), eventTable);
         tables.put(TableConfig.USERS.getTableName(), userTable);
         tables.put(TableConfig.PATIENTS.getTableName(), patientTable);
         tables.put(TableConfig.STAFF.getTableName(), staffTable);
         tables.put(TableConfig.DOCTORS.getTableName(), doctorTable);
         tables.put(TableConfig.PHARMACISTS.getTableName(), pharmacistTable);
         tables.put(TableConfig.ADMINS.getTableName(), adminTable);
-        tables.put(TableConfig.DOCTOR_EVENTS.getTableName(), eventTable);
-        tables.put(TableConfig.APPOINTMENTS.getTableName(), appointmentTable);
-        tables.put(TableConfig.APPOINTMENT_OUTCOMES.getTableName(), appointmentOutcomeTable);
-        tables.put(TableConfig.PRESCRIPTIONS.getTableName(), prescriptionTable);
-        tables.put(TableConfig.MEDICATION_ORDERS.getTableName(), orderTable);
-
+        
         List<Row> eventRows = eventTable.getRows();
 
         Map<String, List<Appointment>> patientToApptMap = new HashMap<>();
@@ -198,10 +207,21 @@ public class DatabaseManager {
     }
 
     public static List<Medication> deserializeMedication() throws Exception {
-        List<Row> rows = tables.get(TableConfig.MEDICATIONS.getTableName()).getRows();
+
         List<Medication> medicationList = new ArrayList<>();
-        for (Row row : rows) {
-            Medication medication = new MedicationBuilder(row.getData())
+
+        List<Row> medicationRows = tables.get(TableConfig.MEDICATIONS.getTableName()).getRows();
+        
+        for (Row medicationRow : medicationRows) {
+            List<Row> requestRows = tables.get(TableConfig.REQUESTS.getTableName()).findAllByVal(medicationRow.getpKey(), 1);
+
+            if (requestRows.isEmpty()) continue; // TODO 
+                List<Request> requests = new ArrayList<>();
+                for (Row requestRow : requestRows) {
+                    Request request = new RequestBuilder(requestRow.getData()).buildInstance().getInstance();
+                    requests.add(request);
+                }
+            Medication medication = new MedicationBuilder(medicationRow.getData(), requests)
                 .buildInstance()
                 .getInstance();
             medicationList.add(medication);
@@ -311,6 +331,10 @@ public class DatabaseManager {
             MedicationOrderBuilder xBuilder = new MedicationOrderBuilder(x);
             xBuilder.buildRow();
             rowProcessor.accept(getTableByConfig(TableConfig.MEDICATION_ORDERS), xBuilder.getRow());
+        } else if (o instanceof Request r) {
+            RequestBuilder rBuilder = new RequestBuilder(r);
+            rBuilder.buildRow();
+            rowProcessor.accept(getTableByConfig(TableConfig.REQUESTS), rBuilder.getRow());
         } else if (o instanceof Medication m) {
             MedicationBuilder mBuilder = new MedicationBuilder(m);
             mBuilder.buildRow();

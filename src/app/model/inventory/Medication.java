@@ -24,6 +24,10 @@ public class Medication implements ISerializable {
 
     private List<Request> requestList;
 
+    public static void setUuid(int value) {
+        uuid = value;
+    }
+
     /**
      * @param stock
      * @param name
@@ -44,13 +48,15 @@ public class Medication implements ISerializable {
         return medication;
     }
 
-    protected Medication(List<String> row) {
+    protected Medication(List<String> row, List<Request> requests) {
         // LoggerUtils.info(String.join(", ", row));
         this.id = Integer.parseInt(row.get(0));
         this.name = row.get(1);
         this.stock = Integer.parseInt(row.get(2));
         this.lowAlertLevel = Integer.parseInt(row.get(3));
         this.requestList = new ArrayList<>();
+        this.requestList = requests;
+        Medication.setUuid(Math.max(Medication.uuid, this.id)+1);
     }
 
     @Override

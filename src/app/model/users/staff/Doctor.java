@@ -100,4 +100,13 @@ public class Doctor extends Staff implements AppointmentManager {
     public int getRoleId() {
         return this.doctorId;
     };
+
+    @Override
+    public String toString() {
+        return String.join(
+            "\n",
+            String.format("Doctor ID: %d", this.getRoleId()),
+            super.toString()
+        );
+    }
 }

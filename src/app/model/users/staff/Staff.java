@@ -10,7 +10,6 @@ public abstract class Staff extends User {
 
     private static int staffUuid = 1;
     protected int staffId;
-    protected int age;
 
     public static void setStaffUuid(int value) {
         staffUuid = value;
@@ -21,10 +20,9 @@ public abstract class Staff extends User {
         String password, 
         String name, 
         String gender,
-        String age
+        String dateOfBirth
     ) throws Exception {
-        super(username, password, name, gender); // General User Information
-        this.age = Integer.parseInt(age);
+        super(username, password, name, gender, dateOfBirth); // General User Information
         this.staffId = Staff.staffUuid++;
     }
 
@@ -35,7 +33,6 @@ public abstract class Staff extends User {
         super(userRow); // General User Information
         // LoggerUtils.info(String.join(", ", staffRow));
         this.staffId = Integer.parseInt(staffRow.get(0));
-        this.age = Integer.parseInt(staffRow.get(2));
         Staff.setStaffUuid(Math.max(Staff.staffUuid, this.staffId)+1);
     }
 
@@ -48,7 +45,6 @@ public abstract class Staff extends User {
         // Staff
         row.add(String.valueOf(this.getStaffId()));
         row.add(String.valueOf(this.getUserId()));
-        row.add(String.valueOf(this.getAge()));
         // Dept
         row.add(String.valueOf(this.getRoleId()));
         row.add(String.valueOf(this.getStaffId()));
@@ -61,7 +57,12 @@ public abstract class Staff extends User {
         return staffId;
     }
 
-    public int getAge() {
-        return age;
+    @Override
+    public String toString() {
+        return String.join(
+            "\n",
+            String.format("Staff ID: %s", staffId),
+            super.toString()
+        );
     }
 }

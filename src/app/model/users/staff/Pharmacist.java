@@ -47,4 +47,13 @@ public class Pharmacist extends Staff {
     public int getRoleId() {
         return this.pharmacistId;
     };
+
+    @Override
+    public String toString() {
+        return String.join(
+            "\n",
+            String.format("Pharmacist ID: %d", this.getRoleId()),
+            super.toString()
+        );
+    }
 }

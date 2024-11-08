@@ -5,8 +5,11 @@ import app.db.DatabaseManager;
 import app.model.ISerializable;
 import app.model.users.user_credentials.Password;
 import app.model.users.user_credentials.Username;
+import app.utils.DateTimeUtil;
 import app.utils.EnumUtils;
 import app.utils.LoggerUtils;
+
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -33,6 +36,7 @@ public abstract class User implements ISerializable {
     protected Password password;
     protected String name;
     protected Gender gender;
+    private final LocalDate dateOfBirth;
 
     /** 
      * Constructor
@@ -42,12 +46,13 @@ public abstract class User implements ISerializable {
      * @param gender
      */
 
-    public User(String username, String password, String name, String gender) throws Exception {
+    public User(String username, String password, String name, String gender, String dateOfBirth) throws Exception {
         this.userId = User.uuid++;
         this.username = new Username(username);
         this.password = new Password(password);
         this.name = name;
         this.gender = EnumUtils.fromString(Gender.class, gender);
+        this.dateOfBirth = DateTimeUtil.parseShortDate(dateOfBirth);
     }
 
     public User(List<String> row) throws Exception {
@@ -57,6 +62,7 @@ public abstract class User implements ISerializable {
         this.password = new Password(row.get(2));
         this.name = row.get(3);
         this.gender = EnumUtils.fromString(Gender.class, row.get(4));
+        this.dateOfBirth = DateTimeUtil.parseShortDate(row.get(5));
         User.setUuid(Math.max(User.uuid, this.userId)+1);
     }
 
@@ -67,6 +73,7 @@ public abstract class User implements ISerializable {
         row.add(this.getPassword());
         row.add(this.getName());
         row.add(this.getGender());
+        row.add(DateTimeUtil.printShortDate(this.getDateOfBirth()));
         return row;
     }
 
@@ -132,9 +139,19 @@ public abstract class User implements ISerializable {
         DatabaseManager.update(this);
     }
 
+    // No need to set
+    public LocalDate getDateOfBirth() {
+        return dateOfBirth;
+    }
+
     @Override
     public String toString() {
-        return this.getUsername();
+        return String.join(
+            "\n",
+            String.format("Name: %s", name),
+            String.format("Gender: %s", gender),
+            String.format("Date of Birth: %s", DateTimeUtil.printLongDate(this.dateOfBirth))
+        );
     }
 
     // @Override
