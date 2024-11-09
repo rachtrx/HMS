@@ -193,16 +193,17 @@ public enum Menu {
         "Accept or Decline Appointment Requests",
         "Please select an appointment to accept/reject:"
     )),
-    // DOCTOR_VIEW_CONFIRMED(new MenuBuilder(
-    //     MenuType.SELECT,
-    //     "Past Appointment Outcome Records",
-    //     null
-    // )),
+    DOCTOR_CANCEL_CONFIRMED(new MenuBuilder(
+        MenuType.SELECT,
+        "View/Cancel Upcoming Appointments",
+        "Please select an appointment to cancel:"
+    )),
     // DOCTOR_ADD_OUTCOME(new MenuBuilder(
     //     MenuType.SELECT,
     //     "Past Appointment Outcome Records",
     //     null
     // )),
+    // TODO: revamp appointment scheduler
     SELECT_PATIENT_APPOINTMENT(new MenuBuilder(
         MenuType.SELECT,
         "Edit Appointment",
@@ -679,7 +680,12 @@ public enum Menu {
                         "Accept or Decline Appointment Requests", 
                         "accept|decline|(appointment)?( )?requests", 
                         true
-                    ).setNextMenu(() -> DOCTOR_ACCEPT_APPOINTMENTS)
+                    ).setNextMenu(() -> DOCTOR_ACCEPT_APPOINTMENTS),
+                new Option(
+                        "View/Cancel Upcoming Appointments", 
+                        "cancel|upcoming", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_CANCEL_CONFIRMED)
             ))).shouldAddLogoutOptions();
         Menu.SELECT_PATIENT_VIEW_MEDICAL_RECORD
             .setPatientListOptionGenerator(() -> PATIENT_VIEW_MEDICAL_RECORD)
@@ -851,6 +857,43 @@ public enum Menu {
                         return null;
                     })
             ))).setExitMenu(() -> Menu.getUserMainMenu())
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_CANCEL_CONFIRMED
+            .setOptionGenerator(() -> {
+                List<Option> options = AppointmentService
+                    .getAppointmentByStatus(AppointmentStatus.CONFIRMED)
+                    .stream()
+                    .filter(appointment ->
+                        appointment.getDoctorId() == UserService.getCurrentUser().getRoleId()
+                    ).sorted(Comparator.comparing(Appointment::getTimeslot))
+                    .map(appointment -> {
+                        Patient patient = UserService.findUserByIdAndType(
+                            appointment.getPatientId(),
+                            Patient.class,
+                            true
+                        );
+                        String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
+                        return new Option(
+                            patient == null ? timeslot : String.format(
+                                "%s - %s (P%d)",
+                                timeslot,
+                                patient.getName(),
+                                patient.getRoleId()
+                            ),
+                            timeslot,
+                            true
+                        ).setNextAction((userInput, args) -> {
+                            appointment.cancel();
+                            return null;
+                        }).setNextMenu(() -> Menu.getUserMainMenu());
+                }).collect(Collectors.toList());
+                if (options == null || options.isEmpty()) {
+                    MenuService.setCurrentMenu(Menu.getUserMainMenu());
+                    throw new Exception("No upcoming appointments.");
+                }
+                return options;
+            })
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
     }
@@ -1212,7 +1255,7 @@ public enum Menu {
                 }
             }
 
-            if (!this.requiresConfirmation || option == null) {
+            if (!this.requiresConfirmation || option == null || !option.isNumberedOption) {
                 // BUG if selection in confirm menu is not Y or N, then confirm menu is repeatedly shown
                 if (option != null) {
                     this.setNextMenu(option.getNextMenuGenerator());

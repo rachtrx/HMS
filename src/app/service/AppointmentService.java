@@ -3,15 +3,11 @@ package app.service;
 import app.constants.exceptions.InvalidTimeslotException;
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
-import app.model.appointments.AppointmentDisplay;
 import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.Timeslot;
 import app.model.users.MedicalRecord;
 import app.model.users.Patient;
 import app.model.users.staff.Doctor;
-import app.utils.DateTimeUtil;
-import java.awt.Event;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
@@ -37,6 +33,9 @@ public class AppointmentService {
 
     // private AppointmentParse appointmentParse;
     // public static ArrayList<Appointment> appointments;
+
+    // TODO: change all past pending appointments to cancelled on application load
+    // static {}
 
     public static List<Appointment> getAllAppointments() {
         List<Appointment> appointments = UserService.getAllUsers()
@@ -197,6 +196,23 @@ public class AppointmentService {
     public static void scheduleAppointment(
         int patientId, int doctorId, LocalDateTime timeslot
     ) throws Exception {
+
+        // Assumes appointment is allowed to be set for specified doctor and patient
+        Optional<Appointment> existingAppointment = AppointmentService.getAllAppointments()
+            .stream()
+            .filter(appointment -> (
+                appointment.getTimeslot().equals(timeslot) && (
+                    appointment.getDoctorId() == doctorId ||
+                    appointment.getPatientId() == patientId
+                )
+            )).findFirst();
+        if (existingAppointment.isPresent()) {
+            if (existingAppointment.get().getAppointmentStatus().equals(AppointmentStatus.CANCELLED)) {
+                existingAppointment.get().setAppointmentStatus(AppointmentStatus.PENDING);
+            } else {
+                throw new Exception("Appointment already exists");
+            }
+        }
 
         Doctor doctor = (Doctor) UserService.findUserByIdAndType(doctorId, Doctor.class, true);
         if (doctor == null) {
