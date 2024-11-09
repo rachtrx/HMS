@@ -40,7 +40,7 @@ public class Admin extends Staff {
         super(userRow, staffRow);
         // LoggerUtils.info(String.join(", ", adminRow));
         this.adminId = Integer.parseInt(adminRow.get(0));
-        Admin.setAdminUuid(Math.max(Admin.adminUuid, this.adminId)+1);
+        Admin.setAdminUuid(Math.max(Admin.adminUuid, this.adminId+1));
         LoggerUtils.info("Admin " + this.getName() + " created");
     } 
 

@@ -40,7 +40,7 @@ public class DoctorEvent implements ISerializable {
         this.id = Integer.parseInt(row.get(0));
         this.doctorId = Integer.parseInt(row.get(1));
         this.timeslot = new Timeslot(DateTimeUtil.parseShortDateTime(row.get(2)));
-        DoctorEvent.setUuid(Math.max(DoctorEvent.uuid, this.id)+1);
+        DoctorEvent.setUuid(Math.max(DoctorEvent.uuid, this.id+1));
         // LoggerUtils.info(String.valueOf(DoctorEvent.uuid));
     }
 

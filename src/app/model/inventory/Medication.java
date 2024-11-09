@@ -18,8 +18,8 @@ public class Medication implements ISerializable {
     private static int uuid = 1;
     private final int id;
     
-    private int stock;
     private final String name;
+    private int stock;
     private int lowAlertLevel;
 
     private List<Request> requestList;
@@ -33,15 +33,15 @@ public class Medication implements ISerializable {
      * @param name
      * @param lowAlertLevel
      */
-    private Medication(String name, int stock, int lowAlertLevel) {
+    private Medication(String name, String stock, String lowAlertLevel) {
         this.id = Medication.uuid++;
         this.name = name;
-        this.stock = stock;
-        this.lowAlertLevel = lowAlertLevel;
+        this.stock = Integer.parseInt(stock);
+        this.lowAlertLevel = Integer.parseInt(lowAlertLevel);
         this.requestList = new ArrayList<>();
     }
 
-    public static Medication create(String name, int stock, int lowAlertLevel) {
+    public static Medication create(String name, String stock, String lowAlertLevel) {
         Medication medication = new Medication(name, stock, lowAlertLevel);
         DatabaseManager.add(medication);
         LoggerUtils.info("Medication created");
@@ -56,7 +56,7 @@ public class Medication implements ISerializable {
         this.lowAlertLevel = Integer.parseInt(row.get(3));
         this.requestList = new ArrayList<>();
         this.requestList = requests;
-        Medication.setUuid(Math.max(Medication.uuid, this.id)+1);
+        Medication.setUuid(Math.max(Medication.uuid, this.id+1));
     }
 
     @Override
@@ -75,6 +75,10 @@ public class Medication implements ISerializable {
 
     public void setRequestList(List<Request> requestList) {
         this.requestList = requestList;
+    }
+
+    public void addRequest(Request r) {
+        this.requestList.add(r);
     }
 
     public static void setStartId(int i) {
@@ -127,5 +131,17 @@ public class Medication implements ISerializable {
      */
     public String getName() {
         return this.name;
+    }
+
+    @Override
+    public String toString() {
+        return String.join("\n",
+                "Medication Details:",
+                "- ID: " + id,
+                "- Name: " + name,
+                "- Stock: " + stock,
+                "- Low Alert Level: " + lowAlertLevel,
+                "- Requests Pending: " + requestList.size()
+        );
     }
 }

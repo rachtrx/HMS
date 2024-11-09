@@ -1,0 +1,5 @@
+-d
+out
+-sourcepath
+src
+src/app/App.java

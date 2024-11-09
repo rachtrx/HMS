@@ -25,7 +25,6 @@ import app.model.users.staff.StaffBuilder;
 import app.model.users.staff.StaffBuilder.Role;
 import app.service.MedicationService;
 import app.service.UserService;
-import app.utils.LoggerUtils;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -349,7 +348,10 @@ public class DatabaseManager {
     public static void update(Object o) {
         processRow(o, Table::updateRow);
     }
-    
+
+    public static void delete(Object o) {
+        processRow(o, Table::deleteRow);
+    }
 
     public static void stop() throws Exception {
         for (Table t : tables.values()) {

@@ -33,7 +33,7 @@ public abstract class Staff extends User {
         super(userRow); // General User Information
         // LoggerUtils.info(String.join(", ", staffRow));
         this.staffId = Integer.parseInt(staffRow.get(0));
-        Staff.setStaffUuid(Math.max(Staff.staffUuid, this.staffId)+1);
+        Staff.setStaffUuid(Math.max(Staff.staffUuid, this.staffId+1));
     }
 
     @Override

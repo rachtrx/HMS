@@ -71,7 +71,7 @@ public class Patient extends User implements AppointmentManager {
         this.homeNumber = new PhoneNumber(patientRow.get(3));
         this.email = new Email(patientRow.get(4));
         this.bloodType = EnumUtils.fromString(BloodType.class, patientRow.get(5)); // TODO
-        Patient.setPatientUuid(Math.max(Patient.patientUuid, this.patientId) + 1);
+        Patient.setPatientUuid(Math.max(Patient.patientUuid, this.patientId+1));
         this.medicalRecord = new MedicalRecord(patientIdStr, appointments);
         LoggerUtils.info("Patient " + this.getName() + " created");
     }
@@ -83,6 +83,7 @@ public class Patient extends User implements AppointmentManager {
         List<String> row = new ArrayList<>();
 
         row.add(String.valueOf(this.getRoleId()));
+        row.add(String.valueOf(this.getUserId()));
         row.add(this.getMobileNumber().toString());
         row.add(this.getHomeNumber().toString());
         row.add(this.getEmail());

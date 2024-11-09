@@ -89,7 +89,7 @@ public final class Table {
             rows.remove(existingRow);
             LoggerUtils.info("Existing entry with primary key " + pKey + " removed.");
         } else {
-            LoggerUtils.info("Existing entry with primary key " + pKey + " not found, not deleted!");
+            LoggerUtils.info("Existing entry with primary key " + pKey + " not found, not deleted (might have cascaded)!");
         }
     }
 

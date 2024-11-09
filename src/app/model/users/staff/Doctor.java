@@ -48,7 +48,7 @@ public class Doctor extends Staff implements AppointmentManager {
         super(userRow, staffRow);
         // LoggerUtils.info(String.join(", ", doctorRow));
         this.doctorId = Integer.parseInt(doctorRow.get(0));
-        Doctor.setDoctorUuid(Math.max(Doctor.doctorUuid, this.doctorId)+1);
+        Doctor.setDoctorUuid(Math.max(Doctor.doctorUuid, this.doctorId+1));
 
         if (doctorEvents == null) {
             this.doctorEvents = new ArrayList<>();

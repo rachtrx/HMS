@@ -53,7 +53,7 @@ public class MedicationOrder implements ISerializable {
         this.prescriptionId = Integer.parseInt(row.get(1));
         this.medicationId = Integer.parseInt(row.get(2));
         this.quantity = Integer.parseInt(row.get(3));
-        MedicationOrder.setUuid(Math.max(MedicationOrder.uuid, this.id)+1);
+        MedicationOrder.setUuid(Math.max(MedicationOrder.uuid, this.id+1));
     }
 
     @Override

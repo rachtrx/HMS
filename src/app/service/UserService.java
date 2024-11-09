@@ -1,21 +1,17 @@
 package app.service;
 
+import app.db.DatabaseManager;
 import app.model.user_input.TablePrinter;
-import app.model.users.Patient;
 import app.model.users.User;
-import app.model.users.staff.Admin;
-import app.model.users.staff.Doctor;
-import app.model.users.staff.Pharmacist;
 import app.model.users.staff.Staff;
-import app.utils.DateTimeUtil;
 import app.utils.LoggerUtils;
+import java.time.LocalDate;
+import java.time.Period;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.time.LocalDate;
-import java.time.Period;
 
 public class UserService {
     
@@ -167,8 +163,14 @@ public class UserService {
             });
     }
 
-    public void deleteStaff(Staff staff) {
-
+    public static void deleteStaff(Staff staff) {
+        DatabaseManager.delete(staff);
+        users.removeIf(user -> {
+            if (user instanceof Staff) {
+                return staff.getStaffId() == ((Staff)user).getStaffId();
+            }
+            return false;
+        });
     }
 }
 

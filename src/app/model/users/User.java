@@ -63,7 +63,7 @@ public abstract class User implements ISerializable {
         this.name = row.get(3);
         this.gender = EnumUtils.fromString(Gender.class, row.get(4));
         this.dateOfBirth = DateTimeUtil.parseShortDate(row.get(5));
-        User.setUuid(Math.max(User.uuid, this.userId)+1);
+        User.setUuid(Math.max(User.uuid, this.userId+1));
     }
 
     public List<String> serialize() {

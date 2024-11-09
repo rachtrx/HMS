@@ -83,7 +83,7 @@ public class AppointmentOutcomeRecord implements ISerializable {
         this.serviceType = EnumUtils.fromString(ServiceType.class, row.get(2));
         this.consultationNotes = row.get(3);
         this.prescription = prescription;
-        AppointmentOutcomeRecord.setUuid(Math.max(AppointmentOutcomeRecord.uuid, this.id)+1);
+        AppointmentOutcomeRecord.setUuid(Math.max(AppointmentOutcomeRecord.uuid, this.id+1));
     }
 
     public static AppointmentOutcomeRecord deserialize (List<String> row, Prescription prescription) {

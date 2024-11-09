@@ -29,7 +29,7 @@ public class Request implements ISerializable {
                 return "Approved";
             }
         },
-        Rejected {
+        REJECTED {
             @Override
             public String toString() {
                 return "Rejected";
@@ -39,10 +39,12 @@ public class Request implements ISerializable {
 
     public static void setUuid(int value) {
         uuid = value;
+        LoggerUtils.info("New Request UUID set to " + value);
     }
 
     private Request(int medicationId, int count) {
-        this.id = uuid++;
+        this.id = Request.uuid++;
+        LoggerUtils.info("Request ID created with" + this.id);
         this.medicationId = medicationId;
         this.count = count;
         this.status = Status.PENDING;
@@ -56,12 +58,12 @@ public class Request implements ISerializable {
     }
 
     protected Request(List<String> row) {
-        // LoggerUtils.info(String.join(", ", row));
+        LoggerUtils.info(String.join(", ", row));
         this.id = Integer.parseInt(row.get(0));
         this.medicationId = Integer.parseInt(row.get(1));
         this.count = Integer.parseInt(row.get(2));
         this.status = EnumUtils.fromString(Status.class, row.get(3));
-        Request.setUuid(Math.max(Request.uuid, this.id)+1);
+        Request.setUuid(Math.max(Request.uuid, this.id+1));
     }
 
     @Override
@@ -69,6 +71,7 @@ public class Request implements ISerializable {
         List<String> row = new ArrayList<>();
         row.add(String.valueOf(this.getId()));
         row.add(String.valueOf(this.getMedicationId()));
+        row.add(String.valueOf(this.getCount()));
         row.add(String.valueOf(this.getStatus().toString()));
         return row;
     }
