@@ -1,7 +1,7 @@
 package app.service;
 
 import app.db.DatabaseManager;
-import app.model.user_input.TablePrinter;
+import app.model.user_input.OptionTable;
 import app.model.users.User;
 import app.model.users.staff.Staff;
 import app.utils.LoggerUtils;
@@ -123,7 +123,7 @@ public class UserService {
         // Define headers and column widths
         List<String> headers = List.of("Role", "Staff ID", "Role ID", "Name", "Gender", "Age");
         List<Integer> columnWidths = List.of(15, 10, 10, 20, 10, 5);
-        TablePrinter tablePrinter = new TablePrinter(headers, columnWidths);
+        OptionTable tablePrinter = new OptionTable(headers, columnWidths);
 
         // Print header
         tablePrinter.printHeader();

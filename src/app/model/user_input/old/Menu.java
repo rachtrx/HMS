@@ -1928,50 +1928,7 @@ public enum Menu {
         INITIAL
     }
 
-    private static class Option {
-        private final String label;
-        private final String matchPattern;
-        private final boolean isNumberedOption;
-        private MenuGenerator nextMenuGenerator;
-        private MenuGenerator exitMenuGenerator;
-        protected NextAction nextAction = (input, args) -> args;
     
-        public Option(
-            String label,
-            String matchPattern,
-            boolean isNumberedOption
-        ) {
-            this.label = label;
-            this.matchPattern = matchPattern;
-            this.isNumberedOption = isNumberedOption;
-        };
-
-        protected MenuGenerator getNextMenuGenerator() {
-            return this.nextMenuGenerator;
-        }
-
-        protected MenuGenerator getExitMenuGenerator() {
-            return this.exitMenuGenerator;
-        }
-
-        protected NextAction getNextAction() {
-            return this.nextAction;
-        }
-    
-        protected final Option setNextMenu(Menu nextMenu) {
-            return this.setNextMenu(() -> nextMenu);
-        }
-
-        protected Option setNextMenu(MenuGenerator nextMenuGenerator) {
-            this.nextMenuGenerator = nextMenuGenerator;
-            return this;
-        }
-
-        private Option setNextAction(NextAction nextAction) {
-            this.nextAction = nextAction;
-            return this;
-        }
-    }
 
     /**
      * The constructor expects a Next Action middleware, which gets called after selection to update the behaviour of the edit menu immediately before rendering it
@@ -2104,93 +2061,6 @@ public enum Menu {
 
     public Menu setDisplayGenerator(DisplayGenerator displayGenerator) {
         this.displayGenerator = displayGenerator;
-        return this;
-    }
-
-    public void display() throws Exception {
-        if (this.menuType == MenuType.SELECT) {
-            if (this.optionGenerator != null) {
-                this.options = optionGenerator.apply();
-                if (
-                    this.options != null &&
-                    this.matchingOptions != null &&
-                    this.options.size() >= this.matchingOptions.size()
-                ) {
-                     // refresh options after editing
-                    this.matchingOptions = this.getNumberedOptions(true);
-                }
-            }
-
-            if (this.shouldHaveMainMenuOption) {
-                this.addMainMenuOption();
-            }
-
-            if (this.shouldHaveLogoutOption) {
-                this.addLogoutOptions();
-            }
-
-            if (this.options == null || this.options.size() < 1) {
-                throw new Error("Menu with type select should have at least one option");
-            }
-        }
-
-        if (!(this.title == null || this.title.length() < 1)) {
-            System.out.println(this.title);
-            Menu.printLineBreak(50);
-        }
-
-        if (!(this.label == null || this.label.length() < 1)) {
-            System.out.print("\n" + this.label + (
-                this.menuType == MenuType.INPUT ? " " : "\n\n"
-            ));
-        } else if (
-            this.menuType == MenuType.SELECT &&
-            !this.getNumberedOptions(true).isEmpty()
-        ) {
-            System.out.println("");
-            switch (this.displayMode) {
-                case NO_MATCH_FOUND -> System.out.println("No option matched your selection. Please try again:");
-                case MULTIPLE_MATCHES_FOUND -> System.out.println("Please be more specific:");
-                case INITIAL -> System.out.println("Please select an option:");
-                default -> { break; }
-            }
-            System.out.println("");
-        }
-
-        if (this.displayGenerator != null) {
-            this.displayGenerator.apply();
-            if (this == Menu.CONFIRM) this.setDisplayGenerator(null);
-        }
-
-        if (this.menuType == MenuType.SELECT) {
-
-            // Display numbered options
-            List<Option> matches = (
-                    this.matchingOptions == null || this.matchingOptions.size() < 1
-                ) ? this.getNumberedOptions(true) : this.matchingOptions;
-            IntStream.range(0, matches.size())
-                .forEach(optionIndex -> System.out.println(String.format(
-                    "%d. %s",
-                    optionIndex + 1,
-                    matches.get(optionIndex).label
-                )));
-
-            System.out.println("");
-
-            // Display un-numbered options
-            this.getNumberedOptions(false).forEach(option -> System.out.println(option.label));
-
-            System.out.println("");
-        }
-    }
-
-    private static void printLineBreak(int length) {
-        IntStream.range(0, length).forEach(n -> System.out.print("-"));
-        System.out.println();
-    }
-
-    public Menu setParseUserInput(boolean parseUserInput) {
-        this.parseUserInput = parseUserInput;
         return this;
     }
 
@@ -2355,10 +2225,6 @@ public enum Menu {
         }
     }
 
-    // Next state (transition + action) handling END
-
-    // Options handling START
-    // Options handling - builder START
     private Menu setOptionGenerator(OptionGenerator optionGenerator) {
         this.optionGenerator = optionGenerator;
         return this;
@@ -2444,70 +2310,8 @@ public enum Menu {
         }
     }
 
-    private Menu addMainMenuOption() {
-        // String backLabel = "Back (B)";
-        String mainMenuLabel = "Main Menu (M)";
-        if (!this.optionExists(mainMenuLabel)) {
-            this.addOption(new Option(
-                mainMenuLabel,
-                    // "^B$|back(( )?\\(B\\))?",
-                    "^M$|main|menu|(main|menu|main menu)(( )?\\(M\\))?",
-                    false
-                ).setNextMenu(() -> Menu.getUserMainMenu())
-            );
-        }
-        return this;
-    }
-
-    private Menu shouldAddMainMenuOption() {
-        this.shouldHaveMainMenuOption = true;
-        return this;
-    }
-
     private Menu shouldAddLogoutOptions() {
         this.shouldHaveLogoutOption = true;
         return this;
     }
-    // Options handling - builder END
-
-    // Options handling - display & matching user input START
-    private List<Option> getNumberedOptions(boolean getNumbered) {
-        return IntStream.range(0, this.options.size())
-            .filter(optionsIndex -> getNumbered == this.options.get(optionsIndex).isNumberedOption)
-            .mapToObj((int optionsIndex) -> this.options.get(optionsIndex))
-            .collect(Collectors.toList());
-    }
-
-    private List<Option> getFilteredOptions(String userInput, boolean numbered) {
-        List<Option> filteredOptions = this.getNumberedOptions(numbered);
-        return IntStream.range(0, filteredOptions.size())
-            .mapToObj(optionsIndex -> {
-                Option option = filteredOptions.get(optionsIndex);
-                Pattern matchPattern = Pattern.compile(
-                    numbered ? 
-                        String.join(
-                            "|",
-                            String.format("^%d(\\.)?$", optionsIndex+1),
-                            option.matchPattern,
-                            String.format("%d[ ]+(\\.)?%s",
-                                optionsIndex+1,
-                                option.matchPattern
-                            )
-                        ) : option.matchPattern,
-                    Pattern.CASE_INSENSITIVE
-                );
-                Matcher matcher = matchPattern.matcher(userInput);
-
-                boolean optionFound = matcher.find();
-                if(optionFound) {
-                    System.out.println(option.label);
-                    return option;
-                }
-                return null;
-                // return matcher.find() ? option : null;
-            }).filter(Objects::nonNull)
-            .collect(Collectors.toList());
-    }
-    // Options handling - display & matching user input END
-    // Options handling END
 }
