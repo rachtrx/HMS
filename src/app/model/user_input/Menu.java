@@ -1,19 +1,35 @@
 package app.model.user_input;
 
 import app.constants.AppMetadata;
+import app.constants.BloodType;
+import app.constants.Gender;
 import app.constants.exceptions.ExitApplication;
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentDisplay;
 import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.DoctorEvent;
+import app.model.appointments.Prescription;
+import app.model.appointments.Prescription.PrescriptionStatus;
 import app.model.appointments.Timeslot;
+import app.model.inventory.Medication;
+import app.model.inventory.Request;
 import app.model.users.Patient;
+import app.model.users.staff.Admin;
 import app.model.users.staff.Doctor;
+import app.model.users.staff.Pharmacist;
+import app.model.users.staff.Staff;
+import app.model.users.user_credentials.Email;
+import app.model.users.user_credentials.Password;
+import app.model.users.user_credentials.PhoneNumber;
+import app.model.users.user_credentials.Username;
 import app.service.AppointmentService;
+import app.service.MedicationService;
 import app.service.MenuService;
 import app.service.UserService;
+import app.service.UserService.SortFilter;
 import app.utils.DateTimeUtil;
+import app.utils.EnumUtils;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -95,6 +111,16 @@ public enum Menu {
     DOCTOR_MAIN_MENU(new MenuBuilder(
         MenuType.SELECT,
         "Doctor Main Menu",
+        null
+    )),
+    ADMIN_MAIN_MENU(new MenuBuilder(
+        MenuType.SELECT,
+        "Doctor Main Menu",
+        null
+    )),
+    PHARMACIST_MAIN_MENU(new MenuBuilder(
+        MenuType.SELECT,
+        "Pharmacist Main Menu",
         null
     )),
     SELECT_PATIENT_VIEW_MEDICAL_RECORD(new MenuBuilder(
@@ -242,8 +268,160 @@ public enum Menu {
         "Accept or Decline Pending Appointment",
         null,
         true
-    ));
+    )),
 
+    PHARMACIST_VIEW_OUTCOME_RECORDS(new MenuBuilder(
+        MenuType.SELECT,
+        "All Appointment Outcomes",
+        null
+    )),
+
+    PHARMACIST_UPDATE_OUTCOMES(new MenuBuilder(
+        MenuType.SELECT,
+        "All Prescriptions",
+        null
+    )),
+
+    PHARMACIST_UPDATE_PRESCRIPTIONS(new MenuBuilder(
+        MenuType.SELECT,
+        "All Prescriptions",
+        null
+    )),
+
+    PHARMACIST_HANDLE_PRESCRIPTION(new MenuBuilder(
+        MenuType.SELECT,
+        "Prescription and Medication Order Details",
+        null
+    )),
+
+    PHARMACIST_ADD_REQUEST(new MenuBuilder(
+        MenuType.SELECT,
+        "Submit Replenish Request",
+        "Please select the medication: "
+    )),
+    PHARMACIST_ADD_COUNT(new MenuBuilder(
+        MenuType.INPUT,
+        "Medication Quantity",
+        "Please enter the quantity of medication to add: "
+    )),
+
+    ADMIN_VIEW_APPOINTMENTS(new MenuBuilder(
+        MenuType.SELECT,
+        "All Appointments",
+        null
+    )),
+    ADMIN_VIEW_USERS(new MenuBuilder(
+        MenuType.SELECT,
+        "All Staff",
+        null
+    )),
+    ADMIN_INPUT_USER_EDIT(new MenuBuilder(
+        MenuType.INPUT,
+        "Edit User",
+        "Enter Staff ID"
+    )),
+    ADMIN_INPUT_USER_DELETE(new MenuBuilder(
+        MenuType.INPUT,
+        "Delete User",
+        "Enter Staff ID",
+        true
+    )),
+    ADMIN_EDIT_USER(new MenuBuilder(
+        MenuType.SELECT,
+        "User details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_ADD_USER_TYPE(new MenuBuilder( // user start
+        MenuType.SELECT,
+        "User Roles",
+        "Please select a user role to add"
+    )),
+    ADMIN_ADD_USER_NAME(new MenuBuilder( 
+        MenuType.INPUT,
+        "Username",
+        "Enter Username: "
+    )),
+    ADMIN_ADD_PASSWORD(new MenuBuilder(
+        MenuType.INPUT,
+        "Password",
+        "Enter Password: "
+    )),
+    ADMIN_ADD_NAME(new MenuBuilder(
+        MenuType.INPUT,
+        "Name",
+        "Enter Name: "
+    )),
+    ADMIN_ADD_GENDER(new MenuBuilder( // user end
+        MenuType.INPUT,
+        "Gender",
+        "Enter Gender: "
+    )),
+    ADMIN_ADD_MOBILE_NO(new MenuBuilder( // patient start
+        MenuType.INPUT,
+        "Mobile Number",
+        "Enter Mobile No.: "
+    )),
+    ADMIN_ADD_HOME_NO(new MenuBuilder(
+        MenuType.INPUT,
+        "Home Number",
+        "Enter Home No.: "
+    )),
+    ADMIN_ADD_EMAIL(new MenuBuilder(
+        MenuType.INPUT,
+        "Email",
+        "Enter Email: "
+    )),
+    ADMIN_ADD_DOB(new MenuBuilder(
+        MenuType.INPUT,
+        "Date of Birth",
+        "Enter Date of Birth: "
+    )),
+    ADMIN_ADD_BLOODTYPE(new MenuBuilder( // patient end
+        MenuType.INPUT,
+        "Blood Type",
+        "Enter Blood Type: "
+    )),
+    VIEW_INVENTORY(new MenuBuilder(
+        MenuType.SELECT,
+        "All Medications",
+        null
+    )),
+    ADMIN_UPDATE_INVENTORY(new MenuBuilder(
+        MenuType.SELECT,
+        "Edit Medication",
+        "Select a medication to edit"
+    )),
+    ADMIN_ADD_MEDICATION(new MenuBuilder( // patient end
+        MenuType.INPUT,
+        "Medication Name",
+        null
+    )),
+    ADMIN_ADD_INITIAL_STOCK(new MenuBuilder( // patient end
+        MenuType.INPUT,
+        "Stock Level",
+        null
+    )),
+    ADMIN_ADD_LOW_LEVEL_ALERT(new MenuBuilder( // patient end
+        MenuType.INPUT,
+        "Low Level Alert",
+        null
+    )),
+    ADMIN_EDIT_MEDICATION(new MenuBuilder(
+        MenuType.SELECT,
+        "Medication details",
+        "Please select a field to edit:"
+    )),
+    ADMIN_VIEW_REQUEST(new MenuBuilder(
+        MenuType.SELECT,
+        "All medication requests",
+        "Select a request to approve or reject"
+    )),
+    HANDLE_REPLENISH_REQUEST(new MenuBuilder(
+        MenuType.SELECT,
+        "Approve or reject Replenish Request",
+        null,
+        true
+    ));
 
     // Transitions
     static {
@@ -321,10 +499,9 @@ public enum Menu {
         Menu.PATIENT_VIEW_MEDICAL_RECORD
             .setDisplayGenerator(() -> {
                 Patient patient = Menu.getTargetPatientFromArgs();
-                System.out.println();
-                System.out.println("Patient Information");
+                System.out.println("\nPatient Information");
                 Menu.printLineBreak(10);
-                patient.print();
+                System.out.println(patient.toString());
 
                 System.out.println("\nAppointment History");
                 Menu.printLineBreak(10);
@@ -796,7 +973,7 @@ public enum Menu {
                     }
                 return options;
             }).shouldAddMainMenuOption()
-            .shouldAddLogoutOptions();;
+            .shouldAddLogoutOptions();
         Menu.EDIT_PATIENT_APPOINTMENT
             .setOptionGenerator(() -> {
                 Appointment appointment = null;
@@ -1135,6 +1312,780 @@ public enum Menu {
             })
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
+        Menu.PHARMACIST_MAIN_MENU
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                new Option(
+                        "View Appointment Outcomes", 
+                        "(view( )?)?outcomes(s)?", 
+                        true
+                    ).setNextMenu(() -> PHARMACIST_VIEW_OUTCOME_RECORDS)
+                    .setNextAction((a, b) -> new HashMap<String, Object>() {{
+                        put("hideCompleted", false);
+                    }}),
+                new Option(
+                        "Update Prescriptions", 
+                        "update( )?prescription(s)?", 
+                        true
+                    ).setNextMenu(() -> PHARMACIST_UPDATE_OUTCOMES),
+                new Option(
+                        "Submit Replenish Request", 
+                        "submit( )?request(s)?",
+                        true
+                    ).setNextMenu(() -> PHARMACIST_ADD_REQUEST),
+                new Option(
+                        "View Inventory", 
+                        "(view( )?)?inventory", 
+                        true
+                    ).setNextMenu(() -> VIEW_INVENTORY)
+            ))).shouldAddLogoutOptions();
+
+        Menu.PHARMACIST_VIEW_OUTCOME_RECORDS
+            .setDisplayGenerator(() -> {
+                Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                final Boolean hideCompleted = values != null && values.containsKey("hideCompleted") && (Boolean) values.get("hideCompleted");
+
+                List<String> displayData = AppointmentService.getAllAppointments().stream()
+                    .filter(appointment -> appointment.getAppointmentOutcome() != null)
+                    .filter(appointment -> {
+                        if (hideCompleted) {
+                            PrescriptionStatus status = appointment.getAppointmentOutcome().getPrescription().getStatus();
+                            return !status.equals(PrescriptionStatus.DISPENSED);
+                        } else {
+                            return true;
+                        }
+                    })
+                    .map(appointment -> {
+                        AppointmentOutcomeRecord outcome = appointment.getAppointmentOutcome();
+                        return String.join(" | ", 
+                            "Appointment ID: " + appointment.getAppointmentId(),
+                            "Patient ID: " + appointment.getPatientId(), 
+                            "Doctor ID: " + appointment.getDoctorId(), 
+                            "Notes: " + outcome.getConsultationNotes(),
+                            "Medications: " + outcome.getPrescription().getMedicationOrders().size(),
+                            "Prescription Status: " + outcome.getPrescription().getStatus().toString()
+                        );
+                    })
+                    .collect(Collectors.toList());
+            
+                displayData.forEach(System.out::println);
+            })
+            .setOptionGenerator(() -> {
+                Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                final Boolean hideCompleted = values != null && values.containsKey("hideCompleted") && (Boolean) values.get("hideCompleted");
+            
+                List<Option> options = new ArrayList<>();
+            
+                options.add(new Option(
+                    "Update Prescription",
+                    "edit( )?prescription(s)?",
+                    true
+                ).setNextMenu(() -> PHARMACIST_UPDATE_OUTCOMES));
+
+                if(options.isEmpty()) throw new Exception("No Appointment Outcomes found.");
+            
+                options.add(
+                    hideCompleted
+                        ? new Option(
+                            "Show Completed",
+                            "show( )?(completed)?",
+                            true
+                        ).setNextAction((a, b) -> new HashMap<String, Object>() {{
+                            put("hideCompleted", false);
+                        }}).setNextMenu(PHARMACIST_VIEW_OUTCOME_RECORDS)
+                        : new Option(
+                            "Hide Completed",
+                            "hide( )?(completed)?",
+                            true
+                        ).setNextAction((a, b) -> new HashMap<String, Object>() {{
+                            put("hideCompleted", true);
+                        }}).setNextMenu(PHARMACIST_VIEW_OUTCOME_RECORDS)
+                );
+                
+                return options;
+            })
+            .shouldAddLogoutOptions()
+            .shouldAddMainMenuOption();
+
+        Menu.PHARMACIST_UPDATE_OUTCOMES
+            .setOptionGenerator(() -> {
+                // Generate options based on appointments
+                List<Option> options = AppointmentService.getAllAppointments().stream()
+                    .filter(appointment -> appointment.getAppointmentOutcome() != null)
+                    .filter(appointment -> !appointment.getAppointmentOutcome().getPrescription().getStatus().equals(PrescriptionStatus.DISPENSED))
+                    .map(appointment -> {
+                        AppointmentOutcomeRecord outcome = appointment.getAppointmentOutcome();
+                        String displayText = String.join(" | ", 
+                            "Appointment ID: " + appointment.getAppointmentId(),
+                            "Patient ID: " + appointment.getPatientId(), 
+                            "Doctor ID: " + appointment.getDoctorId(), 
+                            "Notes: " + outcome.getConsultationNotes(),
+                            "Medications: " + outcome.getPrescription().getMedicationOrders().size(),
+                            "Prescription Status: " + outcome.getPrescription().getStatus().toString()
+                        );
+                        return new Option(
+                            displayText,
+                            "(update)?( )?" + appointment.getAppointmentId(),
+                            true
+                        ).setNextAction((a, b) -> {
+                            Map<String, Object> args = new HashMap<>();
+                            args.put("prescription", outcome.getPrescription());
+                            return args;
+                        }).setNextMenu(PHARMACIST_HANDLE_PRESCRIPTION);
+                    })
+                    .collect(Collectors.toList());
+                if(options.isEmpty()) throw new Exception("No prescriptions to update.");
+                return options;
+            });
+
+        Menu.PHARMACIST_UPDATE_PRESCRIPTIONS
+            .setOptionGenerator(() -> {
+                // Generate options based on appointments
+                List<Option> options = AppointmentService.getAllAppointments().stream()
+                    .filter(appointment -> appointment.getAppointmentOutcome() != null)
+                    .filter(appointment -> !appointment.getAppointmentOutcome().getPrescription().getStatus().equals(PrescriptionStatus.DISPENSED))
+                    .map(appointment -> {
+                        Prescription prescription = appointment.getAppointmentOutcome().getPrescription();
+                        String displayText = String.join(" | ", 
+                            "Outcome ID: " + prescription.getOutcomeId(),
+                            "Medications: " + prescription.getMedicationOrders().size(), 
+                            "Prescription Status: " + prescription.getStatus().toString()
+                        );
+                        return new Option(
+                            displayText,
+                            "(update)?( )?" + appointment.getAppointmentId(),
+                            true
+                        ).setNextAction((a, b) -> {
+                            Map<String, Object> args = new HashMap<>();
+                            args.put("prescription", prescription);
+                            return args;
+                        }).setNextMenu(PHARMACIST_HANDLE_PRESCRIPTION);
+                    })
+                    .collect(Collectors.toList());
+                
+                if(options.isEmpty()) throw new Exception("No prescriptions to update.");
+                return options;
+            }).setExitMenu(() -> PHARMACIST_VIEW_OUTCOME_RECORDS);
+        
+        Menu.PHARMACIST_HANDLE_PRESCRIPTION.setDisplayGenerator(() -> {
+                Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                if(values == null || !values.containsKey("prescription")) throw new Exception("Prescription not found");
+                Prescription prescription = (Prescription) values.get("prescription");
+
+                if (prescription != null) {
+                    // Prescription information in a single row with | separator
+                    String prescriptionInfo = String.join(" | ",
+                        "Prescription ID: " + prescription.getId(),
+                        "Outcome ID: " + prescription.getOutcomeId(),
+                        "Status: " + prescription.getStatus().toString()
+                    );
+                
+                    // Medication orders information, each order in a single row, separated from prescription
+                    String medicationOrdersInfo = prescription.getMedicationOrders().stream()
+                        .map(order -> String.join(" | ",
+                            "Order ID: " + order.getId(),
+                            "Medication ID: " + order.getMedicationId(),
+                            "Quantity: " + order.getQuantity(),
+                            "Prescription ID: " + order.getPrescriptionId()
+                        ))
+                        .collect(Collectors.joining("\n"));
+
+                    String displayData = "Prescription Details:\n" + prescriptionInfo + "\n\nMedications:\n" + medicationOrdersInfo;
+                    System.out.println(displayData);
+                }
+            })
+            .setOptionGenerator(() -> {
+                Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                if(values == null || !values.containsKey("prescription")) throw new Exception("Prescription not found");
+                Prescription prescription = (Prescription) values.get("prescription");
+
+                return Arrays.stream(PrescriptionStatus.values())
+                    .filter(status -> status.ordinal() > prescription.getStatus().ordinal()) // Only statuses after the current one
+                    .map(status -> new Option(
+                            status.toString(),
+                            status.toString().toLowerCase(),
+                            true
+                        ).setNextAction((userInput, args) -> {
+                            Prescription p = (Prescription) args.get("prescription");
+                            p.setStatus(status);
+                            return null;
+                        }).setNextMenu(PHARMACIST_VIEW_OUTCOME_RECORDS)
+                    ).collect(Collectors.toList());
+            })
+            .setNextAction((input, args) -> {
+                PrescriptionStatus pStatus = EnumUtils.fromString(PrescriptionStatus.class, input);
+                Prescription p = (Prescription) args.get("prescription");
+                p.setStatus(pStatus);
+                return null;
+            })
+            .shouldAddLogoutOptions().shouldAddMainMenuOption();
+
+        Menu.PHARMACIST_ADD_REQUEST
+            .setOptionGenerator(() -> {
+                return MedicationService.getAllMedications().stream()
+                    .map(medication -> new Option(
+                        medication.getName() + " | ID: " + medication.getId(),
+                        "select medication " + medication.getId(),
+                        true
+                    ).setNextAction((a, b) -> {
+                        Map<String, Object> args = new HashMap<>();
+                        args.put("medicationId", medication.getId());
+                        return args;
+                    }).setNextMenu(PHARMACIST_ADD_COUNT))
+                    .collect(Collectors.toCollection(ArrayList::new)); // Collect into a mutable ArrayList
+            });
+                
+        Menu.PHARMACIST_ADD_COUNT
+            .setNextMenu(VIEW_INVENTORY)
+            .setNextAction((userInput, args) -> {
+                Integer medicationId = (Integer) args.get("medicationId");
+                MedicationService.submitReplenishRequest(medicationId, Integer.parseInt(userInput));
+                return null;
+            });
+        
+        Menu.ADMIN_MAIN_MENU
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                new Option(
+                        "View Users", 
+                        "(view( )?)?user(s)?", 
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                    .setNextAction((a, b) -> new HashMap<String, Object>() {{
+                        put("filter", SortFilter.ROLE);
+                        put("asc", true);
+                    }}),
+                new Option(
+                        "View Appointments", 
+                        "view( )?appointment(s)?", 
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_APPOINTMENTS),
+                new Option(
+                        "Add User", 
+                        "add( )?user(s)?",
+                        true
+                    ).setNextMenu(() -> ADMIN_ADD_USER_TYPE),
+                new Option(
+                        "View Inventory", 
+                        "(view( )?)?inventory", 
+                        true
+                    ).setNextMenu(() -> VIEW_INVENTORY),
+                new Option(
+                        "View Requests", 
+                        "(view( )?)?requests(s)?",
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_REQUEST)
+            ))).shouldAddLogoutOptions();
+        Menu.ADMIN_VIEW_APPOINTMENTS.setDisplayGenerator(() -> {
+                List<Appointment> appointments = AppointmentService.getAllAppointments()
+                    .stream()
+                    .collect(Collectors.toList());
+                if (!appointments.isEmpty()) {
+                    AppointmentDisplay.printAppointmentDetails(appointments);
+                } else {
+                    System.out.println("No appointments scheduled.\n");
+                }
+        }).shouldAddMainMenuOption()
+        .shouldAddLogoutOptions();
+        
+        Menu.ADMIN_VIEW_USERS
+            .setDisplayGenerator(() -> {
+                Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                if (
+                    values != null && values.containsKey("filter") && values.containsKey("asc")
+                ) {
+                    SortFilter filter = (SortFilter) values.get("filter");
+                    UserService.printUserDetailsAsTable(filter, (Boolean) values.get("asc"));
+                } else UserService.printUserDetailsAsTable(SortFilter.ROLE, true);
+            })
+            .setOptionGenerator(() -> {
+                List<Option> options = new ArrayList<>();
+
+                Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                if (
+                    values != null && values.containsKey("filter") && values.containsKey("asc")
+                ) {
+                    SortFilter filter = (SortFilter) values.get("filter");
+                    Boolean asc = (Boolean) values.get("asc");
+
+                    if (filter != SortFilter.ROLE || asc != true) {  // Replace with your actual condition
+                        options.add(new Option(
+                            "Sort Role Asc", 
+                            "role( )?(asc)?", 
+                            true
+                        ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                        .setNextAction((input, args) -> {
+                            args.put("filter", SortFilter.ROLE);
+                            args.put("asc", true);
+                            return args;
+                        }));
+                    }
+                    if (filter != SortFilter.ROLE || asc != false) {
+                        options.add(new Option(
+                            "Sort Role Desc", 
+                            "role( )?desc", 
+                            true
+                        ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                        .setNextAction((input, args) -> {
+                            args.put("filter", SortFilter.ROLE);
+                            args.put("asc", false);
+                            return args;
+                        }));
+                    }
+                    
+                    if (filter != SortFilter.GENDER || asc != true) { 
+                        options.add(new Option(
+                            "Sort Gender Asc", 
+                            "gender( )?(asc)?", 
+                            true
+                        ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                        .setNextAction((input, args) -> {
+                            args.put("filter", SortFilter.GENDER);
+                            args.put("asc", true);
+                            return args;
+                        }));
+                    }
+                    if (filter != SortFilter.GENDER || asc != false) {
+                        options.add(new Option(
+                            "Sort Gender Desc", 
+                            "gender( )?desc", 
+                            true
+                        ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                        .setNextAction((input, args) -> {
+                            args.put("filter", SortFilter.GENDER);
+                            args.put("asc", false);
+                            return args;
+                        }));
+                    }
+    
+                    if (filter != SortFilter.AGE || asc != true) {  // Replace with your actual condition
+                        options.add(new Option(
+                            "Sort Age Asc", 
+                            "age( )?(asc)?", 
+                            true
+                        ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                        .setNextAction((input, args) -> {
+                            args.put("filter", SortFilter.AGE);
+                            args.put("asc", true);
+                            return args;
+                        }));
+                    }
+                    if (filter != SortFilter.AGE || asc != false) { 
+                        options.add(new Option(
+                            "Sort Age Desc", 
+                            "age( )?desc", 
+                            true
+                        ).setNextMenu(() -> ADMIN_VIEW_USERS)
+                        .setNextAction((input, args) -> {
+                            args.put("filter", SortFilter.AGE);
+                            args.put("asc", false);
+                            return args;
+                        }));
+                    }
+
+                    options.addAll(List.of(
+                        new Option(
+                            "Add a user", 
+                            "add( )?user(s)?",
+                            true
+                        ).setNextMenu(() -> ADMIN_ADD_USER_TYPE),
+
+                        new Option(
+                            "Edit a user", 
+                            "edit( )?user",
+                            true
+                        ).setNextMenu(() -> ADMIN_INPUT_USER_EDIT),
+
+                        new Option(
+                            "Delete a user", 
+                            "del(ete)?( )?user",
+                            true
+                        ).setNextMenu(() -> ADMIN_INPUT_USER_DELETE)
+                    ));
+                }
+                return options;
+            })
+            .shouldAddMainMenuOption();
+
+        Menu.ADMIN_INPUT_USER_EDIT
+            .setNextMenu(ADMIN_EDIT_USER)
+            .setNextAction((userInput, args) -> {
+                int userIntInput = Menu.parseUserIntInput(userInput);
+                Staff s = UserService.findStaffById(userIntInput);
+                if (s == null) throw new Exception("Staff not found!");
+                args.put("staffId", s.getStaffId());
+                return args;
+            });
+
+        Menu.ADMIN_INPUT_USER_DELETE
+            .setNextMenu(ADMIN_VIEW_USERS)
+            .setNextAction((userInput, args) -> {
+                int userIntInput = Menu.parseUserIntInput(userInput);
+                Staff s = UserService.findStaffById(userIntInput);
+                if (s == null) throw new Exception("Staff not found!");
+                UserService.deleteStaff(s);
+                return null;
+            });
+                
+
+        Menu.ADMIN_EDIT_USER
+            .setOptionGenerator(() -> {
+                Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                if (values != null && values.containsKey("staffId")) {
+                    Staff s = UserService.findStaffById((int) values.get("staffId"));
+                    if (s == null) throw new Exception("Staff not found!");
+
+                    return new ArrayList<>(List.of(
+                        new EditOption(
+                            String.format("Username: %s", s.getUsername()),
+                            "username",
+                            true,
+                            (input, args) -> {
+                                s.setUsername((String) input);
+                                return null;
+                            }
+                        ),
+                        new EditOption(
+                            String.format("Password: %s", "*".repeat(s.getPassword().length())),
+                            "password",
+                            true,
+                            (input, args) -> {
+                                s.setPassword((String) input);
+                                return null;
+                            }
+                        ),
+                        new EditOption(
+                            String.format("Name: %s", s.getName()),
+                            "name",
+                            true,
+                            (input, args) -> {
+                                s.setName((String) input);
+                                return null;
+                            }
+                        ),
+                        new EditOption( // TODO possible to create new selection menu for gender...
+                            String.format("Gender: %s", s.getGender()),
+                            "gender",
+                            true,
+                            (input, args) -> {
+                                s.setGender((String) input);
+                                return null;
+                            }
+                        )
+                    ));
+                } else throw new Exception("Staff not found!");
+            });
+        
+        Menu.ADMIN_ADD_USER_TYPE
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                createRoleOption(Patient.class),
+                createRoleOption(Doctor.class),
+                createRoleOption(Pharmacist.class),
+                createRoleOption(Admin.class)
+            )));
+        
+        Menu.ADMIN_ADD_USER_NAME.setNextMenu(ADMIN_ADD_PASSWORD)
+            .setNextAction((userInput, args) -> {
+                Username u = new Username(userInput); // validate
+                args.put("userName", userInput);
+                return args;
+            });
+        
+        Menu.ADMIN_ADD_PASSWORD.setNextMenu(ADMIN_ADD_NAME)
+            .setNextAction((userInput, args) -> {
+                Password p = new Password(userInput); // validate
+                args.put("password", userInput);
+                return args;
+            });
+        
+        Menu.ADMIN_ADD_NAME.setNextMenu(ADMIN_ADD_GENDER)
+            .setNextAction((userInput, args) -> {
+                args.put("name", userInput);
+                return args;
+            });
+        
+        Menu.ADMIN_ADD_GENDER.setNextMenu(ADMIN_ADD_DOB)
+            .setDisplayGenerator(() -> {
+                System.out.println(Arrays.toString(Gender.values()));
+            })
+            .setNextAction((userInput, args) -> {
+                Gender g = EnumUtils.fromString(Gender.class, userInput);
+                args.put("gender", userInput);
+                return args;
+            });
+
+        Menu.ADMIN_ADD_DOB.setNextMenu(() -> {
+                Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+
+                if (values != null && values.containsKey("role")) {
+                    values.forEach((key, value) -> {
+                        if (value instanceof String) {
+                            System.out.println("Key: " + key + ", Value: " + value);
+                        }
+                    });
+                    if (!values.get("role").equals(Patient.class.getSimpleName())) return ADMIN_VIEW_USERS;
+                    else return ADMIN_ADD_MOBILE_NO;
+                } else throw new Exception("User Type unknown");
+            }).setNextAction((userInput, args) -> {
+                if (args.get("role").equals(Patient.class.getSimpleName())) {
+                    LocalDate d = DateTimeUtil.parseShortDate(userInput);
+                    args.put("dob", userInput);
+                    return args;
+                } else if (args.get("role").equals(Doctor.class.getSimpleName())) {
+                    Doctor d = Doctor.create(
+                        (String) args.get("userName"),
+                        (String) args.get("password"),
+                        (String) args.get("name"),
+                        (String) args.get("gender"),
+                        userInput
+                    );
+                    UserService.addUsers(List.of(d));
+                    return null;
+                } else if (args.get("role").equals(Pharmacist.class.getSimpleName())) {
+                    Pharmacist p = Pharmacist.create(
+                        (String) args.get("userName"),
+                        (String) args.get("password"),
+                        (String) args.get("name"),
+                        (String) args.get("gender"),
+                        userInput
+                    );
+                    UserService.addUsers(List.of(p));
+                    return null;
+                } else if (args.get("role").equals(Admin.class.getSimpleName())) {
+                    Admin a = Admin.create(
+                        (String) args.get("userName"),
+                        (String) args.get("password"),
+                        (String) args.get("name"),
+                        (String) args.get("gender"),
+                        userInput
+                    );
+                    UserService.addUsers(List.of(a));
+                    return null;
+                } else throw new Exception("Type not found!");
+            });
+        
+        Menu.ADMIN_ADD_MOBILE_NO.setNextMenu(ADMIN_ADD_HOME_NO)
+            .setNextAction((userInput, args) -> {
+                PhoneNumber mNumber = new PhoneNumber(userInput);
+                args.put("mobileNumber", userInput);
+                return args;
+            });
+        
+        Menu.ADMIN_ADD_HOME_NO.setNextMenu(ADMIN_ADD_EMAIL)
+            .setNextAction((userInput, args) -> {
+                PhoneNumber hNumber = new PhoneNumber(userInput);
+                args.put("homeNumber", userInput);
+                return args;
+            });
+        
+        Menu.ADMIN_ADD_EMAIL.setNextMenu(ADMIN_ADD_BLOODTYPE)
+            .setNextAction((userInput, args) -> {
+                Email e = new Email(userInput);
+                args.put("email", userInput);
+                return args;
+            });
+        
+        Menu.ADMIN_ADD_BLOODTYPE.setNextMenu(ADMIN_VIEW_USERS)
+            .setDisplayGenerator(() -> {
+                System.out.println(Arrays.toString(BloodType.values()));
+            })
+            .setNextAction((userInput, args) -> {
+                Patient p = Patient.create(
+                    (String) args.get("userName"),
+                    (String) args.get("password"),
+                    (String) args.get("name"),
+                    (String) args.get("gender"),
+                    (String) args.get("dob"),
+                    (String) args.get("mobileNumber"),
+                    (String) args.get("homeNumber"),
+                    (String) args.get("email"),
+                    userInput
+                );
+                return null;
+            });
+        
+        Menu.VIEW_INVENTORY
+            .setDisplayGenerator(() -> {
+                List<String> displayData = MedicationService.getAllMedications().stream()
+                    .map(medication -> String.join(" | ", 
+                        "Medication ID: " + medication.getId(), 
+                        "Name: " + medication.getName(), 
+                        "Stock: " + medication.getStock(), 
+                        "Low Alert Level: " + medication.getLowAlertLevel()
+                    ))
+                    .collect(Collectors.toList());
+                displayData.forEach(System.out::println);
+            })
+            .setOptionGenerator(() -> {
+                Boolean isAdmin = UserService.getCurrentUser() instanceof Admin;
+                if (isAdmin) {
+                    return new ArrayList<>(List.of(
+                        new Option(
+                            "Edit medication", 
+                            "edit( )?medication(s)?",
+                            true
+                        ).setNextMenu(() -> ADMIN_UPDATE_INVENTORY)
+                        .setNextAction((a, b) -> new HashMap<String, Object>() {{
+                            put("control", Control.EDIT);
+                        }})
+                    ));
+                } else {
+                    return new ArrayList<>();
+                }
+            })
+            .shouldAddLogoutOptions()
+            .shouldAddMainMenuOption();
+
+        Menu.ADMIN_UPDATE_INVENTORY
+            .setOptionGenerator(() -> {
+                List<Option> options = new ArrayList<>(MedicationService.getAllMedications().stream()
+                    .map(medication -> new Option(
+                        String.join(" | ", 
+                            "Medication ID: " + medication.getId(), 
+                            "Name: " + medication.getName(), 
+                            "Stock: " + medication.getStock(), 
+                            "Low Alert Level: " + medication.getLowAlertLevel()
+                        ), "edit " + medication.getName(), true
+                        ).setNextMenu(() -> ADMIN_EDIT_MEDICATION)
+                        .setNextAction((a, b) -> {
+                            Map<String, Object> args = new HashMap<>();
+                            args.put("medicationId", medication.getId());
+                            return args;
+                        })
+                    )
+                    .collect(Collectors.toList()));
+                
+                options.add(new Option(
+                        "Add a medication (A)", 
+                        "add( )?medication(s)?",
+                        false
+                    ).setNextMenu(() -> ADMIN_ADD_MEDICATION)
+                );
+                
+                return options;
+            })
+            .shouldAddLogoutOptions().shouldAddMainMenuOption();
+
+        Menu.ADMIN_ADD_MEDICATION.setNextMenu(ADMIN_ADD_INITIAL_STOCK)
+            .setNextAction((userInput, args) -> {
+                args.put("name", userInput);
+                return args;
+            });
+
+        Menu.ADMIN_ADD_INITIAL_STOCK.setNextMenu(ADMIN_ADD_LOW_LEVEL_ALERT)
+            .setNextAction((userInput, args) -> {
+                args.put("stock", userInput);
+                return args;
+            });
+        
+        Menu.ADMIN_ADD_LOW_LEVEL_ALERT.setNextMenu(VIEW_INVENTORY)
+            .setNextAction((userInput, args) -> {
+                Medication p = Medication.create(
+                    (String) args.get("name"),
+                    (String) args.get("stock"),
+                    userInput
+                );
+                return null;
+            });
+        
+        Menu.ADMIN_EDIT_MEDICATION
+            .setOptionGenerator(() -> {
+                Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+                if (values != null && values.containsKey("medicationId")) {
+                    Medication m = MedicationService.getMedication((int) values.get("medicationId"));
+                    if (m == null) throw new Exception("Medication not found!");
+                    return new ArrayList<>(List.of(
+                        new EditOption(
+                            String.format("Stock: %s", m.getStock()),
+                            "update( )?(stock)?",
+                            true,
+                            (input, args) -> {
+                                m.setStock(Integer.parseInt(input));
+                                return null;
+                            }
+                        ),
+                        new EditOption(
+                            String.format("Low Level Alert: %s", m.getLowAlertLevel()),
+                            "update( )?(level)?",
+                            true,
+                            (input, args) -> {
+                                m.setLowAlertLevel(Integer.parseInt(input));
+                                return null;
+                            }
+                        )
+                    ));
+                } else throw new Exception("Medication not found!");
+            });
+        
+        Menu.ADMIN_VIEW_REQUEST.setDisplayGenerator(() -> {
+            List<String> displayData = MedicationService.getAllMedications().stream()
+                .flatMap(medication -> medication.getRequestList().stream()
+                    .filter(request -> request.getStatus() == Request.Status.PENDING)
+                    .map(request -> String.join(" | ",
+                        "Request ID: " + request.getId(),
+                        "Medication Name: " + medication.getName(),
+                        "Medication ID: " + request.getMedicationId(),
+                        "Quantity: " + request.getCount(),
+                        "Status: " + request.getStatus()
+                    ))
+                )
+                .collect(Collectors.toList());
+        
+            displayData.forEach(System.out::println);
+        })
+        .setOptionGenerator(() -> 
+            new ArrayList<>(List.of(
+                new Option(
+                    "Approve a request", 
+                    "approve( )?request(s)?",
+                    true
+                ).setNextMenu(() -> HANDLE_REPLENISH_REQUEST)
+                .setNextAction((a, b) -> new HashMap<String, Object>() {{
+                    Menu.HANDLE_REPLENISH_REQUEST.title = "Approve Request";
+                    put("control", Control.APPROVE);
+                }}),
+                new Option(
+                    "Reject a request", 
+                    "reject( )?request(s)?",
+                    true
+                ).setNextMenu(() -> HANDLE_REPLENISH_REQUEST)
+                .setNextAction((a, b) -> new HashMap<String, Object>() {{
+                    Menu.HANDLE_REPLENISH_REQUEST.title = "Reject Request";
+                    put("control", Control.REJECT);
+                }})
+            ))
+        )
+        .shouldAddLogoutOptions().shouldAddMainMenuOption();
+        
+        Menu.HANDLE_REPLENISH_REQUEST.setOptionGenerator(() -> {
+            Map<String, Object> values = MenuService.getCurrentMenu().dataFromPreviousMenu;
+            if (values == null || !values.containsKey("control")) throw new Exception();
+            List<Option> options = MedicationService.getAllMedications().stream()
+                .flatMap(medication -> medication.getRequestList().stream()
+                    .filter(request -> request.getStatus() == Request.Status.PENDING)
+                    .map(request -> new Option(
+                        String.join(" | ", 
+                            "Request ID: " + request.getId(), 
+                            "Medication Name: " + medication.getName(), // Fixed: Added medication name
+                            "Medication ID: " + request.getMedicationId(), 
+                            "Quantity: " + request.getCount(), 
+                            "Status: " + request.getStatus()
+                        ),
+                        "edit " + request.getId(),
+                        true
+                    ).setNextMenu(() -> ADMIN_VIEW_REQUEST)
+                    .setNextAction((a, b) -> {
+                        if (values.get("control") == Control.APPROVE) {
+                            MedicationService.approveReplenishRequest(request);
+                        } else {
+                            request.setStatus(Request.Status.REJECTED);
+                        }
+                        return null;
+                    }))
+                )
+                .collect(Collectors.toList());
+                    
+                return options;
+                })
+                .shouldAddLogoutOptions().shouldAddMainMenuOption();
     }
     // Init END
 
@@ -1145,6 +2096,21 @@ public enum Menu {
         INPUT,
         SELECT
     }
+
+    private enum Control {
+        ADD,
+        EDIT,
+        DELETE,
+        APPROVE,
+        REJECT
+    }
+
+    private static final Map<Class<?>, Menu> USER_MENU_MAP = Map.of(
+        Patient.class, Menu.PATIENT_MAIN_MENU,
+        Doctor.class, Menu.DOCTOR_MAIN_MENU,
+        Pharmacist.class, Menu.PHARMACIST_MAIN_MENU,
+        Admin.class, Menu.ADMIN_MAIN_MENU
+    );
 
     public interface DisplayGenerator {
         void apply() throws Exception;
@@ -1253,6 +2219,27 @@ public enum Menu {
         }
     }
 
+    private static Option createRoleOption(Class<?> roleClass) {
+        String className = roleClass.getSimpleName();
+        
+        return new Option(
+            className,
+            className.toLowerCase(),
+            true
+        ).setNextMenu(() -> ADMIN_ADD_USER_NAME)
+        .setNextAction((input, args) -> new HashMap<String, Object>() {{
+             put("role", className);
+         }});
+    }
+
+    private static int parseUserIntInput(String userInput) throws Exception {
+        try {
+            return Integer.parseInt(userInput);
+        } catch (NumberFormatException e) {
+            throw new Exception("Please enter an integer/number.");
+        }
+    }
+
     private static Patient getTargetPatientFromArgs() throws Exception {
         Patient patient = (Patient) (
             MenuService.getCurrentMenu().dataFromPreviousMenu != null &&
@@ -1299,7 +2286,7 @@ public enum Menu {
     }
     // Builder END
 
-    private final String title;
+    private String title;
     private String label;
     private final MenuType menuType;
     private boolean parseUserInput = true;
@@ -1318,7 +2305,7 @@ public enum Menu {
     private DisplayGenerator displayGenerator;
     private boolean shouldHaveMainMenuOption;
     private boolean shouldHaveLogoutOption;
-    private final boolean requiresConfirmation;
+    private boolean requiresConfirmation;
     // Options END
         
     Menu(MenuBuilder menuBuilder) {
@@ -1385,6 +2372,7 @@ public enum Menu {
 
         if (this.displayGenerator != null) {
             this.displayGenerator.apply();
+            if (this == Menu.CONFIRM) this.setDisplayGenerator(null);
         }
 
         if (List.of(MenuType.SELECT, MenuType.DISPLAY_OPTIONS).contains(this.menuType)) {
@@ -1446,7 +2434,7 @@ public enum Menu {
         }
 
         if (this.parseUserInput) {
-            userInput = userInput.trim().toLowerCase();
+            userInput = userInput.trim(); // Cannot lowercase since add user menus need true values, such as name, password etc 
         }
 
         System.out.printf("MenuType: %s%n", this.menuType); // IMPT DEBUG
@@ -1504,8 +2492,9 @@ public enum Menu {
             Map<String, Object> argsForNext = this.setUserInput(userInput).executeNextAction(); // Options dont use user input since they are called within next action methods. Exceptions caught in here will propagate back to App.java which will render exitMenu
             System.out.println(argsForNext); // TODO: remove test
             System.out.printf("After Executing Action: %s%n", this.getNextMenu());
+        Menu nextMenu = this.getNextMenu(); // IMPT only set data to null afterwards
             // this.setDataFromPreviousMenu(null);
-            return this.getNextMenu().setDataFromPreviousMenu(argsForNext); // only pass args if no exceptions caught
+            return nextMenu.setDataFromPreviousMenu(argsForNext);
         } catch (Exception e) {
             if (this.equals(Menu.CONFIRM)) {
                 MenuService.setCurrentMenu(
@@ -1529,11 +2518,6 @@ public enum Menu {
         return this;
     }
 
-    /**
-     * @return
-     * @throws Exception
-     * 
-     */
     private Map<String, Object> executeNextAction() throws Exception {
         if (this.nextAction == null) {
             return null;
@@ -1546,7 +2530,7 @@ public enum Menu {
     }
 
     public MenuGenerator getExitMenuGenerator() throws Exception {
-        return this.exitMenuGenerator == null ? () -> this : this.exitMenuGenerator;
+        return this.exitMenuGenerator == null ? () -> getUserMainMenu() : this.exitMenuGenerator;
     }
 
     public Menu getNextMenu() throws Exception { // Menu only
@@ -1578,19 +2562,14 @@ public enum Menu {
 
     private static Menu getUserMainMenu() {
         try {
-            // TODO: set remaining user types' menus
-            if (Patient.class.equals(UserService.getCurrentUser().getClass())) {
-                return Menu.PATIENT_MAIN_MENU;
-            }
-            if (Doctor.class.equals(UserService.getCurrentUser().getClass())) {
-                return Menu.DOCTOR_MAIN_MENU;
-            }
-            throw new Exception();
+            Class<?> userClass = UserService.getCurrentUser().getClass();
+            return USER_MENU_MAP.getOrDefault(userClass, Menu.LANDING);  // Use a valid Menu default
         } catch (Exception e) {
             UserService.logout();
             return Menu.LOGIN_USERNAME;
         }
     }
+
     // Next state (transition + action) handling END
 
     // Options handling START

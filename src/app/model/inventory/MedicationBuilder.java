@@ -5,8 +5,11 @@ import java.util.List;
 
 public final class MedicationBuilder extends Builder<Medication> {
 
-    public MedicationBuilder(List<String> row) throws Exception {
+    private List<Request> requests;
+
+    public MedicationBuilder(List<String> row, List<Request> requests) throws Exception {
         super(row);
+        this.requests = requests;
     }
 
     public MedicationBuilder(Medication instance) {
@@ -15,6 +18,6 @@ public final class MedicationBuilder extends Builder<Medication> {
 
     @Override
     public Medication deserialize() throws Exception {
-        return new Medication(this.row);
+        return new Medication(this.row, this.requests);
     }
 }

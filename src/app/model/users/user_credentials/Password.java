@@ -5,6 +5,7 @@ import app.constants.exceptions.InvalidLengthException;
 import app.constants.exceptions.MissingCharacterException;
 import app.model.validators.IntegerValidator;
 import app.model.validators.StringValidator;
+import app.utils.LoggerUtils;
 
 /**
 * Password validator.
@@ -57,6 +58,7 @@ public final class Password extends ValidatedData<String, String> implements Str
 
     @Override
     public void validateString(String password) throws InvalidCharacterException, MissingCharacterException {
+        // LoggerUtils.info(password);
         if (!password.matches(LOWERCASE_PATTERN)) throw new InvalidCharacterException("At least one lowercase character is required."); 
         if (!password.matches(UPPERCASE_PATTERN)) throw new InvalidCharacterException("At least one uppercase character is required.");
         if (!password.matches(CHARACTER_PATTERN)) throw new MissingCharacterException("At least one special character is required; i.e. !@#$%^&* ");

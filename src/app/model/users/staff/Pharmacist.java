@@ -39,7 +39,7 @@ public class Pharmacist extends Staff {
         super(userRow, staffRow);
         // LoggerUtils.info(String.join(", ", pharmacistRow));
         this.pharmacistId = Integer.parseInt(pharmacistRow.get(0));
-        Pharmacist.setPharmacistUuid(Math.max(Pharmacist.pharmacistUuid, this.pharmacistId)+1);
+        Pharmacist.setPharmacistUuid(Math.max(Pharmacist.pharmacistUuid, this.pharmacistId+1));
         LoggerUtils.info("Pharmacist " + this.getName() + " created");
     }
 
@@ -47,4 +47,13 @@ public class Pharmacist extends Staff {
     public int getRoleId() {
         return this.pharmacistId;
     };
+
+    @Override
+    public String toString() {
+        return String.join(
+            "\n",
+            String.format("Pharmacist ID: %d", this.getRoleId()),
+            super.toString()
+        );
+    }
 }

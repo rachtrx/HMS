@@ -27,7 +27,6 @@ public class Patient extends User implements AppointmentManager {
     private final PhoneNumber mobileNumber;
     private final PhoneNumber homeNumber;
     private final Email email;
-    private final LocalDate dateOfBirth;
     private BloodType bloodType;
     private final MedicalRecord medicalRecord;
     
@@ -36,24 +35,23 @@ public class Patient extends User implements AppointmentManager {
         String password,
         String name,
         String gender,
+        String dateOfBirth,
         String mobileNumber,
         String homeNumber,
         String email,
-        String dateOfBirth,
         String bloodType
     ) throws Exception {
-        super(username, password, name, gender);
+        super(username, password, name, gender, dateOfBirth);
         this.patientId = Patient.patientUuid++;
         this.mobileNumber = new PhoneNumber(mobileNumber);
         this.homeNumber = new PhoneNumber(homeNumber);
         this.email = new Email(email);
-        this.dateOfBirth = DateTimeUtil.parseShortDate(dateOfBirth);
         this.bloodType = EnumUtils.fromString(BloodType.class, bloodType);
         this.medicalRecord = new MedicalRecord(this.patientId); // Medical record created upon instantiation of patient
     }
 
-    public static Patient create(String username, String password, String name, String gender, String mobileNumber, String homeNumber, String email, String dateOfBirth, String bloodType) throws Exception {
-        Patient patient = new Patient(username, password, name, gender, mobileNumber, homeNumber, email, dateOfBirth, bloodType);
+    public static Patient create(String username, String password, String name, String gender, String dateOfBirth, String mobileNumber, String homeNumber, String email, String bloodType) throws Exception {
+        Patient patient = new Patient(username, password, name, gender, dateOfBirth, mobileNumber, homeNumber, email, bloodType);
         DatabaseManager.add(patient);
         LoggerUtils.info("Patient created");
         return patient;
@@ -72,9 +70,8 @@ public class Patient extends User implements AppointmentManager {
         this.mobileNumber = new PhoneNumber(patientRow.get(2));
         this.homeNumber = new PhoneNumber(patientRow.get(3));
         this.email = new Email(patientRow.get(4));
-        this.dateOfBirth = DateTimeUtil.parseShortDate(patientRow.get(5));
-        this.bloodType = EnumUtils.fromString(BloodType.class, patientRow.get(6)); // TODO
-        Patient.setPatientUuid(Math.max(Patient.patientUuid, this.patientId) + 1);
+        this.bloodType = EnumUtils.fromString(BloodType.class, patientRow.get(5)); // TODO
+        Patient.setPatientUuid(Math.max(Patient.patientUuid, this.patientId+1));
         this.medicalRecord = new MedicalRecord(patientIdStr, appointments);
         LoggerUtils.info("Patient " + this.getName() + " created");
     }
@@ -86,10 +83,10 @@ public class Patient extends User implements AppointmentManager {
         List<String> row = new ArrayList<>();
 
         row.add(String.valueOf(this.getRoleId()));
+        row.add(String.valueOf(this.getUserId()));
         row.add(this.getMobileNumber().toString());
         row.add(this.getHomeNumber().toString());
         row.add(this.getEmail());
-        row.add(DateTimeUtil.printShortDate(this.getDateOfBirth()));
         row.add(this.getBloodType());
 
         accRow.addAll(row);
@@ -158,11 +155,6 @@ public class Patient extends User implements AppointmentManager {
         DatabaseManager.update(this);
     }
 
-    // No need to set
-    public LocalDate getDateOfBirth() {
-        return dateOfBirth;
-    }
-
     public String getBloodType() {
         return bloodType.toString();
     }
@@ -197,18 +189,17 @@ public class Patient extends User implements AppointmentManager {
     //     this.medicalRecord.addAppointmentRecord(appointmentRecord);
     // }
 
-    public void print() {
-        System.out.println(String.join(
+    @Override
+    public String toString() {
+        return String.join(
             "\n",
-            String.format("1. Patient Name: %s", this.getName()),
-            String.format("2. Patient ID: %d", this.getRoleId()),
-            String.format("3. Date of Birth: %s", DateTimeUtil.printLongDate(this.dateOfBirth)),
-            String.format("4. Gender: %s", this.getGender()),
-            String.format("5. Mobile number: +65%d", this.getMobileNumber()),
-            String.format("6. Home number: +65%d", this.getHomeNumber()),
-            String.format("7. Email: %s", this.getEmail()),
-            String.format("8. Blood Type: %s", this.getBloodType())
-        ));
+            String.format("Patient ID: %d", this.getRoleId()),
+            super.toString(),
+            String.format("Mobile number: +65%d", this.getMobileNumber()),
+            String.format("Home number: +65%d", this.getHomeNumber()),
+            String.format("Email: %s", this.getEmail()),
+            String.format("Blood Type: %s", this.getBloodType())
+        );
     }
 
     // public void printMedicalRecord() throws MissingAppointmentException {

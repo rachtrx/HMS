@@ -13,11 +13,10 @@ public class CsvReaderService {
 
     public static List<List<String>> read(String filePath) throws IOException {
 
-        String path = filePath.toString();
         List<List<String>> data = new ArrayList<>();
         String line;
     
-        try (BufferedReader br = new BufferedReader(new FileReader(path))) {
+        try (BufferedReader br = new BufferedReader(new FileReader(filePath))) {
             br.readLine(); // Skip header
     
             while ((line = br.readLine()) != null) {
@@ -35,9 +34,7 @@ public class CsvReaderService {
     
     public static void write(String filePath, List<List<String>> data) throws IOException {
 
-        String path = filePath.toString();
-
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(path))) {
+        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filePath))) {
             for (List<String> row : data) {
                 String line = String.join(",", row);
                 bw.write(line);

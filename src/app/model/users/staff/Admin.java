@@ -1,6 +1,7 @@
 package app.model.users.staff;
 
 import app.db.DatabaseManager;
+import app.utils.DateTimeUtil;
 import app.utils.LoggerUtils;
 import java.util.List;
 
@@ -39,7 +40,7 @@ public class Admin extends Staff {
         super(userRow, staffRow);
         // LoggerUtils.info(String.join(", ", adminRow));
         this.adminId = Integer.parseInt(adminRow.get(0));
-        Admin.setAdminUuid(Math.max(Admin.adminUuid, this.adminId)+1);
+        Admin.setAdminUuid(Math.max(Admin.adminUuid, this.adminId+1));
         LoggerUtils.info("Admin " + this.getName() + " created");
     } 
 
@@ -47,4 +48,13 @@ public class Admin extends Staff {
     public int getRoleId() {
         return this.adminId;
     };
+
+    @Override
+    public String toString() {
+        return String.join(
+            "\n",
+            String.format("Admin ID: %d", this.getRoleId()),
+            super.toString()
+        );
+    }
 }

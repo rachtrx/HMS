@@ -69,6 +69,12 @@ public enum TableConfig {
         "src/resources/Order_List.csv",
         0
     ),
+    REQUESTS(
+        List.of("ID", "Medication ID", "Count", "Status"),
+        "Requests",
+        "src/resources/Request_List.csv",
+        0
+    ),
     MEDICATIONS(
         List.of("ID", "Medicine Name", "Initial Stock", "Low Stock Level Alert"),
         "Medications",

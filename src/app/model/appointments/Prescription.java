@@ -31,12 +31,18 @@ public class Prescription implements ISerializable {
                 return "Pending";
             }
         },
+        READY {
+            @Override
+            public String toString() {
+                return "Ready";
+            }
+        },
         DISPENSED {
             @Override
             public String toString() {
                 return "Dispensed";
             }
-        }
+        };
     }
 
     private final List<MedicationOrder> medicationOrders;
@@ -68,7 +74,7 @@ public class Prescription implements ISerializable {
         this.status = EnumUtils.fromString(PrescriptionStatus.class, row.get(1));
         this.outcomeId = Integer.parseInt(row.get(2));
         this.medicationOrders = medicationOrders;
-        Prescription.setUuid(Math.max(Prescription.uuid, this.id)+1);
+        Prescription.setUuid(Math.max(Prescription.uuid, this.id+1));
     }
 
     @Override
