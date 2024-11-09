@@ -53,7 +53,7 @@ public class App {
 					// MenuService.getCurrentMenu().setDataFromPreviousMenu(null);
 				}
 				// MenuService.setCurrentMenu(MenuService.getCurrentMenu().getExitMenu()); // no setting of args ie. clean state
-				System.out.println(e.getMessage());
+				System.out.println(e.getMessage() + "\n");
 				MenuService.getCurrentMenu().display();
 			}
 		}
