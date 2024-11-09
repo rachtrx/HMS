@@ -324,7 +324,7 @@ public enum Menu {
                             "blood|type|blood(( )?type)?|(blood( )?)?type",
                             true,
                             (input, args) -> {
-                                // patient.setBloodType((String) input); // TODO BUG commented out
+                                patient.setBloodType((String) input);
                                 return null;
                             }
                         ),
@@ -1004,7 +1004,8 @@ public enum Menu {
                         finalNextAction.apply(innerInput, innerArgs);
                         return innerArgs;
                     })
-                    .setNextMenu(currentMenu);
+                    .setNextMenu(() -> currentMenu)
+                    .setExitMenu(() -> currentMenu);
                 // return any args that might be required
                 return args;
             });
@@ -1218,13 +1219,11 @@ public enum Menu {
 
         if (this.menuType == MenuType.INPUT && this.requiresConfirmation) {
             String trueInput = userInput;
-            System.out.printf("Input Next Menu: %s%n, Input Exit Menu: %s%n", this.getNextMenu(), this.getExitMenu());
+            System.out.printf("Input Next Menu: %s%n, Input Exit Menu: %s%n", this.getNextMenu(), this.getExitMenu()); // TEST
             this.setConfirmMenu(
                 this.getNextMenuGenerator(),
                 this.getExitMenuGenerator(),
-                (input, args) -> {
-                    return this.nextAction.apply(trueInput, args); // input MenuType.INPUT should have all nextAction() set, unlike MenuType.OPTION
-                }
+                (input, args) -> this.nextAction.apply(trueInput, args) // input MenuType.INPUT should have all nextAction() set, unlike MenuType.OPTION
             );
             Menu.CONFIRM.setDataFromPreviousMenu(this.dataFromPreviousMenu);
             // this.setDataFromPreviousMenu(null);
@@ -1235,7 +1234,7 @@ public enum Menu {
             this.matchingOptions = (ArrayList<Option>) this.getFilteredOptions(userInput, true);
             List<Option> unNumberedMatches = this.getFilteredOptions(userInput, false);
             int numberOfMatches = unNumberedMatches.size() + this.matchingOptions.size();
-            Option option = null;
+            Option option;
             if (numberOfMatches < 1) {
                 this.displayMode = DisplayMode.NO_MATCH_FOUND;
                 System.out.println("No option match found"); // TODO REMOVE
@@ -1245,6 +1244,16 @@ public enum Menu {
                 try {
                     unNumberedMatches.addAll(this.matchingOptions);
                     option = unNumberedMatches.get(0);
+
+                    if (this.requiresConfirmation && !option.isNumberedOption) {
+                        this.setConfirmMenu(option.getNextMenuGenerator(), option.getExitMenuGenerator(), option.getNextAction());
+                        Menu.CONFIRM.setDataFromPreviousMenu(this.dataFromPreviousMenu);
+                        // this.setDataFromPreviousMenu(null);
+                        return Menu.CONFIRM;
+                    }
+
+                    this.setNextMenu(option.getNextMenuGenerator());
+                    this.setNextAction(option.getNextAction());
                 } catch (Exception e) {
                     this.setNextMenu(this);
                     throw e;
@@ -1254,31 +1263,26 @@ public enum Menu {
                     throw new ExitApplication();
                 }
             }
-
-            if (!this.requiresConfirmation || option == null || !option.isNumberedOption) {
-                // BUG if selection in confirm menu is not Y or N, then confirm menu is repeatedly shown
-                if (option != null) {
-                    this.setNextMenu(option.getNextMenuGenerator());
-                    this.setNextAction(option.getNextAction());
-                } else {
-                    throw new Exception();
-                }
-            } else {
-                // set next menu as the CONFIRM MENU
-                this.setConfirmMenu(option.getNextMenuGenerator(), option.getExitMenuGenerator(), option.getNextAction());
-                Menu.CONFIRM.setDataFromPreviousMenu(this.dataFromPreviousMenu);
-                this.setDataFromPreviousMenu(null);
-                return Menu.CONFIRM;
-            }
         }
         
-        System.out.printf("Before Executing Action: %s%n", this);
-        Map<String, Object> argsForNext = this.setUserInput(userInput).executeNextAction(); // Options dont use user input since they are called within next action methods. Exceptions caught in here will propagate back to App.java which will render exitMenu
-        System.out.println(argsForNext); // TODO: remove test
-
-        System.out.printf("After Executing Action: %s%n", this.getNextMenu());
-        this.setDataFromPreviousMenu(null);
-        return this.getNextMenu().setDataFromPreviousMenu(argsForNext); // only pass args if no exceptions caught
+        try {
+            System.out.printf("Before Executing Action: %s%n", this);
+            Map<String, Object> argsForNext = this.setUserInput(userInput).executeNextAction(); // Options dont use user input since they are called within next action methods. Exceptions caught in here will propagate back to App.java which will render exitMenu
+            System.out.println(argsForNext); // TODO: remove test
+            System.out.printf("After Executing Action: %s%n", this.getNextMenu());
+            // this.setDataFromPreviousMenu(null);
+            return this.getNextMenu().setDataFromPreviousMenu(argsForNext); // only pass args if no exceptions caught
+        } catch (Exception e) {
+            if (this.equals(Menu.CONFIRM)) {
+                MenuService.setCurrentMenu(
+                    this.exitMenuGenerator == null ?
+                        Menu.getUserMainMenu() :
+                        this.exitMenuGenerator.apply()
+                            .setDataFromPreviousMenu(this.dataFromPreviousMenu)
+                );
+            }
+            throw e;
+        }
     }
 
     private Menu setUserInput(String userInput) {

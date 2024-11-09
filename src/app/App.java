@@ -50,9 +50,9 @@ public class App {
 
 				if (MenuService.getCurrentMenu() != MenuService.getCurrentMenu().getExitMenu()) {
 					LoggerUtils.info("Same singleton instance"); // TODO REMOVE
-					MenuService.getCurrentMenu().setDataFromPreviousMenu(null);
+					// MenuService.getCurrentMenu().setDataFromPreviousMenu(null);
 				}
-				MenuService.setCurrentMenu(MenuService.getCurrentMenu().getExitMenu()); // no setting of args ie. clean state
+				// MenuService.setCurrentMenu(MenuService.getCurrentMenu().getExitMenu()); // no setting of args ie. clean state
 				MenuService.getCurrentMenu().display();
 			}
 		}
