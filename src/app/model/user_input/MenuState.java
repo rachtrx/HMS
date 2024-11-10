@@ -103,6 +103,9 @@ public enum MenuState {
     }
 
     public NewMenu getMenu(Map<String, Object> formValues) {
+
+        // Add in any middleware here
+
         NewMenu menu = menuProvider.get().setMenuState(this);
 
         if(menu == null) {
@@ -126,6 +129,12 @@ public enum MenuState {
                 (MenuState) formValues.get("exitState")
             ));
             return optionMenu;
+        } else if (this == MenuState.INPUT_APPOINTMENT_DAY) {
+            menu.setLabel(String.format(
+                "Enter a day from %d to %d:",
+                Integer.parseInt((String) args.get("startDay")),
+                Integer.parseInt((String) args.get("endDay"))
+            ));
         }
         return menu.setFormData(formValues);
     }

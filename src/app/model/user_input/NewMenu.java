@@ -11,6 +11,10 @@ import java.util.stream.IntStream;
 public abstract class NewMenu {
     protected String title;
     protected String label;
+    public void setLabel(String label) {
+        this.label = label;
+    }
+
     // Transitions & Actions START
     protected DisplayGenerator displayGenerator;
     protected Map<String, Object> formData = new HashMap<>();

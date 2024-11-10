@@ -114,8 +114,7 @@ public class PatientMenuCollection {
     }
 
     public static NewMenu getInputAppointmentDayMenu() {
-        InputMenu menu = new InputMenu("Enter a day from selected range", "Choose a Day");
-            
+        InputMenu menu = new InputMenu("Enter a day from selected range", "");
 
         menu.getInput()
             .setNextMenuState(MenuState.INPUT_APPOINTMENT_HOUR)

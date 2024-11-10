@@ -353,15 +353,30 @@ public class OptionGeneratorCollection {
             .<Option>mapToObj(month -> {
                 Month currentMonth = Month.of(month);
                 return new Option(
-                    currentMonth.name().substring(0, 3), 
-                    true,
-                    new LinkedHashMap<>() {{
-                        put("Month", currentMonth.name());
-                    }}
-                ).setNextAction((newFormValues) -> {
-                    newFormValues.put("month", month);
-                    return newFormValues;
-                }).setNextMenuState(MenuState.INPUT_APPOINTMENT_DAY);
+                        String.format(
+                            "%s(%s)?",
+                            currentMonth.toString().substring(0, 3),
+                            currentMonth.toString().substring(3, currentMonth.toString().length())
+                        ), 
+                        true,
+                        new LinkedHashMap<>() {{
+                            put("Month", currentMonth.toString());
+                        }}
+                    ).setNextAction((formData) -> {
+                        if (formData.isEmpty()) {
+                            formData = new HashMap<>();
+                        }
+                        formData.put("month", Integer.toString(month));
+                        formData.put(
+                            "startDay",
+                            Integer.toString(
+                                selectedYear < now.getYear()+1 && month < now.getMonthValue()+1 ?
+                                now.getDayOfMonth() : 1 + (
+                                    now.toLocalTime().isAfter(Timeslot.lastSlotStartTime) ? 1 : 0
+                        )));
+                        formData.put("endDay", Integer.toString(now.with(lastDayOfMonth()).getDayOfMonth()));
+                        return formData;
+                    }).setNextMenuState(MenuState.INPUT_APPOINTMENT_DAY);
             }).collect(Collectors.toList());
     }
 
@@ -372,8 +387,8 @@ public class OptionGeneratorCollection {
         int selectedMonth = Integer.parseInt((String) formValues.get("month"));
         int selectedDay = Integer.parseInt((String) formValues.get("day"));
         
-        LocalDateTime selectedDate = LocalDateTime.of(selectedYear, selectedMonth, selectedDay, 0, 0);
-        boolean isToday = selectedDate.toLocalDate().equals(now.toLocalDate());
+        LocalDate selectedDate = LocalDate.of(selectedYear, selectedMonth, selectedDay);
+        boolean isToday = (selectedDate.isEqual(now.toLocalDate()) || selectedDate.isBefore(now.toLocalDate()));
         
         int startHour = isToday && now.toLocalTime().isAfter(Timeslot.firstSlotStartTime) ? 
             now.getHour() + 1 : Timeslot.firstSlotStartTime.getHour();
@@ -386,9 +401,10 @@ public class OptionGeneratorCollection {
                     put("Hour", LocalTime.of(hour, 0).toString());
                 }}
             ).setNextAction((newFormValues) -> {
-                newFormValues.put("hour", hour);
+                newFormValues.put("dateTime", LocalDateTime.of(selectedDate, LocalTime.of(hour, 0)));
                 return newFormValues;
-            }).setNextMenuState(MenuState.INPUT_APPOINTMENT_DOCTOR))
+            })
+            .setNextMenuState(MenuState.INPUT_APPOINTMENT_DOCTOR))
             .collect(Collectors.toList());
     }
 
@@ -410,7 +426,8 @@ public class OptionGeneratorCollection {
                         selectedDateTime
                     );
                     return formData;
-                }))
+                })
+                .setRequiresConfirmation(true))
             .collect(Collectors.toList());
     }
 
