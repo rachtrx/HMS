@@ -19,10 +19,7 @@ public class FunctionalInterfaces {
     public interface OptionGenerator extends ThrowableBlankFunction<List<Option>, Exception> {}
 
     @FunctionalInterface
-    public interface MenuGenerator extends ThrowableBlankFunction<NewMenu, Exception> {}
-
-    @FunctionalInterface
-    public interface NextAction<T, E extends Exception> {
-        T apply(T t) throws E;
+    public interface NextAction<E extends Exception> {
+        Map<String, Object> apply(Map<String, Object> formData) throws E;
     }
 }

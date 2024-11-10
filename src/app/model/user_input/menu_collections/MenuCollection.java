@@ -1,14 +1,12 @@
 package app.model.user_input.menu_collections;
 
-import java.util.HashMap;
-import java.util.Map;
-
 import app.model.user_input.InputMenu;
 import app.model.user_input.MenuState;
-import app.model.user_input.OptionGeneratorCollection;
-import app.model.user_input.OptionMenu;
 import app.model.user_input.NewMenu;
+import app.model.user_input.OptionMenu;
+import app.service.MenuService;
 import app.service.UserService;
+import java.util.HashMap;
 
 public class MenuCollection {
     
@@ -21,7 +19,8 @@ public class MenuCollection {
     }
 
     public static NewMenu getLandingMenu() {
-        InputMenu menu = InputMenu("Landing Menu", "Press any key to continue")
+        InputMenu menu = new InputMenu("Landing Menu", "Press any key to continue");
+        menu
             .getInput()
             .setNextAction((formData) -> new HashMap<>())
             .setNextMenuState(MenuState.LOGIN_USERNAME)
@@ -31,23 +30,35 @@ public class MenuCollection {
     }
 
     public static NewMenu getLoginUsernameMenu() {
-        InputMenu menu = new InputMenu("Login Username Menu", "Please enter your username") 
+        InputMenu menu = new InputMenu("Login Username Menu", "Please enter your username");
+
+        menu
+            .getInput()
             .setNextMenuState(MenuState.LOGIN_PASSWORD)
             .setNextAction((formData) -> new HashMap<String, Object>() {{
-                put("username", menu.getInput().getValue());
+                put("username", formData.get("input"));
             }});
         return menu;
     }
 
     public static NewMenu getLoginPasswordMenu() {
         InputMenu menu = new InputMenu("Login Password Menu", "Please enter your password")
-            .setParseUserInput(false)
+            .setParseUserInput(false);
+        menu
             .getInput()
+            .setNextMenuState(null)
+            .setExitMenuState(MenuState.LOGIN_USERNAME)
             .setNextAction((formData) -> {
-                UserService.login((String) menu.getFormData().get("username"), menu.getInput().getValue());
-                return null;
-            })
-            .setExitMenuState(MenuState.LOGIN_USERNAME);
+                try {
+                    UserService.login((String) formData.get("username"), (String) formData.get("input"));
+                    return null;
+                } catch (Exception e) {
+                    MenuService.setCurrentMenu(MenuState.LOGIN_USERNAME);
+                    System.out.println((String) formData.get("username"));
+                    System.out.println((String) formData.get("input"));
+                    return null;
+                }
+            });
         return menu;
     }
 }

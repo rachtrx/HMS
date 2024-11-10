@@ -120,14 +120,6 @@ public class UserService {
             return;
         }
 
-        // Define headers and column widths
-        List<String> headers = List.of("Role", "Staff ID", "Role ID", "Name", "Gender", "Age");
-        List<Integer> columnWidths = List.of(15, 10, 10, 20, 10, 5);
-        OptionTable tablePrinter = new OptionTable(headers, columnWidths);
-
-        // Print header
-        tablePrinter.printHeader();
-
         // Sort users based on the specified field
         Comparator<User> comparator;
         switch (sortBy) {
@@ -151,7 +143,7 @@ public class UserService {
             .filter(user -> user instanceof Staff)
             .forEach(user -> {
                 Staff s = (Staff) user;
-                List<String> rowData = List.of(
+                String rowData = String.join(" | ",
                     s.getClass().getSimpleName(),
                     String.valueOf(s.getStaffId()),
                     String.valueOf(s.getRoleId()),
@@ -159,7 +151,7 @@ public class UserService {
                     s.getGender(),
                     String.valueOf(Period.between(s.getDateOfBirth(), LocalDate.now()).getYears()) // Calculate age
                 );
-                tablePrinter.printRow(rowData);
+                System.out.println(rowData);
             });
     }
 

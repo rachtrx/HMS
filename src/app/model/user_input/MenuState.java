@@ -5,22 +5,24 @@ import app.model.user_input.InputMenu;
 import app.model.user_input.NewMenu;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.NewMenu;
-import app.model.user_input.old.Menu;
 import app.model.users.Patient;
 import app.model.users.staff.Admin;
 import app.model.users.staff.Doctor;
 import app.model.users.staff.Pharmacist;
 import app.service.UserService;
 
+
 import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
 import app.model.user_input.NewMenu;
+import app.model.user_input.FunctionalInterfaces.NextAction;
 import app.model.user_input.FunctionalInterfaces.OptionGenerator;
-import app.model.user_input.OptionGeneratorCollection;
+import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.user_input.menu_collections.PatientMenuCollection;
 import app.model.user_input.menu_collections.MenuCollection;
+import app.service.MenuService;
 
 import java.util.HashMap;
 
@@ -35,19 +37,19 @@ public enum MenuState {
     PATIENT_MAIN_MENU(PatientMenuCollection::getPatientMainMenu),
     // SELECT_PATIENT_VIEW_MEDICAL_RECORD(MenuRepository::getSelectPatientViewMedicalRecordMenu),
     // SELECT_PATIENT_EDIT_MEDICAL_RECORD(MenuRepository::getSelectPatientEditMedicalRecordMenu),
-    // PATIENT_VIEW_MEDICAL_RECORD(MenuRepository::getPatientViewMedicalRecordMenu),
-    // PATIENT_EDIT_MEDICAL_RECORD(MenuRepository::getPatientEditMedicalRecordMenu),
-    // PATIENT_APPOINTMENT_SELECTION_TYPE(MenuRepository::getPatientAppointmentSelectionTypeMenu),
-    // PATIENT_VIEW_AVAIL_APPOINTMENTS(MenuRepository::getPatientViewAvailAppointmentsMenu),
-    // INPUT_APPOINTMENT_YEAR(MenuRepository::getInputAppointmentYearMenu),
-    // INPUT_APPOINTMENT_MONTH(MenuRepository::getInputAppointmentMonthMenu),
-    // INPUT_APPOINTMENT_DAY(MenuRepository::getInputAppointmentDayMenu),
-    // INPUT_APPOINTMENT_HOUR(MenuRepository::getInputAppointmentHourMenu),
-    // INPUT_APPOINTMENT_DOCTOR(MenuRepository::getInputAppointmentDoctorMenu),
-    // PATIENT_RESCHEDULE_SELECTION(MenuRepository::getPatientRescheduleSelectionMenu),
-    // PATIENT_CANCEL_SELECTION(MenuRepository::getPatientCancelSelectionMenu),
-    // PATIENT_VIEW_CONFIRMED_APPOINTMENTS(MenuRepository::getPatientViewConfirmedAppointmentsMenu),
-    // PATIENT_VIEW_OUTCOMES(MenuRepository::getPatientViewOutcomesMenu),
+    PATIENT_VIEW_MEDICAL_RECORD(PatientMenuCollection::getPatientViewMedicalRecordMenu), // 
+    PATIENT_EDIT_MEDICAL_RECORD(PatientMenuCollection::getPatientEditMedicalRecordMenu),
+    PATIENT_VIEW_AVAIL_APPOINTMENTS(PatientMenuCollection::getPatientViewAvailAppointmentsMenu),
+    PATIENT_VIEW_CONFIRMED_APPOINTMENTS(PatientMenuCollection::getPatientViewConfirmedAppointmentsMenu),
+    PATIENT_APPOINTMENT_SELECTION_TYPE(PatientMenuCollection::getPatientAppointmentSelectionTypeMenu), // 
+    INPUT_APPOINTMENT_YEAR(PatientMenuCollection::getInputAppointmentYearMenu),
+    INPUT_APPOINTMENT_MONTH(PatientMenuCollection::getInputAppointmentMonthMenu),
+    INPUT_APPOINTMENT_DAY(PatientMenuCollection::getInputAppointmentDayMenu),
+    INPUT_APPOINTMENT_HOUR(PatientMenuCollection::getInputAppointmentHourMenu),
+    INPUT_APPOINTMENT_DOCTOR(PatientMenuCollection::getInputAppointmentDoctorMenu),
+    PATIENT_RESCHEDULE_SELECTION(PatientMenuCollection::getPatientRescheduleSelectionMenu),
+    PATIENT_CANCEL_SELECTION(PatientMenuCollection::getPatientCancelSelectionMenu),
+    PATIENT_VIEW_OUTCOMES(PatientMenuCollection::getPatientViewOutcomesMenu),
 
     // // DOCTOR
     // DOCTOR_MAIN_MENU(MenuRepository::getDoctorMainMenu),
@@ -55,7 +57,7 @@ public enum MenuState {
     // DOCTOR_SET_AVAILABILITY(MenuRepository::getDoctorSetAvailabilityMenu),
     // DOCTOR_ACCEPT_APPOINTMENTS(MenuRepository::getDoctorAcceptAppointmentsMenu),
     // DOCTOR_CANCEL_CONFIRMED(MenuRepository::getDoctorCancelConfirmedMenu),
-    // SELECT_PATIENT_APPOINTMENT(MenuRepository::getSelectPatientAppointmentMenu),
+    SELECT_PATIENT_APPOINTMENT(PatientMenuCollection::getPatientMainMenu); // getSelectPatientAppointmentMenu
     // EDIT_PATIENT_APPOINTMENT(MenuRepository::getEditPatientAppointmentMenu),
     // DOCTOR_ACCEPT_OR_DECLINE_APPOINTMENT(MenuRepository::getDoctorAcceptOrDeclineAppointmentMenu),
 
@@ -102,6 +104,11 @@ public enum MenuState {
 
     public NewMenu getMenu(Map<String, Object> formValues) {
         NewMenu menu = menuProvider.get().setMenuState(this);
+
+        if(menu == null) {
+            System.out.println("No Menu Found for" + this);
+            return MenuService.getCurrentMenu();
+        }
     
         if (this == MenuState.EDIT && menu instanceof InputMenu) {
             InputMenu inputMenu = (InputMenu) menu;
@@ -120,24 +127,25 @@ public enum MenuState {
             ));
             return optionMenu;
         }
-        return menu;
+        return menu.setFormData(formValues);
     }
 
-    public static NewMenu getUserMainMenu() {
+    public static MenuState getUserMainMenuState() {
         try {
+            System.out.println("Getting User Main Menu");
             Class<?> userClass = UserService.getCurrentUser().getClass();
             MenuState mainMenuState = USER_MENU_MAP.getOrDefault(userClass, MenuState.LANDING); // Set default as LANDING
-            return mainMenuState.getMenu(new HashMap<String, Object>()); // Use mainMenuState to retrieve the menu
+            return mainMenuState; // Use mainMenuState to retrieve the menu
         } catch (Exception e) {
             UserService.logout();
-            return MenuState.LOGIN_USERNAME.getMenu(new HashMap<String, Object>()); // Return NewMenu instance instead of enum
+            return MenuState.LOGIN_USERNAME; // Return NewMenu instance instead of enum
         }
     }
 
     private static final Map<Class<?>, MenuState> USER_MENU_MAP = Map.of(
-        Patient.class, MenuState.PATIENT_MAIN_MENU,
-        Doctor.class, MenuState.DOCTOR_MAIN_MENU,
-        Pharmacist.class, MenuState.PHARMACIST_MAIN_MENU,
-        Admin.class, MenuState.ADMIN_MAIN_MENU
+        Patient.class, MenuState.PATIENT_MAIN_MENU
+        // Doctor.class, MenuState.DOCTOR_MAIN_MENU,
+        // Pharmacist.class, MenuState.PHARMACIST_MAIN_MENU,
+        // Admin.class, MenuState.ADMIN_MAIN_MENU
     );
 }

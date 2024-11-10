@@ -31,7 +31,7 @@ public class App {
 		
 		while (true) {
 			try {
-				System.out.printf("Current Menu: %s%n", MenuService.getCurrentMenu());
+				System.out.printf("Current Menu: %s%n", MenuService.getCurrentMenu().getMenuState());
 				if (App.scanner.hasNextLine()) {
 					// MenuService.clearScreen(); // TODO uncomment once done
 					MenuService.handleUserInput(App.scanner.nextLine());
@@ -48,11 +48,6 @@ public class App {
 				LoggerUtils.info(e.getMessage() + "\n");
 				e.printStackTrace();
 
-				if (MenuService.getCurrentMenu() != MenuService.getCurrentMenu().getExitMenu()) {
-					LoggerUtils.info("Same singleton instance"); // TODO REMOVE
-					// MenuService.getCurrentMenu().setDataFromPreviousMenu(null);
-				}
-				// MenuService.setCurrentMenu(MenuService.getCurrentMenu().getExitMenu()); // no setting of args ie. clean state
 				System.out.println(e.getMessage());
 				MenuService.getCurrentMenu().display();
 			}

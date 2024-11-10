@@ -1,9 +1,9 @@
 package app.service;
 
-import java.util.HashMap;
-
-import app.model.user_input.Menu;
+import app.constants.exceptions.ExitApplication;
+import app.model.user_input.MenuState;
 import app.model.user_input.NewMenu;
+import java.util.HashMap;
 
 /**
 * Controls which menus to show (Equivalent to machine in FSM)
@@ -13,18 +13,29 @@ import app.model.user_input.NewMenu;
 * @since 2024-10-17
 */
 public class MenuService {
-    private static NewMenu currentMenu = MenuState.LANDING.getMenu(new HashMap<String, Object>());
+    private static NewMenu currentMenu = MenuState.LANDING.getMenu(new HashMap<>());
 
     public static void handleUserInput(String userInput) throws Exception {
-        MenuService.currentMenu = MenuService.currentMenu.handleUserInput(userInput);
+        MenuState oldMenuState = MenuService.currentMenu.getMenuState();
+        MenuState menuState = MenuService.currentMenu.handleUserInput(userInput);
+        if (oldMenuState == menuState) return;
+        setCurrentMenu(menuState);
     }
 
     public static NewMenu getCurrentMenu() {
         return MenuService.currentMenu;
     }
 
-    public static void setCurrentMenu(NewMenu currentMenu) {
-        MenuService.currentMenu = currentMenu;
+    public static void setCurrentMenu(MenuState newMenuState) throws ExitApplication{
+        System.out.println("Next Menu State: " + newMenuState);
+        if (newMenuState == null) {
+            newMenuState = MenuState.getUserMainMenuState();
+            if (newMenuState == null) throw new ExitApplication();
+        }
+        NewMenu newMenu = newMenuState.getMenu(MenuService.currentMenu.getFormData());
+        MenuService.currentMenu.setNextMenu(newMenu);
+        newMenu.setPreviousMenu(MenuService.currentMenu);
+        MenuService.currentMenu = newMenu;
     }
 
     public static void clearScreen() {

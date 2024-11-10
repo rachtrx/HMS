@@ -1606,7 +1606,7 @@ public enum Menu {
                 if (values != null && values.containsKey("role")) {
                     values.forEach((key, value) -> {
                         if (value instanceof String) {
-                            System.out.println("Key: " + key + ", Value: " + value);
+                            System.out.println("Other Options: " + key + ", Value: " + value);
                         }
                     });
                     if (!values.get("role").equals(Patient.class.getSimpleName())) return ADMIN_VIEW_USERS;

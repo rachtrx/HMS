@@ -1,15 +1,11 @@
 package app.model.user_input;
 
-import java.util.ArrayList;
+import app.constants.exceptions.ExitApplication;
+import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
+import app.service.MenuService;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.IntStream;
-
-import app.constants.exceptions.ExitApplication;
-import app.service.MenuService;
-
-import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
 
 
 public abstract class NewMenu {
@@ -18,13 +14,14 @@ public abstract class NewMenu {
     // Transitions & Actions START
     protected DisplayGenerator displayGenerator;
     protected Map<String, Object> formData = new HashMap<>();
-    protected Boolean parseUserInput;
+    protected Boolean parseUserInput = true;
     protected MenuState menuState;
 
     private NewMenu nextMenu;
     private NewMenu previousMenu;
 
-    public abstract Field getField(String userInput);
+    public abstract Input getField(String userInput);
+    public abstract void display();
     
     // Transitions & Actions END
 
@@ -39,6 +36,7 @@ public abstract class NewMenu {
 
     public NewMenu setMenuState(MenuState menuState) {
         this.menuState = menuState;
+        return this;
     }
 
     public Map<String, Object> getFormData() {
@@ -47,11 +45,12 @@ public abstract class NewMenu {
 
     public NewMenu setFormData(Map<String, Object> formData) {
         // shallow copy 
+        if (formData == null) formData = new HashMap<>();
         this.formData = new HashMap<>(formData);
         return this;
     }
 
-    protected static void printLineBreak(int length) {
+    public static void printLineBreak(int length) {
         IntStream.range(0, length).forEach(n -> System.out.print("-"));
         System.out.println();
     }
@@ -66,49 +65,59 @@ public abstract class NewMenu {
         return this;
     }
 
-    public NewMenu handleUserInput(String userInput) throws Exception {
+    public MenuState handleUserInput(String userInput) throws Exception {
 
         if (this.parseUserInput) {
-            userInput = userInput.trim(); // Cannot lowercase since add user menus need true values, such as name, password etc 
+            userInput = userInput.trim().toLowerCase();
         }
 
-        Field field;
+        Input field = null;
         try {
             field = this.getField(userInput);
             if (field != null) {
                 if (field.isRequiresConfirmation() || field.isEditRedirect()) {
                     this.formData.put("nextAction", field.getNextAction());
-                    this.formData.put("nextState", field.getNextMenuGenerator());
-                    this.formData.put("exitState", field.getExitMenuGenerator());
+                    this.formData.put("nextState", field.getNextMenuState());
+                    this.formData.put("exitState", field.getExitMenuState());
                     // this.setDataFromPreviousMenu(null);
                     return field.isRequiresConfirmation() ? 
-                        MenuState.CONFIRM.getMenu(this.formData) : 
-                        MenuState.EDIT.getMenu(this.formData);
+                        MenuState.CONFIRM : 
+                        MenuState.EDIT;
                 }
             }
 
-            System.out.printf("Before Executing Action: %s%n", this);
+            System.out.printf("Before Executing Action: %s%n", this.menuState);
             
-            if (field.nextAction == null) throw new Exception("Next action not defined!");
-            this.formData = (Map<String, Object>) field.nextAction.apply(this.formData);
-            System.out.println(this.formData); // TODO: remove test
-            System.out.printf("After Executing Action: %s%n", this.getNextMenu());
+            if (field == null) throw new Exception("Next action not defined!");
 
             MenuState nextMenuState = field.getNextMenuState(); // IMPT only set data to null afterwards
-            return nextMenuState.getMenu(this.formData);
+
+            if (field.nextAction != null) {
+                System.out.println("Calling form values: " + this.formData);
+                this.formData = (Map<String, Object>) field.nextAction.apply(this.formData);
+                System.out.println("Returned form values: " + this.formData); // TODO: remove test
+                System.out.printf("After Executing Action: %s%n", nextMenuState);
+            }
+            
+            return nextMenuState;
+        } catch (IllegalArgumentException e) {
+            System.out.println("Value not found, please enter a new value");
+            if(field != null && field.getExitMenuState() != null) return field.getExitMenuState();
+            return MenuState.getUserMainMenuState();
         } catch (Exception e) {
+            e.printStackTrace();
+            if (this.menuState.equals(MenuState.CONFIRM)) {
+                MenuService.setCurrentMenu(
+                    field == null || field.getExitMenuState() == null ?
+                        MenuState.getUserMainMenuState() :
+                        field.getExitMenuState()
+                );
+                throw e;
+            }
+
             System.out.println("Something went wrong. Please contact your administrator and try again.");
             System.out.println("Exiting application...");
             throw new ExitApplication();
-
-            if (this.equals(MenuState.CONFIRM)) {
-                MenuService.setCurrentMenu(
-                    field == null || field.getExitMenuState() == null ?
-                        MenuState.getUserMainMenu() :
-                        field.getExitMenuState().getMenu(this.formData)
-                );
-            }
-            throw e;
         }
     }
 
