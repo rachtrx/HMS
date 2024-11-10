@@ -41,6 +41,7 @@ public class App {
 					break;
 				}
 			} catch (ExitApplication | NoSuchElementException | IllegalStateException e) {
+				e.printStackTrace();
 				App.exitApplication();
 				break;
 			} catch (Exception e) {

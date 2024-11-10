@@ -1,6 +1,7 @@
 package app.model.user_input;
 
 import app.constants.exceptions.ExitApplication;
+import app.constants.exceptions.InvalidCharacterException;
 import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
 import app.service.MenuService;
 import java.util.HashMap;
@@ -74,6 +75,8 @@ public abstract class NewMenu {
         if (this.parseUserInput) {
             userInput = userInput.trim().toLowerCase();
         }
+        
+        System.out.printf("Before Executing Action: %s%n", this.menuState);
 
         Input field = null;
         try {
@@ -88,11 +91,9 @@ public abstract class NewMenu {
                         MenuState.CONFIRM : 
                         MenuState.EDIT;
                 }
+            } else {
+                throw new IllegalArgumentException("Field is null!");
             }
-
-            System.out.printf("Before Executing Action: %s%n", this.menuState);
-            
-            if (field == null) throw new Exception("Next action not defined!");
 
             MenuState nextMenuState = field.getNextMenuState(); // IMPT only set data to null afterwards
 
@@ -104,10 +105,12 @@ public abstract class NewMenu {
             }
             
             return nextMenuState;
-        } catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException | InvalidCharacterException e) {
+            e.printStackTrace();
             System.out.println("Value not found, please enter a new value");
             if(field != null && field.getExitMenuState() != null) return field.getExitMenuState();
-            return MenuState.getUserMainMenuState();
+            return this.getMenuState();
+            // return MenuState.getUserMainMenuState();
         } catch (Exception e) {
             e.printStackTrace();
             if (this.menuState.equals(MenuState.CONFIRM)) {

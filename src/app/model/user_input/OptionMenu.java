@@ -40,10 +40,9 @@ public class OptionMenu extends NewMenu {
 
     @Override
     public Input getField (String userInput) {
-        List<Option> numberedMatches = this.optionTable.getFilteredOptions(userInput, true);
-        List<Option> unNumberedMatches = this.optionTable.getFilteredOptions(userInput, false);
+        List<Option> matches = this.optionTable.getFilteredOptions(userInput);
 
-        int totalMatches = numberedMatches.size() + unNumberedMatches.size();
+        int totalMatches = matches.size();
         
         if (totalMatches < 1) {
             this.displayMode = DisplayMode.NO_MATCH_FOUND;
@@ -53,33 +52,27 @@ public class OptionMenu extends NewMenu {
             this.displayMode = DisplayMode.MULTIPLE_MATCHES_FOUND;
             return null;
         } else {
-            List<Option> combinedMatches = new ArrayList<>();
-            combinedMatches.addAll(numberedMatches);
-            combinedMatches.addAll(unNumberedMatches);
-            return combinedMatches.get(0);
+            return matches.get(0);
         }
     }
 
     public void display() {
-        if (this.optionGenerator != null) {
-            try {
-                this.options = optionGenerator.apply();
-            } catch (Exception e) {
-                System.out.println("No Options Found");
-            }
+        try {
+            this.options = optionGenerator.apply();
+            System.out.println("GETTING OPTIONS");
+        } catch (Exception e) {
+            System.out.println("No Options Found");
+        }
+        
+        if (this.shouldHaveMainMenuOption) {
+            this.addMainMenuOption();
         }
 
-        if (this.optionTable == null) {
-            if (this.shouldHaveMainMenuOption) {
-                this.addMainMenuOption();
-            }
-    
-            if (this.shouldHaveLogoutOption) {
-                this.addLogoutOptions();
-            }
-            System.out.println("Options table created");
-            this.optionTable = new OptionTable(this.options);
-        } 
+        if (this.shouldHaveLogoutOption) {
+            this.addLogoutOptions();
+        }
+        System.out.println("Options table created");
+        this.optionTable = new OptionTable(this.options);
         // else {
         //     // refresh options after editing
         //     this.matchingOptions = this.optionTable.getNumberedOptions(true);
@@ -116,7 +109,7 @@ public class OptionMenu extends NewMenu {
             
         }
 
-        this.optionTable.displayOptions();
+        this.optionTable.printTable();
     }
 
     private NewMenu addOptions(List<Option> options) {

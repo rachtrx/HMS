@@ -114,10 +114,10 @@ public class UserService {
         },
     }
 
-    public static void printUserDetailsAsTable(SortFilter sortBy, boolean ascending) {
+    public static List<Staff> getSortedUsers(SortFilter sortBy, boolean ascending) {
         if (users.isEmpty()) {
             System.out.println("No users found");
-            return;
+            return null;
         }
 
         // Sort users based on the specified field
@@ -138,21 +138,11 @@ public class UserService {
         }
 
         // Print each user in a row
-        users.stream()
+        return users.stream()
             .sorted(ascending ? comparator : comparator.reversed())
             .filter(user -> user instanceof Staff)
-            .forEach(user -> {
-                Staff s = (Staff) user;
-                String rowData = String.join(" | ",
-                    s.getClass().getSimpleName(),
-                    String.valueOf(s.getStaffId()),
-                    String.valueOf(s.getRoleId()),
-                    s.getName(),
-                    s.getGender(),
-                    String.valueOf(Period.between(s.getDateOfBirth(), LocalDate.now()).getYears()) // Calculate age
-                );
-                System.out.println(rowData);
-            });
+            .map(user -> (Staff) user)
+            .collect(Collectors.toList());
     }
 
     public static void deleteStaff(Staff staff) {

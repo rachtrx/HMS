@@ -1,25 +1,26 @@
 package app.model.user_input;
 
+import app.model.user_input.FunctionalInterfaces.NextAction;
 import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.function.Function;
-
-import app.model.user_input.FunctionalInterfaces.NextAction;
 
 public class Option extends Input {
     protected  final String matchPattern;
-    protected final boolean isNumberedOption;
+    protected final OptionType optionType ;
 
     private Map<String, String> displayFields;
 
+    public enum OptionType {
+        NUMBERED, UNNUMBERED, DISPLAY
+    }
+
     public Option(
         String matchPattern,
-        boolean isNumberedOption,
+        OptionType optionType,
         Map<String, String> displayFields
     ) {
         this.matchPattern = matchPattern;
-        this.isNumberedOption = isNumberedOption;
-
+        this.optionType = optionType;
         this.displayFields = new LinkedHashMap<>(displayFields);
     };
 
@@ -27,8 +28,8 @@ public class Option extends Input {
         return displayFields;
     }
 
-    public boolean isNumberedOption() {
-        return isNumberedOption;
+    public OptionType getOptionType() {
+        return optionType;
     }
 
     @Override

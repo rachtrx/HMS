@@ -114,7 +114,7 @@ public enum Menu {
     )),
     ADMIN_MAIN_MENU(new MenuBuilder(
         MenuType.SELECT,
-        "Doctor Main Menu",
+        "Admin Main Menu",
         null
     )),
     PHARMACIST_MAIN_MENU(new MenuBuilder(
@@ -400,7 +400,7 @@ public enum Menu {
         "All Medications",
         null
     )),
-    ADMIN_UPDATE_INVENTORY(new MenuBuilder(
+    ADMIN_EDIT_INVENTORY(new MenuBuilder(
         MenuType.SELECT,
         "Edit Medication",
         "Select a medication to edit"
@@ -2135,7 +2135,7 @@ public enum Menu {
                 if (values != null && values.containsKey("role")) {
                     values.forEach((key, value) -> {
                         if (value instanceof String) {
-                            System.out.println("Other Options: " + key + ", Value: " + value);
+                            System.out.println("Select: " + key + ", Value: " + value);
                         }
                     });
                     if (!values.get("role").equals(Patient.class.getSimpleName())) return ADMIN_VIEW_USERS;
@@ -2239,7 +2239,7 @@ public enum Menu {
                             "Edit medication", 
                             "edit( )?medication(s)?",
                             true
-                        ).setNextMenu(() -> ADMIN_UPDATE_INVENTORY)
+                        ).setNextMenu(() -> ADMIN_EDIT_INVENTORY)
                         .setNextAction((a, b) -> new HashMap<String, Object>() {{
                             put("control", Control.EDIT);
                         }})
@@ -2251,7 +2251,7 @@ public enum Menu {
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption();
 
-        Menu.ADMIN_UPDATE_INVENTORY
+        Menu.ADMIN_EDIT_INVENTORY
             .setOptionGenerator(() -> {
                 List<Option> options = new ArrayList<>(MedicationService.getAllMedications().stream()
                     .map(medication -> new Option(

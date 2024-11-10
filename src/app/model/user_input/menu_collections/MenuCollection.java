@@ -4,14 +4,17 @@ import app.model.user_input.InputMenu;
 import app.model.user_input.MenuState;
 import app.model.user_input.NewMenu;
 import app.model.user_input.OptionMenu;
+import app.model.user_input.option_collections.OptionGeneratorCollection;
+import app.model.user_input.option_collections.OptionGeneratorCollection.Control;
 import app.service.MenuService;
 import app.service.UserService;
 import java.util.HashMap;
+import java.util.Map;
 
 public class MenuCollection {
     
     public static NewMenu getEditMenu() {
-        return new InputMenu("Edit Menu", "Enter a new value: ");
+        return new InputMenu("Edit Menu", "Enter a new value: ").setParseUserInput(false);
     }
 
     public static NewMenu getConfirmMenu() {
@@ -58,6 +61,24 @@ public class MenuCollection {
                     System.out.println((String) formData.get("input"));
                     return null;
                 }
+            });
+        return menu;
+    }
+
+    public static NewMenu getViewInventoryMenu() {
+        OptionMenu menu = new OptionMenu("All Medications", "");
+        setOptionGeneratorForInventory(menu);
+        return menu;
+    }
+
+    public static NewMenu setOptionGeneratorForInventory(OptionMenu menu) {
+        menu.setOptionGenerator(() -> {
+                Control ctl = Control.NONE;
+                Map<String, Object> formValues = menu.getFormData();
+                if (formValues != null && formValues.containsKey("ctl")) {
+                    ctl = (Control) formValues.get("ctl");
+                }
+                return OptionGeneratorCollection.getMedicationDisplayOptions(ctl);
             });
         return menu;
     }
