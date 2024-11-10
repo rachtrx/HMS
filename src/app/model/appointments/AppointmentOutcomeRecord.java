@@ -18,6 +18,10 @@ public class AppointmentOutcomeRecord implements ISerializable {
     private static int uuid = 1;
     private final int id;
 
+    public static int getUuid() {
+        return uuid;
+    }
+
     public static void setUuid(int value) {
         uuid = value;
     }

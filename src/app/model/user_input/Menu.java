@@ -8,11 +8,13 @@ import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentDisplay;
 import app.model.appointments.AppointmentOutcomeRecord;
+import app.model.appointments.AppointmentOutcomeRecord.ServiceType;
 import app.model.appointments.DoctorEvent;
 import app.model.appointments.Prescription;
 import app.model.appointments.Prescription.PrescriptionStatus;
 import app.model.appointments.Timeslot;
 import app.model.inventory.Medication;
+import app.model.inventory.MedicationOrder;
 import app.model.inventory.Request;
 import app.model.users.Patient;
 import app.model.users.staff.Admin;
@@ -48,10 +50,7 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import javax.swing.text.html.Option;
-
-import org.w3c.dom.events.Event;
+import java.util.stream.Stream;
 /**
 * Controls which menus to show (Equivalent to machine in FSM)
 *
@@ -200,12 +199,6 @@ public enum Menu {
         "Past Appointment Outcome Records",
         null
     )),
-    // TODO: doctor menu
-    // DOCTOR_UPDATE_RECORDS(new MenuBuilder(
-    //     MenuType.SELECT,
-    //     "Past Appointment Outcome Records",
-    //     null
-    // )),
     DOCTOR_VIEW_SCHEDULE(new MenuBuilder(
         MenuType.SELECT,
         "Doctor Schedule",
@@ -247,11 +240,38 @@ public enum Menu {
         "View/Cancel Upcoming Appointments",
         "Please select an appointment to cancel:"
     )),
-    // DOCTOR_ADD_OUTCOME(new MenuBuilder(
+    DOCTOR_SELECT_RECORD_OUTCOME(new MenuBuilder(
+        MenuType.SELECT,
+        "Add Appointment Outcome",
+        "Select An Appointment"
+    )),
+    // DOCTOR_EDIT_RECORD_OUTCOME(new MenuBuilder(
     //     MenuType.SELECT,
-    //     "Past Appointment Outcome Records",
-    //     null
+    //     "Add/Edit Appointment Outcome",
+    //     "Enter 'Save' or 'S' to save appointment outcome."
     // )),
+    DOCTOR_SELECT_SERVICE(new MenuBuilder(
+        MenuType.SELECT,
+        "Add Service",
+        "Select service type to add:"
+    )),
+    DOCTOR_SELECT_MEDICATION(new MenuBuilder(
+        MenuType.SELECT,
+        "Prescribe Medication",
+        "Add medication, then enter 'Next' or 'N' to continue:"
+    )),
+    DOCTOR_INPUT_MEDICATION(new MenuBuilder(
+        MenuType.INPUT,
+        "Prescribe Medication",
+        null,
+        true
+    )),
+    DOCTOR_INPUT_CONSULTATION(new MenuBuilder(
+        MenuType.INPUT,
+        "Add Consultation Notes",
+        null,
+        true
+    )),
     // TODO: revamp appointment scheduler
     SELECT_PATIENT_APPOINTMENT(new MenuBuilder(
         MenuType.SELECT,
@@ -269,31 +289,26 @@ public enum Menu {
         null,
         true
     )),
-
     PHARMACIST_VIEW_OUTCOME_RECORDS(new MenuBuilder(
         MenuType.SELECT,
         "All Appointment Outcomes",
         null
     )),
-
     PHARMACIST_UPDATE_OUTCOMES(new MenuBuilder(
         MenuType.SELECT,
         "All Prescriptions",
         null
     )),
-
     PHARMACIST_UPDATE_PRESCRIPTIONS(new MenuBuilder(
         MenuType.SELECT,
         "All Prescriptions",
         null
     )),
-
     PHARMACIST_HANDLE_PRESCRIPTION(new MenuBuilder(
         MenuType.SELECT,
         "Prescription and Medication Order Details",
         null
     )),
-
     PHARMACIST_ADD_REQUEST(new MenuBuilder(
         MenuType.SELECT,
         "Submit Replenish Request",
@@ -304,7 +319,6 @@ public enum Menu {
         "Medication Quantity",
         "Please enter the quantity of medication to add: "
     )),
-
     ADMIN_VIEW_APPOINTMENTS(new MenuBuilder(
         MenuType.SELECT,
         "All Appointments",
@@ -939,7 +953,12 @@ public enum Menu {
                         "View/Cancel Upcoming Appointments", 
                         "cancel|upcoming", 
                         true
-                    ).setNextMenu(() -> DOCTOR_CANCEL_CONFIRMED)
+                    ).setNextMenu(() -> DOCTOR_CANCEL_CONFIRMED),
+                new Option(
+                        "Record Appointment Outcome", 
+                        "record|outcome", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_SELECT_RECORD_OUTCOME)
             ))).shouldAddLogoutOptions();
         Menu.SELECT_PATIENT_VIEW_MEDICAL_RECORD
             .setPatientListOptionGenerator(() -> PATIENT_VIEW_MEDICAL_RECORD)
@@ -1312,6 +1331,304 @@ public enum Menu {
             })
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
+        Menu.DOCTOR_SELECT_RECORD_OUTCOME
+            .setOptionGenerator(() -> {
+                List<Option> options = AppointmentService
+                    .getAppointmentByStatus(AppointmentStatus.CONFIRMED)
+                    .stream()
+                    .filter(appointment ->
+                        appointment.getDoctorId() == UserService.getCurrentUser().getRoleId() &&
+                        List.of(
+                            AppointmentStatus.CONFIRMED, AppointmentStatus.COMPLETED
+                        ).contains(appointment.getAppointmentStatus())
+                    ).sorted(Comparator.comparing(Appointment::getTimeslot).reversed())
+                    .map(appointment -> {
+                        Patient patient = UserService.findUserByIdAndType(
+                            appointment.getPatientId(),
+                            Patient.class,
+                            true
+                        );
+                        String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
+                        return new Option(
+                            patient == null ? timeslot : String.format(
+                                "%s - %s (P%d)",
+                                timeslot,
+                                patient.getName(),
+                                patient.getRoleId()
+                            ),
+                            timeslot,
+                            true
+                        ).setNextAction((userInput, args) -> {
+                            return new HashMap<>(){{
+                                put("appointmentId", Integer.toString(appointment.getAppointmentId()));
+                            }};
+                        }).setNextMenu(() -> DOCTOR_SELECT_SERVICE);
+                }).collect(Collectors.toList());
+                if (options == null || options.isEmpty()) {
+                    MenuService.setCurrentMenu(Menu.getUserMainMenu());
+                    throw new Exception("No confirmed/completed appointments.");
+                }
+                return options;
+            })
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        // Menu.DOCTOR_EDIT_RECORD_OUTCOME
+        //     .setDisplayGenerator(() -> {
+        //         Appointment appointment = Menu.getTargetAppointmentFromArgs();
+        //         System.out.println(
+        //             "Appointment date: " + DateTimeUtil.printLongDateTime(appointment.getTimeslot())
+        //         );
+        //     }).setOptionGenerator(() -> {
+        //         Appointment appointment = Menu.getTargetAppointmentFromArgs();
+        //         AppointmentOutcomeRecord outcome = appointment.getAppointmentOutcome();
+        //         if (MenuService.getCurrentMenu().dataFromPreviousMenu.get("outcomeId") == null && outcome != null) {
+        //             MenuService.getCurrentMenu().dataFromPreviousMenu.put("outcomeId", outcome.getId());
+        //             MenuService.getCurrentMenu().dataFromPreviousMenu.put("serviceType", outcome.getId());
+        //             MenuService.getCurrentMenu().dataFromPreviousMenu.put("prescriptionId", outcome.getId());
+        //             MenuService.getCurrentMenu().dataFromPreviousMenu.put("consultationNotes", outcome.getId());
+        //             AppointmentService.setPrescription(outcome.getPrescription());
+        //         }
+        //         return new ArrayList<>(List.of(
+        //             new Option(
+        //                     String.format(
+        //                         "%s Service Type (%s)",
+        //                         outcome == null || outcome.getServiceType() == null ? "Add" : "Edit",
+        //                         outcome == null || outcome.getServiceType() == null ? "required" : outcome.getServiceType()
+        //                     ),
+        //                     "service|type",
+        //                     true
+        //                 ).setNextMenu(() -> DOCTOR_SELECT_SERVICE)
+        //                 .setNextAction((input, args) -> args),
+        //             new Option(
+        //                     String.format(
+        //                         "%s Prescription %s",
+        //                         outcome == null || outcome.getPrescription() == null ? "Add" : "Edit",
+        //                         outcome == null || outcome.getPrescription() == null ? "(required)" : 
+        //                             String.format(
+        //                                 "\n- Status: %s\n%s",
+        //                                 outcome.getPrescription().getStatus(),
+        //                                 outcome.getPrescription().getMedicationOrdersString() == null ?
+        //                                     "No medication added." :
+        //                                     outcome.getPrescription().getMedicationOrdersString()
+        //                             )
+        //                     ),
+        //                     "service|type",
+        //                     true
+        //                 ).setNextMenu(() -> DOCTOR_SELECT_MEDICATION)
+        //                 .setNextAction((input, args) -> args),
+        //             new Option(
+        //                     "Save (S)",
+        //                     "save|s",
+        //                     false
+        //                 ).setNextMenu(() -> Menu.getUserMainMenu())
+        //                 .setNextAction((input, args) -> {
+        //                     List<String> missingElements = new ArrayList<>();
+        //                     if (args.get("serviceType") == null) {
+        //                         missingElements.add("Service Type");
+        //                     }
+        //                     if (
+        //                         args.get("prescriptionId") == null ||
+        //                         AppointmentService.getPrescription() == null ||
+        //                         AppointmentService.getPrescription().getId() != Integer.parseInt((String)args.get("prescriptionId"))
+        //                     ) {
+        //                         missingElements.add("Prescription");
+        //                     }
+        //                     if (args.get("serviceType") == null) {
+        //                         missingElements.add("Consultation Notes");
+        //                     }
+        //                     if (!missingElements.isEmpty()) {
+        //                         throw new Exception("Missing fields required: " + String.join(", ", missingElements));
+        //                     }
+
+        //                     if (appointment.getAppointmentOutcome() == null) {
+        //                         appointment.setAppointmentOutcome(AppointmentOutcomeRecord.create(
+        //                             appointment.getAppointmentId(),
+        //                             (String) args.get("serviceType"),
+        //                             AppointmentService.getPrescription(),
+        //                             (String) args.get("consultationNotes")
+        //                         ));
+        //                     } else {
+        //                         appointment.getAppointmentOutcome().set
+        //                     }
+
+        //                     AppointmentService.resetPrescription();
+        //                     return new HashMap<String, Object>(){{
+        //                         put("appointmentId", (String) args.get("appointmentId"));
+        //                     }};
+        //                 })
+        //         ));
+        //     }).setExitMenu(() -> DOCTOR_EDIT_RECORD_OUTCOME)
+        //     .shouldAddMainMenuOption()
+        //     .shouldAddLogoutOptions();
+        Menu.DOCTOR_SELECT_SERVICE
+            .setOptionGenerator(() -> {
+                // try {
+                //     String currentServiceType = (String) MenuService.getCurrentMenu()
+                //         .dataFromPreviousMenu.get("serviceType");
+                //     DOCTOR_SELECT_SERVICE.label = "Select a service type" +  currentServiceType == null ?
+                //         ":" : String.format("(current: %s):", currentServiceType);
+                // } catch (Exception e) {}
+                return Stream.of(ServiceType.values())
+                    .map(serviceType -> new Option(
+                            serviceType.toString(),
+                            serviceType.toString(),
+                            true
+                        ).setNextAction((userInput, args) -> {
+                            args = args == null ? new HashMap<>() : args;
+                            args.put("serviceType", serviceType.toString());
+                            return args;
+                        }).setNextMenu(() -> DOCTOR_SELECT_MEDICATION)
+                    ).collect(Collectors.toList());
+            }).setExitMenu(() -> DOCTOR_SELECT_RECORD_OUTCOME)
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_SELECT_MEDICATION
+            .setOptionGenerator(() -> {
+                List<Option> options = MedicationService.getAllMedications()
+                    .stream()
+                    .map(medication -> {
+                        MenuService.getCurrentMenu().dataFromPreviousMenu.values().removeIf(Objects::isNull);
+                        MenuService.getCurrentMenu().dataFromPreviousMenu.remove("targetMedicationId");
+                        Optional<String> medicationKey = 
+                            MenuService.getCurrentMenu().dataFromPreviousMenu.keySet()
+                                .stream()
+                                .filter(key -> 
+                                    key.startsWith("medicationId") &&
+                                    key.endsWith(Integer.toString(medication.getId())) &&
+                                    MenuService.getCurrentMenu().dataFromPreviousMenu.get(key) != null
+                                )
+                                .findFirst();
+                        String quantity = null;
+                        if (medicationKey.isPresent()) {
+                            quantity = (String) MenuService.getCurrentMenu().dataFromPreviousMenu
+                                .get(medicationKey.get());
+                        }
+                        return medication.getStock() <= 0 ? null :
+                            new Option(
+                                String.format(
+                                    "%s (stock: %d) %s",
+                                    medication.getName(),
+                                    medication.getStock(),
+                                    quantity == null ? "" : String.format(" (prescribed: %s)", quantity)
+                                ),
+                                medication.getName(),
+                                true
+                            ).setNextAction((userInput, args) -> {
+                                args = args == null ? new HashMap<>() : args;
+                                args.put(
+                                    "targetMedicationId",
+                                    Integer.toString(medication.getId())
+                                );
+                                return args;
+                            }).setNextMenu(() -> {
+                                DOCTOR_INPUT_MEDICATION.label = String.format(
+                                    "Enter a quantity between 1 and %d",
+                                    medication.getStock()
+                                );
+                                return DOCTOR_INPUT_MEDICATION;
+                            });
+                    }).collect(Collectors.toList());
+                options.add(
+                    new Option(
+                        "Next (N)",
+                        "next|^N$",
+                        false
+                    ).setNextAction((input, args) -> args)
+                    .setNextMenu(() -> DOCTOR_INPUT_CONSULTATION)
+                );
+                return options;
+                // return Stream.of(ServiceType.values())
+                //     .map(serviceType -> {
+                //         if (
+                //             MenuService.getCurrentMenu().dataFromPreviousMenu.get("outcomeId") != null &&
+                //             MenuService.getCurrentMenu().dataFromPreviousMenu.get("prescriptionId") == null
+                //         ) {
+                //             AppointmentService.setPrescription(
+                //                 Prescription.create(
+                //                     Menu.getTargetAppointmentFromArgs()
+                //                     , medicationOrders, status)
+                //             );
+                //         }
+                //         return new Option(
+                //             serviceType.toString(),
+                //             serviceType.toString(),
+                //             true
+                //         ).setNextAction((userInput, args) -> {
+                //             args = args == null ? new HashMap<>() : args;
+                //             args.put(
+                //                 "serviceType",
+                //                 serviceType.toString()
+                //             );
+                //             return args;
+                //         }).setNextMenu(() -> DOCTOR_EDIT_RECORD_OUTCOME);
+                //     }).collect(Collectors.toList())
+            }).setExitMenu(() -> DOCTOR_SELECT_RECORD_OUTCOME)
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_INPUT_MEDICATION
+            .setNextMenu(() -> DOCTOR_SELECT_MEDICATION)
+            .setExitMenu(() -> DOCTOR_SELECT_MEDICATION)
+            .setNextAction((input, args) -> {
+                if (args.containsKey("targetMedicationId")) {
+                    Medication medication = MedicationService.getMedication(Integer.parseInt(
+                        ((String) args.get("targetMedicationId"))
+                            .trim()
+                            .replaceAll("^medicationId", "")
+                    ));
+                    try {
+                        int quantity = Integer.parseInt(input.trim());
+                        if (quantity < 0 || quantity > medication.getStock()) {
+                            throw new Exception(String.format(
+                                "Unable to prescribe: please enter a quantity from 1 to %d", medication.getStock()
+                            ));
+                        }
+                        args.put("medicationId"+medication.getId(), Integer.toString(quantity));
+                        return args;
+                    } catch (NumberFormatException e) {
+                        throw new Exception("Please enter a valid number");
+                    }
+                }
+                throw new Exception("Medication not found");
+            });
+        Menu.DOCTOR_INPUT_CONSULTATION
+            .setNextMenu(() -> Menu.getUserMainMenu())
+            .setExitMenu(() -> DOCTOR_SELECT_MEDICATION)
+            .setNextAction((input, args) -> {
+                Appointment appointment = Menu.getTargetAppointmentFromArgs();
+                int prescriptionId = Prescription.getUuid() + 1;
+                List<MedicationOrder> medicationOrders = args.keySet()
+                    .stream()
+                    .filter(key -> key.startsWith("medicationId") && args.get(key) != null)
+                    .map(key -> {
+                        try {
+                            Medication medication = MedicationService.getMedication(Integer.parseInt(
+                                ((String) args.get(key)).trim().replaceAll("^medicationId", "")
+                            ));
+                            return MedicationOrder.create(
+                                medication.getId(),
+                                Integer.parseInt((String) args.get(key)),
+                                prescriptionId
+                            );
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    }).filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+                appointment.setAppointmentOutcome(
+                    AppointmentOutcomeRecord.create(
+                        appointment.getId(),
+                        (String) args.get("serviceType"),
+                        Prescription.create(
+                            AppointmentOutcomeRecord.getUuid(),
+                            medicationOrders,
+                            PrescriptionStatus.PENDING
+                        ),
+                        input.trim()
+                    )
+                );
+                appointment.setAppointmentStatus(AppointmentStatus.COMPLETED);
+                return null;
+            });
         Menu.PHARMACIST_MAIN_MENU
             .setOptionGenerator(() -> new ArrayList<>(List.of(
                 new Option(
@@ -2259,6 +2576,22 @@ public enum Menu {
             throw new Exception("No patient found.");
         }
         return patient;
+    }
+
+    private static Appointment getTargetAppointmentFromArgs() throws Exception {
+        try {
+            Appointment appointment = AppointmentService.getAppointment(
+                Integer.parseInt(
+                    (String) MenuService.getCurrentMenu().dataFromPreviousMenu.get("appointmentId")
+                )
+            );
+            if (appointment == null) {
+                throw new Exception();
+            }
+            return appointment;
+        } catch (Exception e) {
+            throw new Exception("Appointment not found");
+        }
     }
     // Helper END
 

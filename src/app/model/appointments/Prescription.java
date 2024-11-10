@@ -2,11 +2,14 @@ package app.model.appointments;
 
 import app.db.DatabaseManager;
 import app.model.ISerializable;
+import app.model.inventory.Medication;
 import app.model.inventory.MedicationOrder;
+import app.service.MedicationService;
 import app.utils.EnumUtils;
 import app.utils.LoggerUtils;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 /**
 * Appointments' outcome record.
@@ -19,6 +22,13 @@ public class Prescription implements ISerializable {
 
     private static int uuid = 1;
     private final int id;
+    private final List<MedicationOrder> medicationOrders;
+    private PrescriptionStatus status;
+    private final int outcomeId;
+
+    public static int getUuid() {
+        return uuid;
+    }
 
     public static void setUuid(int value) {
         uuid = value;
@@ -45,14 +55,26 @@ public class Prescription implements ISerializable {
         };
     }
 
-    private final List<MedicationOrder> medicationOrders;
-    
     public List<MedicationOrder> getMedicationOrders() {
         return medicationOrders;
     }
 
-    private PrescriptionStatus status;
-    private final int outcomeId;
+    // public String getMedicationOrdersString() {
+    //     return this.medicationOrders
+    //         .stream()
+    //         .map(order -> {
+    //             Medication medication = MedicationService.getMedication(order.getMedicationId());
+    //             if (medication == null) {
+    //                 return null;
+    //             }
+    //             return String.format(
+    //                 "- Medication: %s\n- Quantity: %d",
+    //                 medication.getName(),
+    //                 order.getQuantity()
+    //             );
+    //         }).filter(line -> line != null)
+    //         .collect(Collectors.joining("\n"));
+    // }
 
     private Prescription(int outcomeId, List<MedicationOrder> medicationOrders, PrescriptionStatus status) {
         this.id = Prescription.uuid++;

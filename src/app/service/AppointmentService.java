@@ -4,6 +4,7 @@ import app.constants.exceptions.InvalidTimeslotException;
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentOutcomeRecord;
+import app.model.appointments.Prescription;
 import app.model.appointments.Timeslot;
 import app.model.users.MedicalRecord;
 import app.model.users.Patient;
@@ -36,6 +37,8 @@ public class AppointmentService {
 
     // TODO: change all past pending appointments to cancelled on application load
     // static {}
+
+    private static Prescription currentPrescription;
 
     public static List<Appointment> getAllAppointments() {
         List<Appointment> appointments = UserService.getAllUsers()
@@ -244,5 +247,17 @@ public class AppointmentService {
     // public void completeAppointment(int appointmentId) throws ItemNotFoundException, UserNotFound {
     //     Appointment appointment = this.findAppointmentById(appointmentId);
     //     appointment.completed();
+    // }
+
+    // public static Prescription getPrescription() {
+    //     return AppointmentService.currentPrescription;
+    // }
+
+    // public static void setPrescription(Prescription prescription) {
+    //     AppointmentService.currentPrescription = prescription;
+    // }
+
+    // public static void resetPrescription() {
+    //     AppointmentService.currentPrescription = null;
     // }
 }
