@@ -8,11 +8,13 @@ import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentDisplay;
 import app.model.appointments.AppointmentOutcomeRecord;
+import app.model.appointments.AppointmentOutcomeRecord.ServiceType;
 import app.model.appointments.DoctorEvent;
 import app.model.appointments.Prescription;
 import app.model.appointments.Prescription.PrescriptionStatus;
 import app.model.appointments.Timeslot;
 import app.model.inventory.Medication;
+import app.model.inventory.MedicationOrder;
 import app.model.inventory.Request;
 import app.model.users.Patient;
 import app.model.users.staff.Admin;
@@ -43,10 +45,12 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 /**
 * Controls which menus to show (Equivalent to machine in FSM)
 *
@@ -138,7 +142,7 @@ public enum Menu {
         "Patient Medical Record",
         "Please select a field to edit:"
     )),
-    PATIENT_APPOINTMENT_SELECTION_TYPE(new MenuBuilder(
+    TIMESLOT_SELECTION_TYPE(new MenuBuilder(
         MenuType.SELECT,
         "Choose Date",
         null
@@ -150,23 +154,23 @@ public enum Menu {
     )),
     INPUT_APPOINTMENT_YEAR(new MenuBuilder(
         MenuType.SELECT,
-        "Choose Appointment Date",
+        "Choose Date",
         "Please select the year:"
     )),
     INPUT_APPOINTMENT_MONTH(new MenuBuilder(
         MenuType.SELECT,
-        "Choose Appointment Date",
+        "Choose Date",
         "Please select the month:"
     )),
     INPUT_APPOINTMENT_DAY(new MenuBuilder(
         MenuType.INPUT,
-        "Choose Appointment Date",
+        "Choose Date",
         "Please enter the day:"
     )),
     INPUT_APPOINTMENT_HOUR(new MenuBuilder(
         MenuType.SELECT,
-        "Choose Appointment Date",
-        "Please select an appointment time:"
+        "Choose Date",
+        "Please select a time:"
     )),
     INPUT_APPOINTMENT_DOCTOR(new MenuBuilder(
         MenuType.SELECT,
@@ -195,21 +199,36 @@ public enum Menu {
         "Past Appointment Outcome Records",
         null
     )),
-    // TODO: doctor menu
-    // DOCTOR_UPDATE_RECORDS(new MenuBuilder(
-    //     MenuType.SELECT,
-    //     "Past Appointment Outcome Records",
-    //     null
-    // )),
     DOCTOR_VIEW_SCHEDULE(new MenuBuilder(
         MenuType.SELECT,
         "Doctor Schedule",
         "Select 'M' to return to the main menu."
     )),
-    DOCTOR_SET_AVAILABILITY(new MenuBuilder( // TODO
+    DOCTOR_SET_UNAVAILABILITY(new MenuBuilder(
         MenuType.SELECT,
-        "Doctor Availability",
+        "Doctor Unavailability",
         "Set unavailable dates & times"
+    )),
+    DOCTOR_CONFIRM_UNAVAILABILITY(new MenuBuilder(
+        MenuType.SELECT,
+        "Confirm Action? ",
+        null
+    )),
+    DOCTOR_VIEW_UNAVAILABLE(new MenuBuilder(
+        MenuType.DISPLAY_OPTIONS,
+        "View Unavailability",
+        "Press 'Enter' to continue..."
+    )),
+    DOCTOR_DELETE_UNAVAILABLE(new MenuBuilder(
+        MenuType.SELECT,
+        "Delete Unavailability",
+        null,
+        true
+    )),
+    DOCTOR_EDIT_UNAVAILABLE(new MenuBuilder(
+        MenuType.SELECT,
+        "Edit Unavailability",
+        null
     )),
     DOCTOR_ACCEPT_APPOINTMENTS(new MenuBuilder(
         MenuType.SELECT,
@@ -221,11 +240,38 @@ public enum Menu {
         "View/Cancel Upcoming Appointments",
         "Please select an appointment to cancel:"
     )),
-    // DOCTOR_ADD_OUTCOME(new MenuBuilder(
+    DOCTOR_SELECT_RECORD_OUTCOME(new MenuBuilder(
+        MenuType.SELECT,
+        "Add Appointment Outcome",
+        "Select An Appointment"
+    )),
+    // DOCTOR_EDIT_RECORD_OUTCOME(new MenuBuilder(
     //     MenuType.SELECT,
-    //     "Past Appointment Outcome Records",
-    //     null
+    //     "Add/Edit Appointment Outcome",
+    //     "Enter 'Save' or 'S' to save appointment outcome."
     // )),
+    DOCTOR_SELECT_SERVICE(new MenuBuilder(
+        MenuType.SELECT,
+        "Add Service",
+        "Select service type to add:"
+    )),
+    DOCTOR_SELECT_MEDICATION(new MenuBuilder(
+        MenuType.SELECT,
+        "Prescribe Medication",
+        "Add medication, then enter 'Next' or 'N' to continue:"
+    )),
+    DOCTOR_INPUT_MEDICATION(new MenuBuilder(
+        MenuType.INPUT,
+        "Prescribe Medication",
+        null,
+        true
+    )),
+    DOCTOR_INPUT_CONSULTATION(new MenuBuilder(
+        MenuType.INPUT,
+        "Add Consultation Notes",
+        null,
+        true
+    )),
     // TODO: revamp appointment scheduler
     SELECT_PATIENT_APPOINTMENT(new MenuBuilder(
         MenuType.SELECT,
@@ -243,31 +289,26 @@ public enum Menu {
         null,
         true
     )),
-
     PHARMACIST_VIEW_OUTCOME_RECORDS(new MenuBuilder(
         MenuType.SELECT,
         "All Appointment Outcomes",
         null
     )),
-
     PHARMACIST_UPDATE_OUTCOMES(new MenuBuilder(
         MenuType.SELECT,
         "All Prescriptions",
         null
     )),
-
     PHARMACIST_UPDATE_PRESCRIPTIONS(new MenuBuilder(
         MenuType.SELECT,
         "All Prescriptions",
         null
     )),
-
     PHARMACIST_HANDLE_PRESCRIPTION(new MenuBuilder(
         MenuType.SELECT,
         "Prescription and Medication Order Details",
         null
     )),
-
     PHARMACIST_ADD_REQUEST(new MenuBuilder(
         MenuType.SELECT,
         "Submit Replenish Request",
@@ -278,7 +319,6 @@ public enum Menu {
         "Medication Quantity",
         "Please enter the quantity of medication to add: "
     )),
-
     ADMIN_VIEW_APPOINTMENTS(new MenuBuilder(
         MenuType.SELECT,
         "All Appointments",
@@ -433,7 +473,7 @@ public enum Menu {
                         "Schedule an Appointment", 
                         "^schedule( )?(a(n)?( )?)?appointment(s)?",
                         true
-                    ).setNextMenu(() -> PATIENT_APPOINTMENT_SELECTION_TYPE)
+                    ).setNextMenu(() -> TIMESLOT_SELECTION_TYPE)
                     .setNextAction((a,b) -> new HashMap<String, Object>() {{
                             put("yearValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
                             put("monthValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
@@ -568,10 +608,11 @@ public enum Menu {
                 Patient patient = (Patient) UserService.getCurrentUser();
                     List<Appointment> appointments = AppointmentService.getAllAppointmentsForPatient(patient.getRoleId())
                         .stream()
-                        .filter(appointment -> AppointmentStatus.isIn(appointment.getAppointmentStatus(), 
+                        .filter(appointment -> AppointmentStatus.isIn(
+                            appointment.getAppointmentStatus(), 
                             AppointmentStatus.CONFIRMED,
-                            AppointmentStatus.PENDING)
-                        )
+                            AppointmentStatus.PENDING
+                        ))
                         .collect(Collectors.toList());
                     if (!appointments.isEmpty()) {
                         AppointmentDisplay.printAppointmentDetails(appointments);
@@ -580,7 +621,7 @@ public enum Menu {
                     }
             }).shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
-        Menu.PATIENT_APPOINTMENT_SELECTION_TYPE
+        Menu.TIMESLOT_SELECTION_TYPE
             .setOptionGenerator(() -> {
                 List<Option> options = new ArrayList<>(Arrays.asList(
                     new Option("Tomorrow", "tmr|tomorrow", true)
@@ -592,7 +633,8 @@ public enum Menu {
                             return args;
                         }).setNextMenu(Menu.INPUT_APPOINTMENT_HOUR), 
                     new Option("Custom", "custom", true)
-                    .setNextAction((userInput, args) -> args).setNextMenu(Menu.INPUT_APPOINTMENT_YEAR)
+                        .setNextAction((userInput, args) -> args)
+                        .setNextMenu(Menu.INPUT_APPOINTMENT_YEAR)
                 ));
                 if (LocalTime.now().isBefore(Timeslot.lastSlotStartTime)) {
                     options.add(0, new Option("Today", "today", true)
@@ -620,7 +662,7 @@ public enum Menu {
                     .mapToObj(year -> new Option(
                             Integer.toString(year), Integer.toString(year), true
                         ).setNextAction((input, args) -> {
-                            if (args.isEmpty()) {
+                            if (args == null) {
                                 args = new HashMap<>();
                             }
                             args.put("year", Integer.toString(year));
@@ -652,17 +694,21 @@ public enum Menu {
                                     currentMonth.toString().substring(3, currentMonth.toString().length())
                                 ), true
                             ).setNextAction((input, args) -> {
-                                if (args.isEmpty()) {
+                                if (args == null) {
                                     args = new HashMap<>();
                                 }
                                 args.put("month", Integer.toString(month));
                                 args.put(
                                     "startDay",
                                     Integer.toString(
-                                        selectedYear < now.getYear()+1 && month < now.getMonthValue()+1 ?
-                                        now.getDayOfMonth() : 1 + (
-                                            now.toLocalTime().isAfter(Timeslot.lastSlotStartTime) ? 1 : 0
-                                )));
+                                        selectedYear <= now.getYear() ? (
+                                            month <= now.getMonthValue() ?
+                                                now.getDayOfMonth() + (
+                                                    now.toLocalTime().isAfter(Timeslot.lastSlotStartTime) ? 1 : 0
+                                                ) : 
+                                            1
+                                        ) : 1
+                                ));
                                 args.put("endDay", Integer.toString(now.with(lastDayOfMonth()).getDayOfMonth()));
                                 INPUT_APPOINTMENT_DAY.label = String.format(
                                     "Enter a day from %d to %d:",
@@ -713,7 +759,7 @@ public enum Menu {
                 );
                 if (isToday && now.toLocalTime().isAfter(Timeslot.lastSlotStartTime)) {
                     MenuService.setCurrentMenu(Menu.getUserMainMenu());
-                    throw new Exception("No appointments remaining today.");
+                    throw new Exception("No timeslots remaining today.");
                 }
                 return IntStream.range(
                         !isToday || now.toLocalTime().isBefore(Timeslot.firstSlotStartTime) ?
@@ -722,15 +768,28 @@ public enum Menu {
                         Timeslot.lastSlotStartTime.getHour() + 1
                     ).mapToObj(hour -> new Option(
                             DateTimeUtil.printLongDateTime(LocalDateTime.of(
-                                now.toLocalDate(),
+                                selectedDate,
                                 LocalTime.of(hour, 0)
                             )),
                             String.format("%02d00", hour),
                             true
                         ).setNextAction((input, args) -> {
-                            args.put("dateTime", LocalDateTime.of(selectedDate, LocalTime.of(hour, 0)));
+                            args.put(
+                                "dateTime",
+                                DateTimeUtil.printShortDateTime(
+                                    LocalDateTime.of(selectedDate, LocalTime.of(hour, 0))
+                                )
+                            );
                             return args;
-                        }).setNextMenu(INPUT_APPOINTMENT_DOCTOR)
+                        }).setNextMenu(() -> {
+                            try {
+                                return (Menu) Menu.valueOf((
+                                    (String) MenuService.getCurrentMenu().dataFromPreviousMenu.get("nextMenu")
+                                ).trim().toUpperCase());
+                            } catch (Exception e) {
+                                return INPUT_APPOINTMENT_DOCTOR;
+                            }
+                        })
                     ).collect(Collectors.toList());
             }).addMainMenuOption();
         Menu.INPUT_APPOINTMENT_DOCTOR
@@ -739,8 +798,9 @@ public enum Menu {
                     MenuService.getCurrentMenu().dataFromPreviousMenu != null &&
                     MenuService.getCurrentMenu().dataFromPreviousMenu.containsKey("dateTime")
                 ) {
-                    LocalDateTime selectedDateTime = 
-                        (LocalDateTime) MenuService.getCurrentMenu().dataFromPreviousMenu.get("dateTime");
+                    LocalDateTime selectedDateTime = DateTimeUtil.parseShortDateTime(
+                        (String) MenuService.getCurrentMenu().dataFromPreviousMenu.get("dateTime")
+                    );
 
                     if (
                         AppointmentService
@@ -809,8 +869,12 @@ public enum Menu {
                                 DateTimeUtil.printLongDateTime(appointment.getTimeslot()),
                                 DateTimeUtil.printShortDateTime(appointment.getTimeslot()),
                                 true
-                            ).setNextMenu(Menu.PATIENT_APPOINTMENT_SELECTION_TYPE)
+                            ).setNextMenu(Menu.TIMESLOT_SELECTION_TYPE)
                             .setNextAction((input, args) -> {
+                                if (args == null) {
+                                    args = new HashMap<>();
+                                }
+                                args.put("nextMenu", INPUT_APPOINTMENT_DOCTOR.name());
                                 args.put("currentAppointment", appointment);
                                 return args;
                             });
@@ -876,10 +940,10 @@ public enum Menu {
                         true
                     ).setNextMenu(() -> DOCTOR_VIEW_SCHEDULE),
                 new Option(
-                        "Set Appointment Availability", 
-                        "(set( )?)?(appointment( )?)?availability", 
+                        "Set Unavailability", 
+                        "(set( )?)?unavailability", 
                         true
-                    ).setNextMenu(() -> DOCTOR_SET_AVAILABILITY),
+                    ).setNextMenu(() -> DOCTOR_SET_UNAVAILABILITY),
                 new Option(
                         "Accept or Decline Appointment Requests", 
                         "accept|decline|(appointment)?( )?requests", 
@@ -889,7 +953,12 @@ public enum Menu {
                         "View/Cancel Upcoming Appointments", 
                         "cancel|upcoming", 
                         true
-                    ).setNextMenu(() -> DOCTOR_CANCEL_CONFIRMED)
+                    ).setNextMenu(() -> DOCTOR_CANCEL_CONFIRMED),
+                new Option(
+                        "Record Appointment Outcome", 
+                        "record|outcome", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_SELECT_RECORD_OUTCOME)
             ))).shouldAddLogoutOptions();
         Menu.SELECT_PATIENT_VIEW_MEDICAL_RECORD
             .setPatientListOptionGenerator(() -> PATIENT_VIEW_MEDICAL_RECORD)
@@ -979,29 +1048,191 @@ public enum Menu {
             }).setNextMenu(() -> Menu.getUserMainMenu())
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
-        Menu.DOCTOR_SET_AVAILABILITY
-            // .setOptionGenerator(() -> new ArrayList<>(List.of(
-            //     new Option(
-            //             "View Unavailable Periods", 
-            //             "view(( )?unavailable)?(( )?periods)?", 
-            //             true
-            //         ).setNextMenu(() -> DOCTOR_VIEW_UNAVAILABLE),
-            //     new Option(
-            //             "Add Unavailable Periods", 
-            //             "add(( )?unavailable)?(( )?periods)?", 
-            //             true
-            //         ).setNextMenu(() -> DOCTOR_ADD_UNAVAILABLE),
-            //     new Option(
-            //             "Delete Unavailable Periods", 
-            //             "delete(( )?unavailable)?(( )?periods)?", 
-            //             true
-            //         ).setNextMenu(() -> DOCTOR_DELETE_UNAVAILABLE),
-            //     new Option(
-            //             "Edit Unavailable Periods", 
-            //             "edit(( )?unavailable)?(( )?periods)?", 
-            //             true
-            //         ).setNextMenu(() -> DOCTOR_EDIT_UNAVAILABLE)
-            // ))).setNextMenu(() -> Menu.getUserMainMenu())
+        Menu.DOCTOR_SET_UNAVAILABILITY
+            .setOptionGenerator(() -> new ArrayList<>(List.of(
+                new Option(
+                        "View Unavailable Periods", 
+                        "view(( )?unavailable)?(( )?periods)?", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_VIEW_UNAVAILABLE),
+                new Option(
+                        "Add Unavailable Periods", 
+                        "add(( )?unavailable)?(( )?periods)?", 
+                        true
+                    ).setNextMenu(Menu.TIMESLOT_SELECTION_TYPE)
+                    .setNextAction((input, args) -> {
+                        if (args == null) {
+                            args = new HashMap<>();
+                        }
+                        args.put("nextMenu", DOCTOR_CONFIRM_UNAVAILABILITY.name());
+                        args.put("unavailabilityOperation", "create");
+                        return args;
+                    }),
+                new Option(
+                        "Delete Unavailable Periods", 
+                        "delete(( )?unavailable)?(( )?periods)?", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_DELETE_UNAVAILABLE),
+                new Option(
+                        "Edit Unavailable Periods", 
+                        "edit(( )?unavailable)?(( )?periods)?", 
+                        true
+                    ).setNextMenu(() -> DOCTOR_EDIT_UNAVAILABLE)
+            )))
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_CONFIRM_UNAVAILABILITY
+            .setOptionGenerator(() -> Arrays.asList(
+                new Option("Yes (Y)", "yes|y|yes( )?\\(?y\\)?", false)
+                    .setNextMenu(() -> DOCTOR_SET_UNAVAILABILITY)
+                    .setNextAction((input, args) -> {
+                        Doctor doctor = (Doctor) UserService.getCurrentUser();
+                        if (doctor == null) {
+                            throw new Exception("Doctor not found.");
+                        }
+
+                        String unavailabilityOperation = (
+                            (String) args.get("unavailabilityOperation")
+                        ).trim().toLowerCase();
+                        if (unavailabilityOperation == null) {
+                            throw new Exception("Returning to unavailability menu.");
+                        }
+
+                        LocalDateTime selectedDateTime = DateTimeUtil.parseShortDateTime(
+                            (String) args.get("dateTime")
+                        );
+                        if (selectedDateTime == null) {
+                            throw new Exception("No timeslot selected.");
+                        }
+
+                        Optional<DoctorEvent> existingEvent = doctor.getDoctorEvents()
+                            .stream()
+                            .filter(event -> event.getTimeslot().equals(selectedDateTime))
+                            .findFirst();
+
+                        if (List.of("create", "edit").contains(unavailabilityOperation)) {
+                            if (existingEvent.isPresent()) {
+                                MenuService.setCurrentMenu(DOCTOR_SET_UNAVAILABILITY);
+                                throw new Exception("An event already exists at this timeslot");
+                            }
+                            if (unavailabilityOperation.equals("edit")) {
+                                LocalDateTime originalDateTime = DateTimeUtil.parseShortDateTime(
+                                    (String) args.get("originalDateTime")
+                                );
+                                doctor.deleteDoctorEvent(originalDateTime);
+                            }
+                            doctor.addDoctorEvent(
+                                DoctorEvent.create(doctor.getRoleId(), selectedDateTime)
+                            );
+                            System.out.println(String.format(
+                                "New event created at %s",
+                                DateTimeUtil.printLongDateTime(selectedDateTime)
+                            ));
+                        }
+                        return args;
+                    }),
+                new Option("No (N)", "no|n|no( )?\\(?n\\)?", false)
+                    .setNextMenu(() -> DOCTOR_SET_UNAVAILABILITY)
+                    .setNextAction((input, args) -> args)
+            )).setExitMenu(() -> DOCTOR_SET_UNAVAILABILITY);
+        Menu.DOCTOR_VIEW_UNAVAILABLE
+            .setOptionGenerator(() -> {
+                Doctor doctor = (Doctor) UserService.getCurrentUser();
+                if (doctor == null) {
+                    throw new Exception("User not found");
+                }
+                LocalDateTime now = LocalDateTime.now();
+                List<Option> options = doctor.getDoctorEvents()
+                    .stream()
+                    .filter(event -> event.getTimeslot().isAfter(now))
+                    .sorted(Comparator.comparing(DoctorEvent::getTimeslot))
+                    .map(event -> {
+                        String eventTime = DateTimeUtil.printLongDateTime(event.getTimeslot());
+                        return new Option(
+                            String.format(
+                                "(%s) %s",
+                                event.isAppointment() ? "Appointment" : "Event",
+                                eventTime
+                            ),
+                            eventTime,
+                            true
+                        );
+                    }).collect(Collectors.toList());
+                if (options.isEmpty()) {
+                    MenuService.setCurrentMenu(DOCTOR_SET_UNAVAILABILITY);
+                    throw new Exception("No scheduled events.");
+                }
+                return options;
+            }).setNextMenu(() -> DOCTOR_SET_UNAVAILABILITY)
+            .setNextAction((input, args) -> args);
+        Menu.DOCTOR_DELETE_UNAVAILABLE
+            .setOptionGenerator(() -> {
+                Doctor doctor = (Doctor) UserService.getCurrentUser();
+                if (doctor == null) {
+                    throw new Exception("User not found");
+                }
+                LocalDateTime now = LocalDateTime.now();
+                List<Option> options = doctor.getDoctorEvents()
+                    .stream()
+                    .filter(event -> event.getTimeslot().isAfter(now) && !event.isAppointment())
+                    .sorted(Comparator.comparing(DoctorEvent::getTimeslot))
+                    .map(event -> {
+                        String eventTime = DateTimeUtil.printLongDateTime(event.getTimeslot());
+                        return new Option(
+                                String.format("(Event) %s", eventTime),
+                                eventTime,
+                                true
+                            ).setNextAction((input, args) -> {
+                                doctor.deleteDoctorEvent(event);
+                                return null;
+                            });
+                    }).collect(Collectors.toList());
+                if (options.isEmpty()) {
+                    MenuService.setCurrentMenu(DOCTOR_SET_UNAVAILABILITY);
+                    throw new Exception("No scheduled events.");
+                }
+                return options;
+            }).setNextMenu(() -> DOCTOR_SET_UNAVAILABILITY)
+            .setExitMenu(() -> DOCTOR_SET_UNAVAILABILITY)
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_EDIT_UNAVAILABLE
+            .setOptionGenerator(() -> {
+                Doctor doctor = (Doctor) UserService.getCurrentUser();
+                if (doctor == null) {
+                    throw new Exception("User not found");
+                }
+                LocalDateTime now = LocalDateTime.now();
+                List<Option> options = doctor.getDoctorEvents()
+                    .stream()
+                    .filter(event -> event.getTimeslot().isAfter(now) && !event.isAppointment())
+                    .sorted(Comparator.comparing(DoctorEvent::getTimeslot))
+                    .map(event -> {
+                        String eventTime = DateTimeUtil.printLongDateTime(event.getTimeslot());
+                        return new Option(
+                                String.format("(Event) %s", eventTime),
+                                eventTime,
+                                true
+                            ).setNextMenu(Menu.TIMESLOT_SELECTION_TYPE)
+                            .setNextAction((input, args) -> {
+                                if (args == null) {
+                                    args = new HashMap<>();
+                                }
+                                args.put("nextMenu", DOCTOR_CONFIRM_UNAVAILABILITY.name());
+                                args.put("unavailabilityOperation", "edit");
+                                args.put(
+                                    "originalDateTime",
+                                    DateTimeUtil.printShortDateTime(event.getTimeslot())
+                                );
+                                return args;
+                            });
+                    }).collect(Collectors.toList());
+                if (options.isEmpty()) {
+                    MenuService.setCurrentMenu(DOCTOR_SET_UNAVAILABILITY);
+                    throw new Exception("No scheduled events.");
+                }
+                return options;
+            }).setExitMenu(() -> DOCTOR_SET_UNAVAILABILITY)
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
         Menu.DOCTOR_ACCEPT_APPOINTMENTS
@@ -1100,6 +1331,304 @@ public enum Menu {
             })
             .shouldAddMainMenuOption()
             .shouldAddLogoutOptions();
+        Menu.DOCTOR_SELECT_RECORD_OUTCOME
+            .setOptionGenerator(() -> {
+                List<Option> options = AppointmentService
+                    .getAppointmentByStatus(AppointmentStatus.CONFIRMED)
+                    .stream()
+                    .filter(appointment ->
+                        appointment.getDoctorId() == UserService.getCurrentUser().getRoleId() &&
+                        List.of(
+                            AppointmentStatus.CONFIRMED, AppointmentStatus.COMPLETED
+                        ).contains(appointment.getAppointmentStatus())
+                    ).sorted(Comparator.comparing(Appointment::getTimeslot).reversed())
+                    .map(appointment -> {
+                        Patient patient = UserService.findUserByIdAndType(
+                            appointment.getPatientId(),
+                            Patient.class,
+                            true
+                        );
+                        String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
+                        return new Option(
+                            patient == null ? timeslot : String.format(
+                                "%s - %s (P%d)",
+                                timeslot,
+                                patient.getName(),
+                                patient.getRoleId()
+                            ),
+                            timeslot,
+                            true
+                        ).setNextAction((userInput, args) -> {
+                            return new HashMap<>(){{
+                                put("appointmentId", Integer.toString(appointment.getAppointmentId()));
+                            }};
+                        }).setNextMenu(() -> DOCTOR_SELECT_SERVICE);
+                }).collect(Collectors.toList());
+                if (options == null || options.isEmpty()) {
+                    MenuService.setCurrentMenu(Menu.getUserMainMenu());
+                    throw new Exception("No confirmed/completed appointments.");
+                }
+                return options;
+            })
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        // Menu.DOCTOR_EDIT_RECORD_OUTCOME
+        //     .setDisplayGenerator(() -> {
+        //         Appointment appointment = Menu.getTargetAppointmentFromArgs();
+        //         System.out.println(
+        //             "Appointment date: " + DateTimeUtil.printLongDateTime(appointment.getTimeslot())
+        //         );
+        //     }).setOptionGenerator(() -> {
+        //         Appointment appointment = Menu.getTargetAppointmentFromArgs();
+        //         AppointmentOutcomeRecord outcome = appointment.getAppointmentOutcome();
+        //         if (MenuService.getCurrentMenu().dataFromPreviousMenu.get("outcomeId") == null && outcome != null) {
+        //             MenuService.getCurrentMenu().dataFromPreviousMenu.put("outcomeId", outcome.getId());
+        //             MenuService.getCurrentMenu().dataFromPreviousMenu.put("serviceType", outcome.getId());
+        //             MenuService.getCurrentMenu().dataFromPreviousMenu.put("prescriptionId", outcome.getId());
+        //             MenuService.getCurrentMenu().dataFromPreviousMenu.put("consultationNotes", outcome.getId());
+        //             AppointmentService.setPrescription(outcome.getPrescription());
+        //         }
+        //         return new ArrayList<>(List.of(
+        //             new Option(
+        //                     String.format(
+        //                         "%s Service Type (%s)",
+        //                         outcome == null || outcome.getServiceType() == null ? "Add" : "Edit",
+        //                         outcome == null || outcome.getServiceType() == null ? "required" : outcome.getServiceType()
+        //                     ),
+        //                     "service|type",
+        //                     true
+        //                 ).setNextMenu(() -> DOCTOR_SELECT_SERVICE)
+        //                 .setNextAction((input, args) -> args),
+        //             new Option(
+        //                     String.format(
+        //                         "%s Prescription %s",
+        //                         outcome == null || outcome.getPrescription() == null ? "Add" : "Edit",
+        //                         outcome == null || outcome.getPrescription() == null ? "(required)" : 
+        //                             String.format(
+        //                                 "\n- Status: %s\n%s",
+        //                                 outcome.getPrescription().getStatus(),
+        //                                 outcome.getPrescription().getMedicationOrdersString() == null ?
+        //                                     "No medication added." :
+        //                                     outcome.getPrescription().getMedicationOrdersString()
+        //                             )
+        //                     ),
+        //                     "service|type",
+        //                     true
+        //                 ).setNextMenu(() -> DOCTOR_SELECT_MEDICATION)
+        //                 .setNextAction((input, args) -> args),
+        //             new Option(
+        //                     "Save (S)",
+        //                     "save|s",
+        //                     false
+        //                 ).setNextMenu(() -> Menu.getUserMainMenu())
+        //                 .setNextAction((input, args) -> {
+        //                     List<String> missingElements = new ArrayList<>();
+        //                     if (args.get("serviceType") == null) {
+        //                         missingElements.add("Service Type");
+        //                     }
+        //                     if (
+        //                         args.get("prescriptionId") == null ||
+        //                         AppointmentService.getPrescription() == null ||
+        //                         AppointmentService.getPrescription().getId() != Integer.parseInt((String)args.get("prescriptionId"))
+        //                     ) {
+        //                         missingElements.add("Prescription");
+        //                     }
+        //                     if (args.get("serviceType") == null) {
+        //                         missingElements.add("Consultation Notes");
+        //                     }
+        //                     if (!missingElements.isEmpty()) {
+        //                         throw new Exception("Missing fields required: " + String.join(", ", missingElements));
+        //                     }
+
+        //                     if (appointment.getAppointmentOutcome() == null) {
+        //                         appointment.setAppointmentOutcome(AppointmentOutcomeRecord.create(
+        //                             appointment.getAppointmentId(),
+        //                             (String) args.get("serviceType"),
+        //                             AppointmentService.getPrescription(),
+        //                             (String) args.get("consultationNotes")
+        //                         ));
+        //                     } else {
+        //                         appointment.getAppointmentOutcome().set
+        //                     }
+
+        //                     AppointmentService.resetPrescription();
+        //                     return new HashMap<String, Object>(){{
+        //                         put("appointmentId", (String) args.get("appointmentId"));
+        //                     }};
+        //                 })
+        //         ));
+        //     }).setExitMenu(() -> DOCTOR_EDIT_RECORD_OUTCOME)
+        //     .shouldAddMainMenuOption()
+        //     .shouldAddLogoutOptions();
+        Menu.DOCTOR_SELECT_SERVICE
+            .setOptionGenerator(() -> {
+                // try {
+                //     String currentServiceType = (String) MenuService.getCurrentMenu()
+                //         .dataFromPreviousMenu.get("serviceType");
+                //     DOCTOR_SELECT_SERVICE.label = "Select a service type" +  currentServiceType == null ?
+                //         ":" : String.format("(current: %s):", currentServiceType);
+                // } catch (Exception e) {}
+                return Stream.of(ServiceType.values())
+                    .map(serviceType -> new Option(
+                            serviceType.toString(),
+                            serviceType.toString(),
+                            true
+                        ).setNextAction((userInput, args) -> {
+                            args = args == null ? new HashMap<>() : args;
+                            args.put("serviceType", serviceType.toString());
+                            return args;
+                        }).setNextMenu(() -> DOCTOR_SELECT_MEDICATION)
+                    ).collect(Collectors.toList());
+            }).setExitMenu(() -> DOCTOR_SELECT_RECORD_OUTCOME)
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_SELECT_MEDICATION
+            .setOptionGenerator(() -> {
+                List<Option> options = MedicationService.getAllMedications()
+                    .stream()
+                    .map(medication -> {
+                        MenuService.getCurrentMenu().dataFromPreviousMenu.values().removeIf(Objects::isNull);
+                        MenuService.getCurrentMenu().dataFromPreviousMenu.remove("targetMedicationId");
+                        Optional<String> medicationKey = 
+                            MenuService.getCurrentMenu().dataFromPreviousMenu.keySet()
+                                .stream()
+                                .filter(key -> 
+                                    key.startsWith("medicationId") &&
+                                    key.endsWith(Integer.toString(medication.getId())) &&
+                                    MenuService.getCurrentMenu().dataFromPreviousMenu.get(key) != null
+                                )
+                                .findFirst();
+                        String quantity = null;
+                        if (medicationKey.isPresent()) {
+                            quantity = (String) MenuService.getCurrentMenu().dataFromPreviousMenu
+                                .get(medicationKey.get());
+                        }
+                        return medication.getStock() <= 0 ? null :
+                            new Option(
+                                String.format(
+                                    "%s (stock: %d) %s",
+                                    medication.getName(),
+                                    medication.getStock(),
+                                    quantity == null ? "" : String.format(" (prescribed: %s)", quantity)
+                                ),
+                                medication.getName(),
+                                true
+                            ).setNextAction((userInput, args) -> {
+                                args = args == null ? new HashMap<>() : args;
+                                args.put(
+                                    "targetMedicationId",
+                                    Integer.toString(medication.getId())
+                                );
+                                return args;
+                            }).setNextMenu(() -> {
+                                DOCTOR_INPUT_MEDICATION.label = String.format(
+                                    "Enter a quantity between 1 and %d",
+                                    medication.getStock()
+                                );
+                                return DOCTOR_INPUT_MEDICATION;
+                            });
+                    }).collect(Collectors.toList());
+                options.add(
+                    new Option(
+                        "Next (N)",
+                        "next|^N$",
+                        false
+                    ).setNextAction((input, args) -> args)
+                    .setNextMenu(() -> DOCTOR_INPUT_CONSULTATION)
+                );
+                return options;
+                // return Stream.of(ServiceType.values())
+                //     .map(serviceType -> {
+                //         if (
+                //             MenuService.getCurrentMenu().dataFromPreviousMenu.get("outcomeId") != null &&
+                //             MenuService.getCurrentMenu().dataFromPreviousMenu.get("prescriptionId") == null
+                //         ) {
+                //             AppointmentService.setPrescription(
+                //                 Prescription.create(
+                //                     Menu.getTargetAppointmentFromArgs()
+                //                     , medicationOrders, status)
+                //             );
+                //         }
+                //         return new Option(
+                //             serviceType.toString(),
+                //             serviceType.toString(),
+                //             true
+                //         ).setNextAction((userInput, args) -> {
+                //             args = args == null ? new HashMap<>() : args;
+                //             args.put(
+                //                 "serviceType",
+                //                 serviceType.toString()
+                //             );
+                //             return args;
+                //         }).setNextMenu(() -> DOCTOR_EDIT_RECORD_OUTCOME);
+                //     }).collect(Collectors.toList())
+            }).setExitMenu(() -> DOCTOR_SELECT_RECORD_OUTCOME)
+            .shouldAddMainMenuOption()
+            .shouldAddLogoutOptions();
+        Menu.DOCTOR_INPUT_MEDICATION
+            .setNextMenu(() -> DOCTOR_SELECT_MEDICATION)
+            .setExitMenu(() -> DOCTOR_SELECT_MEDICATION)
+            .setNextAction((input, args) -> {
+                if (args.containsKey("targetMedicationId")) {
+                    Medication medication = MedicationService.getMedication(Integer.parseInt(
+                        ((String) args.get("targetMedicationId"))
+                            .trim()
+                            .replaceAll("^medicationId", "")
+                    ));
+                    try {
+                        int quantity = Integer.parseInt(input.trim());
+                        if (quantity < 0 || quantity > medication.getStock()) {
+                            throw new Exception(String.format(
+                                "Unable to prescribe: please enter a quantity from 1 to %d", medication.getStock()
+                            ));
+                        }
+                        args.put("medicationId"+medication.getId(), Integer.toString(quantity));
+                        return args;
+                    } catch (NumberFormatException e) {
+                        throw new Exception("Please enter a valid number");
+                    }
+                }
+                throw new Exception("Medication not found");
+            });
+        Menu.DOCTOR_INPUT_CONSULTATION
+            .setNextMenu(() -> Menu.getUserMainMenu())
+            .setExitMenu(() -> DOCTOR_SELECT_MEDICATION)
+            .setNextAction((input, args) -> {
+                Appointment appointment = Menu.getTargetAppointmentFromArgs();
+                int prescriptionId = Prescription.getUuid() + 1;
+                List<MedicationOrder> medicationOrders = args.keySet()
+                    .stream()
+                    .filter(key -> key.startsWith("medicationId") && args.get(key) != null)
+                    .map(key -> {
+                        try {
+                            Medication medication = MedicationService.getMedication(Integer.parseInt(
+                                ((String) args.get(key)).trim().replaceAll("^medicationId", "")
+                            ));
+                            return MedicationOrder.create(
+                                medication.getId(),
+                                Integer.parseInt((String) args.get(key)),
+                                prescriptionId
+                            );
+                        } catch (Exception e) {
+                            return null;
+                        }
+                    }).filter(Objects::nonNull)
+                    .collect(Collectors.toList());
+                appointment.setAppointmentOutcome(
+                    AppointmentOutcomeRecord.create(
+                        appointment.getId(),
+                        (String) args.get("serviceType"),
+                        Prescription.create(
+                            AppointmentOutcomeRecord.getUuid(),
+                            medicationOrders,
+                            PrescriptionStatus.PENDING
+                        ),
+                        input.trim()
+                    )
+                );
+                appointment.setAppointmentStatus(AppointmentStatus.COMPLETED);
+                return null;
+            });
         Menu.PHARMACIST_MAIN_MENU
             .setOptionGenerator(() -> new ArrayList<>(List.of(
                 new Option(
@@ -1880,6 +2409,7 @@ public enum Menu {
     // Helper START
     private enum MenuType {
         DISPLAY,
+        DISPLAY_OPTIONS, // TODO: convert some view menus to this
         INPUT,
         SELECT
     }
@@ -2004,6 +2534,22 @@ public enum Menu {
         }
         return patient;
     }
+
+    private static Appointment getTargetAppointmentFromArgs() throws Exception {
+        try {
+            Appointment appointment = AppointmentService.getAppointment(
+                Integer.parseInt(
+                    (String) MenuService.getCurrentMenu().dataFromPreviousMenu.get("appointmentId")
+                )
+            );
+            if (appointment == null) {
+                throw new Exception();
+            }
+            return appointment;
+        } catch (Exception e) {
+            throw new Exception("Appointment not found");
+        }
+    }
     // Helper END
 
 
@@ -2064,6 +2610,92 @@ public enum Menu {
         return this;
     }
 
+    public void display() throws Exception {
+        if (List.of(MenuType.SELECT, MenuType.DISPLAY_OPTIONS).contains(this.menuType)) {
+            if (this.optionGenerator != null) {
+                this.options = optionGenerator.apply();
+                if (
+                    this.options != null &&
+                    this.matchingOptions != null &&
+                    this.options.size() >= this.matchingOptions.size()
+                ) {
+                     // refresh options after editing
+                    this.matchingOptions = this.getNumberedOptions(true);
+                }
+            }
+
+            if (this.shouldHaveMainMenuOption) {
+                this.addMainMenuOption();
+            }
+
+            if (this.shouldHaveLogoutOption) {
+                this.addLogoutOptions();
+            }
+
+            if (this.options == null || this.options.size() < 1) {
+                throw new Error("Menu with type select should have at least one option");
+            }
+        }
+
+        if (!(this.title == null || this.title.length() < 1)) {
+            System.out.println(this.title);
+            Menu.printLineBreak(50);
+        }
+
+        if (!(this.label == null || this.label.length() < 1)) {
+            System.out.print("\n" + this.label + (
+                this.menuType == MenuType.INPUT ? " " : "\n\n"
+            ));
+        } else if (
+            this.menuType == MenuType.SELECT &&
+            !this.getNumberedOptions(true).isEmpty()
+        ) {
+            System.out.println("");
+            switch (this.displayMode) {
+                case NO_MATCH_FOUND -> System.out.println("No option matched your selection. Please try again:");
+                case MULTIPLE_MATCHES_FOUND -> System.out.println("Please be more specific:");
+                case INITIAL -> System.out.println("Please select an option:");
+                default -> { break; }
+            }
+            System.out.println("");
+        }
+
+        if (this.displayGenerator != null) {
+            this.displayGenerator.apply();
+            if (this == Menu.CONFIRM) this.setDisplayGenerator(null);
+        }
+
+        if (List.of(MenuType.SELECT, MenuType.DISPLAY_OPTIONS).contains(this.menuType)) {
+            // Display numbered options
+            List<Option> matches = (
+                    this.matchingOptions == null || this.matchingOptions.size() < 1
+                ) ? this.getNumberedOptions(true) : this.matchingOptions;
+            IntStream.range(0, matches.size())
+                .forEach(optionIndex -> System.out.println(String.format(
+                    "%d. %s",
+                    optionIndex + 1,
+                    matches.get(optionIndex).label
+                )));
+
+            System.out.println("");
+
+            // Display un-numbered options
+            this.getNumberedOptions(false).forEach(option -> System.out.println(option.label));
+
+            System.out.println("");
+        }
+    }
+
+    private static void printLineBreak(int length) {
+        IntStream.range(0, length).forEach(n -> System.out.print("-"));
+        System.out.println();
+    }
+
+    public Menu setParseUserInput(boolean parseUserInput) {
+        this.parseUserInput = parseUserInput;
+        return this;
+    }
+
     // BUG the exitMenu cannot be current menu
     private void setConfirmMenu(MenuGenerator nextMenu, MenuGenerator exitMenu, NextAction nextAction) {
         Menu.CONFIRM.setOptionGenerator(() -> Arrays.asList(
@@ -2084,7 +2716,10 @@ public enum Menu {
      */
     public Menu handleUserInput(String userInput) throws Exception {
 
-        if (!(this.menuType == MenuType.DISPLAY || userInput.length() > 0)) {
+        if (!(
+            List.of(MenuType.DISPLAY, MenuType.DISPLAY_OPTIONS).contains(this.menuType) ||
+            userInput.length() > 0
+        )) {
             throw new Exception("Please type something in:");
         }
 
@@ -2122,7 +2757,7 @@ public enum Menu {
                     unNumberedMatches.addAll(this.matchingOptions);
                     option = unNumberedMatches.get(0);
 
-                    if (this.requiresConfirmation && !option.isNumberedOption) {
+                    if (this.requiresConfirmation && option.isNumberedOption) {
                         this.setConfirmMenu(option.getNextMenuGenerator(), option.getExitMenuGenerator(), option.getNextAction());
                         Menu.CONFIRM.setDataFromPreviousMenu(this.dataFromPreviousMenu);
                         // this.setDataFromPreviousMenu(null);
@@ -2262,7 +2897,7 @@ public enum Menu {
     }
 
     private Menu addOptions(List<Option> options) {
-        if (this.menuType != MenuType.SELECT) {
+        if (!List.of(MenuType.SELECT, MenuType.DISPLAY_OPTIONS).contains(this.menuType)) {
             throw new Error("Cannot add option to menu type select.");
         }
 

@@ -5,9 +5,11 @@ import app.model.appointments.Appointment;
 import app.model.appointments.DoctorEvent;
 import app.model.users.AppointmentManager;
 import app.utils.LoggerUtils;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Doctor extends Staff implements AppointmentManager {
@@ -59,10 +61,6 @@ public class Doctor extends Staff implements AppointmentManager {
         LoggerUtils.info("Doctor " + this.getName() + " created");
     }
 
-    public void addDoctorEvent(DoctorEvent e) {
-        this.doctorEvents.add(e);
-    }
-
     @Override
     public void addAppointment(Appointment a) { // TODO use interface for Both Doctor and Patient?
         this.doctorEvents.add(a);
@@ -70,7 +68,25 @@ public class Doctor extends Staff implements AppointmentManager {
 
     public List<DoctorEvent> getDoctorEvents() {
         return doctorEvents;
-    }    
+    }
+
+    public void addDoctorEvent(DoctorEvent e) {
+        this.doctorEvents.add(e);
+    }
+
+    public void deleteDoctorEvent(LocalDateTime timeslot) {
+        Optional<DoctorEvent> target = this.doctorEvents
+            .stream()
+            .filter(event -> event.getTimeslot().equals(timeslot))
+            .findFirst();
+        if (target.isPresent()) {
+            this.deleteDoctorEvent(target.get());
+        }
+    }
+
+    public void deleteDoctorEvent(DoctorEvent e) {
+        this.doctorEvents.remove(e);
+    }
 
     @Override
     public List<Appointment> getAppointments() {
