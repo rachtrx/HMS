@@ -52,7 +52,7 @@ public final class Username extends ValidatedData<String, String> implements Int
             .filter(user -> user.getUsername().equals(parsedUsername))
             .findFirst();
         if (existingUser.isPresent()) {
-            throw new Exception("Username is already taken; please try another.");
+            throw new IllegalArgumentException("Username is already taken; please try another.");
         }
         this.setValue(parsedUsername);
     }
