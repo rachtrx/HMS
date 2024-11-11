@@ -326,7 +326,7 @@ public class OptionGeneratorCollection {
                 displayFields.put("Appointment Date", !hasOutcome ? "N/A" : DateTimeUtil.printShortDateTime(appointment.getTimeslot()));
                 displayFields.put("Service Type", !hasOutcome ? "N/A" : appointment.getAppointmentOutcome().getServiceType());
                 displayFields.put("Consultation Notes", !hasOutcome ? "N/A" : appointment.getAppointmentOutcome().getConsultationNotes());
-                displayFields.put("Outcome Added", String.valueOf(appointment.getAppointmentOutcome() != null));
+                displayFields.put("Outcome Added", String.valueOf(hasOutcome));
 
                 Option option = new Option(
                     String.format("Appointment #%d", appointmentIndex + 1),
