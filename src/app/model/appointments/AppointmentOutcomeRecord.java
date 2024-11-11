@@ -123,4 +123,16 @@ public class AppointmentOutcomeRecord implements ISerializable {
     public String getConsultationNotes() {
         return consultationNotes;
     }
+
+    @Override
+    public String toString() {
+        return String.format(
+            "Appointment Outcome Record%n" +
+            "ID: %s%n" +
+            "Appointment ID: %s%n" +
+            "Service Type: %s%n" +
+            "Consultation Notes: \"%s\"",
+            id, appointmentId, serviceType, consultationNotes
+        );
+    }
 }

@@ -55,7 +55,7 @@ public class UserService {
             )
             .findFirst();
         if (findUser.isEmpty()) {
-            throw new Exception("Incorrect username or password. Please try again.");
+            throw new IllegalArgumentException("Incorrect username or password. Please try again.");
         }
         UserService.currentUser = findUser.get();
     }

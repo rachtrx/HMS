@@ -169,7 +169,7 @@ public class Patient extends User implements AppointmentManager {
             }
             this.setBloodType(BloodType.valueOf(bloodType.trim().toUpperCase()));
         } catch (Exception e) {
-            throw new Exception(String.format(
+            throw new IllegalArgumentException(String.format(
                 "Invalid blood type. Try one of: %s",
                 String.join(
                     ", ",

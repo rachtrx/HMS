@@ -6,6 +6,7 @@ import app.model.user_input.NewMenu;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.user_input.option_collections.OptionGeneratorCollection.Control;
+import app.model.users.Patient;
 import app.service.MenuService;
 import app.service.UserService;
 import java.util.HashMap;
@@ -66,7 +67,10 @@ public class MenuCollection {
     }
 
     public static NewMenu getViewInventoryMenu() {
-        OptionMenu menu = new OptionMenu("All Medications", "");
+        OptionMenu menu = new OptionMenu("All Medications", "")
+        .shouldAddLogoutOptions()
+        .shouldAddMainMenuOption();
+        
         setOptionGeneratorForInventory(menu);
         return menu;
     }

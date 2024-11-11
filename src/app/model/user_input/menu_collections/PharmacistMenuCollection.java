@@ -130,16 +130,16 @@ public class PharmacistMenuCollection {
         menu.getInput()
             .setNextMenuState(MenuState.VIEW_INVENTORY)
             .setNextAction(formValues -> {
-                Integer medicationId = (Integer) formValues.get("medicationId");
+                Medication medication = (Medication) formValues.get("medication");
                 int quantity = Integer.parseInt((String) formValues.get("input"));
                 
                 if (quantity <= 0) {
                     throw new IllegalArgumentException("Please enter a valid quantity greater than zero.");
                 }
     
-                MedicationService.submitReplenishRequest(medicationId, quantity);
+                MedicationService.submitReplenishRequest(medication.getId(), quantity);
                 return null;
-            });
+            }).setRequiresConfirmation(true);
     
         return menu;
     }

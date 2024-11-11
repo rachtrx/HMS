@@ -2,6 +2,11 @@ package app.model.user_input;
 
 import app.constants.exceptions.ExitApplication;
 import app.constants.exceptions.InvalidCharacterException;
+import app.constants.exceptions.InvalidLengthException;
+import app.constants.exceptions.InvalidPhoneNumberException;
+import app.constants.exceptions.InvalidTimeslotException;
+import app.constants.exceptions.MissingCharacterException;
+import app.constants.exceptions.NonNegativeException;
 import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
 import app.service.MenuService;
 import java.util.HashMap;
@@ -105,9 +110,13 @@ public abstract class NewMenu {
             }
             
             return nextMenuState;
-        } catch (IllegalArgumentException | InvalidCharacterException e) {
+        } catch (IllegalArgumentException | InvalidCharacterException | InvalidTimeslotException | NonNegativeException | MissingCharacterException | InvalidPhoneNumberException | InvalidLengthException e) {
             e.printStackTrace();
             System.out.println("Value not found, please enter a new value");
+            if(this.getMenuState() == MenuState.EDIT) {
+                if (((InputMenu) this).getInput().getExitMenuState() != null) return ((InputMenu) this).getInput().getExitMenuState();
+                return this.getPreviousMenu().getMenuState();
+            }
             if(field != null && field.getExitMenuState() != null) return field.getExitMenuState();
             return this.getMenuState();
             // return MenuState.getUserMainMenuState();

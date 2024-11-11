@@ -78,18 +78,6 @@ public class AppointmentService {
         if (appointment == null) return null;
         return appointment.getAppointmentOutcome();
     }
-
-    public static List<AppointmentOutcomeRecord> getAppointmentOutcomes(List<Appointment> appointments) {
-        return appointments.stream()
-            .map(Appointment::getAppointmentOutcome)
-            .filter(Objects::nonNull)
-            .collect(Collectors.toList());
-    }
-    
-    public static List<AppointmentOutcomeRecord> getAppointmentRecordsByPatientId(int patientId) {  
-        List<Appointment> appointments = getAllAppointmentsForPatient(patientId);
-        return !appointments.isEmpty() ? getAppointmentOutcomes(appointments) : new ArrayList<>();
-    }
     
     public static Map<Patient, List<AppointmentOutcomeRecord>> getAppointmentRecordsByDoctorId(int doctorId) {
         List<Appointment> appointments = getAllAppointmentsForDoctor(doctorId);
@@ -206,17 +194,17 @@ public class AppointmentService {
             if (existingAppointment.get().getAppointmentStatus().equals(AppointmentStatus.CANCELLED)) {
                 existingAppointment.get().setAppointmentStatus(AppointmentStatus.PENDING);
             } else {
-                throw new Exception("Appointment already exists");
+                throw new IllegalArgumentException("Appointment already exists");
             }
         }
 
         Doctor doctor = (Doctor) UserService.findUserByIdAndType(doctorId, Doctor.class, true);
         if (doctor == null) {
-            throw new Exception("Doctor not found.");
+            throw new IllegalArgumentException("Doctor not found.");
         }
         Patient patient = (Patient) UserService.findUserByIdAndType(patientId, Patient.class, true);
         if (patient == null) {
-            throw new Exception("Patient not found.");
+            throw new IllegalArgumentException("Patient not found.");
         }
 
         Appointment appointment = Appointment.create(doctorId, timeslot, patientId);

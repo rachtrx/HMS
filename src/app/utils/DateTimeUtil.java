@@ -21,6 +21,8 @@ public class DateTimeUtil {
     private static final DateTimeFormatter FULL_DATE_FORMAT = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
     private static final DateTimeFormatter FULL_DATETIME_FORMAT = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy HH:mm:ss");
 
+    private static final DateTimeFormatter SHORTEST_DATETIME_FORMAT = DateTimeFormatter.ofPattern("EEE, HH:mm");
+
     private static final DateTimeFormatter CSV_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 
     public static String printShortDate(LocalDate date) {
@@ -33,6 +35,10 @@ public class DateTimeUtil {
 
     public static String printShortDateTime(LocalDateTime dateTime) {
         return dateTime.format(DATETIME_FORMAT);
+    }
+
+    public static String printShortestDateTime(LocalDateTime dateTime) {
+        return dateTime.format(SHORTEST_DATETIME_FORMAT);
     }
 
     public static String printLongDateTime(LocalDateTime dateTime) {
@@ -104,7 +110,7 @@ public class DateTimeUtil {
     ) throws Exception {
 
         if (dateCondition == null) {
-            throw new Exception("Missing date validation condition");
+            throw new IllegalArgumentException("Missing date validation condition");
         }
         
         DateConditions criteria = DateConditions.valueOf(dateCondition);
@@ -113,7 +119,7 @@ public class DateTimeUtil {
             criteria == DateConditions.PAST_OR_PRESENT &&
             userDate.isAfter(originalDate)
         ) {
-            throw new Exception(String.format(
+            throw new IllegalArgumentException(String.format(
                 "Date must be earlier than or equal to %s",
                 DateTimeUtil.printLongDateTime(originalDate)
             ));
@@ -121,7 +127,7 @@ public class DateTimeUtil {
             criteria == DateConditions.PAST &&
             (userDate.isAfter(originalDate) || userDate.isEqual(originalDate))
         ) {
-            throw new Exception(String.format(
+            throw new IllegalArgumentException(String.format(
                 "Date must be earlier than %s",
                 DateTimeUtil.printLongDateTime(originalDate)
             ));
@@ -129,7 +135,7 @@ public class DateTimeUtil {
             criteria == DateConditions.FUTURE_OR_PRESENT &&
             userDate.isBefore(originalDate)
         ) {
-            throw new Exception(String.format(
+            throw new IllegalArgumentException(String.format(
                 "Date must be later than or equal to %s",
                 DateTimeUtil.printLongDateTime(originalDate)
             ));
@@ -137,7 +143,7 @@ public class DateTimeUtil {
             criteria == DateConditions.FUTURE &&
             (userDate.isBefore(originalDate) || userDate.isEqual(originalDate))
         ) {
-            throw new Exception(String.format(
+            throw new IllegalArgumentException(String.format(
                 "Date must be later than %s",
                 DateTimeUtil.printLongDateTime(originalDate)
             ));

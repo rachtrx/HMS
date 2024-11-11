@@ -25,23 +25,22 @@ public class MedicationOrder implements ISerializable {
 
     private final int medicationId;
     private final int quantity;
-    private final int prescriptionId;
+    private int prescriptionId;
 
-    private MedicationOrder(int medicationId, int quantity, int prescriptionId) throws NonNegativeException {
+    private MedicationOrder(int medicationId, int quantity) throws NonNegativeException {
         this.id = MedicationOrder.uuid++;
         this.medicationId = medicationId;
         if (quantity < 0) {
             throw new NonNegativeException("Quantity cannot be less than zero");
         }
         this.quantity = quantity;
-        this.prescriptionId = prescriptionId;
     }
 
-    public static MedicationOrder create(int medicationId, int quantity, int prescriptionId) throws NonNegativeException {
+    public static MedicationOrder create(int medicationId, int quantity) throws NonNegativeException {
         if (quantity < 0) {
             throw new NonNegativeException("Quantity cannot be less than zero");
         }
-        MedicationOrder order = new MedicationOrder(medicationId, quantity, prescriptionId);
+        MedicationOrder order = new MedicationOrder(medicationId, quantity);
         DatabaseManager.add(order);
         LoggerUtils.info("Order created");
         return order;
@@ -80,5 +79,9 @@ public class MedicationOrder implements ISerializable {
 
     public int getQuantity() {
         return this.quantity;
+    }
+
+    public void setPrescriptionId(int prescriptionId) {
+        this.prescriptionId = prescriptionId;
     }
 }

@@ -3,12 +3,14 @@ package app.model.user_input;
 
 import app.model.user_input.FunctionalInterfaces.NextAction;
 import app.model.user_input.menu_collections.AdminMenuCollection;
+import app.model.user_input.menu_collections.DoctorMenuCollection;
 import app.model.user_input.menu_collections.MenuCollection;
 import app.model.user_input.menu_collections.PatientMenuCollection;
 import app.model.user_input.menu_collections.PharmacistMenuCollection;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.users.Patient;
 import app.model.users.staff.Admin;
+import app.model.users.staff.Doctor;
 import app.model.users.staff.Pharmacist;
 import app.service.MenuService;
 import app.service.UserService;
@@ -24,13 +26,11 @@ public enum MenuState {
 
     // PATIENT
     PATIENT_MAIN_MENU(PatientMenuCollection::getPatientMainMenu),
-    // SELECT_PATIENT_VIEW_MEDICAL_RECORD(MenuRepository::getSelectPatientViewMedicalRecordMenu),
-    // SELECT_PATIENT_EDIT_MEDICAL_RECORD(MenuRepository::getSelectPatientEditMedicalRecordMenu),
     PATIENT_VIEW_MEDICAL_RECORD(PatientMenuCollection::getPatientViewMedicalRecordMenu), // 
     PATIENT_EDIT_MEDICAL_RECORD(PatientMenuCollection::getPatientEditMedicalRecordMenu),
     PATIENT_VIEW_AVAIL_APPOINTMENTS(PatientMenuCollection::getPatientViewAvailAppointmentsMenu),
     PATIENT_VIEW_CONFIRMED_APPOINTMENTS(PatientMenuCollection::getPatientViewConfirmedAppointmentsMenu),
-    PATIENT_APPOINTMENT_SELECTION_TYPE(PatientMenuCollection::getPatientAppointmentSelectionTypeMenu), // 
+    TIMESLOT_SELECTION_TYPE(PatientMenuCollection::getTimeSlotSelectionMenu), // 
     INPUT_APPOINTMENT_YEAR(PatientMenuCollection::getInputAppointmentYearMenu),
     INPUT_APPOINTMENT_MONTH(PatientMenuCollection::getInputAppointmentMonthMenu),
     INPUT_APPOINTMENT_DAY(PatientMenuCollection::getInputAppointmentDayMenu),
@@ -40,15 +40,37 @@ public enum MenuState {
     PATIENT_CANCEL_SELECTION(PatientMenuCollection::getPatientCancelSelectionMenu),
     PATIENT_VIEW_OUTCOMES(PatientMenuCollection::getPatientViewOutcomesMenu),
     SELECT_PATIENT_APPOINTMENT(PatientMenuCollection::getPatientMainMenu), // getSelectPatientAppointmentMenu
-
+    
     // // DOCTOR
-    // DOCTOR_MAIN_MENU(MenuRepository::getDoctorMainMenu),
-    // DOCTOR_VIEW_SCHEDULE(MenuRepository::getDoctorViewScheduleMenu),
-    // DOCTOR_SET_AVAILABILITY(MenuRepository::getDoctorSetAvailabilityMenu),
-    // DOCTOR_ACCEPT_APPOINTMENTS(MenuRepository::getDoctorAcceptAppointmentsMenu),
-    // DOCTOR_CANCEL_CONFIRMED(MenuRepository::getDoctorCancelConfirmedMenu),
-    // EDIT_PATIENT_APPOINTMENT(MenuRepository::getEditPatientAppointmentMenu),
-    // DOCTOR_ACCEPT_OR_DECLINE_APPOINTMENT(MenuRepository::getDoctorAcceptOrDeclineAppointmentMenu),
+    DOCTOR_MAIN_MENU(DoctorMenuCollection::getDoctorMainMenu),
+    
+    // MOVE THIS INTO OPTIONS OF UPCOMING // DOCTOR_SET_UNAVAILABILITY(DoctorMenuCollection::getDoctorSetAvailabilityMenu),
+    DOCTOR_VIEW_UPCOMING_EVENTS(DoctorMenuCollection::getDoctorViewEventsMenu), // VIEW SCHEDULE
+    
+    // Availability
+    DOCTOR_VIEW_UPCOMING_UNAVAILABILITY(DoctorMenuCollection::getDoctorViewUnAvailMenu), // ADD option redirects to timeslot menu
+    DOCTOR_EDIT_UPCOMING_UNAVAILABILITY(DoctorMenuCollection::getDoctorEditUnAvailMenu),
+    DOCTOR_DELETE_UPCOMING_UNAVAILABILITY(DoctorMenuCollection::getDoctorDelUnAvailMenu),
+    
+    DOCTOR_VIEW_UPCOMING_APPOINTMENTS(DoctorMenuCollection::getDoctorViewApptMenu),
+    DOCTOR_CANCEL_UPCOMING_APPOINTMENTS(DoctorMenuCollection::getDoctorCancelApptMenu),
+    DOCTOR_HANDLE_UPCOMING_APPOINTMENTS(DoctorMenuCollection::getDoctorHandleApptsMenu),
+    DOCTOR_HANDLE_UPCOMING_APPOINTMENT(DoctorMenuCollection::getDoctorHandleApptMenu), // choose accept or reject
+    
+    // VIEW OR SELECT THE MEDICAL RECORD
+    DOCTOR_VIEW_PAST_PATIENTS(DoctorMenuCollection::getSelectPatientViewMenu),
+    DOCTOR_EDIT_PAST_PATIENT(DoctorMenuCollection::getPatientEditMenu), // select the patient to edit, put into args
+    
+    // given the patient
+    DOCTOR_VIEW_PAST_APPOINTMENTS(DoctorMenuCollection::getDoctorPastApptViewMenu), // IMPT select the record to view, to include edit option and add option
+    DOCTOR_VIEW_RECORDS(DoctorMenuCollection::getDoctorOutcomesViewMenu),
+    DOCTOR_VIEW_RECORD(DoctorMenuCollection::getDoctorOutcomeViewMenu), // to include edit options
+
+    DOCTOR_ADD_RECORDS(DoctorMenuCollection::getDoctorOutcomesAddMenu), // select the record to add
+    DOCTOR_ADD_SERVICE_TYPE(DoctorMenuCollection::getDoctorServiceAddMenu),
+    DOCTOR_ADD_NOTES(DoctorMenuCollection::getDoctorNotesAddMenu),
+    DOCTOR_ADD_MEDICATION(DoctorMenuCollection::getDoctorMedicationAddMenu),
+    DOCTOR_ADD_QUANTITY(DoctorMenuCollection::getDoctorQuantityAddMenu),
 
     // // PHARMACIST
     PHARMACIST_MAIN_MENU(PharmacistMenuCollection::getPharmacistMainMenu),
@@ -147,7 +169,7 @@ public enum MenuState {
 
     private static final Map<Class<?>, MenuState> USER_MENU_MAP = Map.of(
         Patient.class, MenuState.PATIENT_MAIN_MENU,
-        // Doctor.class, MenuState.DOCTOR_MAIN_MENU,
+        Doctor.class, MenuState.DOCTOR_MAIN_MENU,
         Pharmacist.class, MenuState.PHARMACIST_MAIN_MENU,
         Admin.class, MenuState.ADMIN_MAIN_MENU
     );

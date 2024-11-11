@@ -4,7 +4,10 @@ import app.constants.BloodType;
 import app.constants.Gender;
 import app.constants.exceptions.ExitApplication;
 import app.model.appointments.Appointment;
+import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentOutcomeRecord;
+import app.model.appointments.AppointmentOutcomeRecord.ServiceType;
+import app.model.appointments.DoctorEvent;
 import app.model.appointments.Prescription;
 import app.model.appointments.Prescription.PrescriptionStatus;
 import app.model.appointments.Timeslot;
@@ -14,7 +17,7 @@ import app.model.user_input.FunctionalInterfaces.NextAction;
 import app.model.user_input.MenuState;
 import app.model.user_input.Option;
 import app.model.user_input.Option.OptionType;
-import app.model.user_input.option_collections.OptionGeneratorCollection.Control;
+import app.model.user_input.menu_collections.DoctorMenuCollection.UpcomingEventControl;
 import app.model.users.Patient;
 import app.model.users.staff.Admin;
 import app.model.users.staff.Doctor;
@@ -34,12 +37,20 @@ import static java.time.temporal.TemporalAdjusters.lastDayOfMonth;
 import static java.time.temporal.TemporalAdjusters.lastDayOfYear;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
+import java.util.ResourceBundle;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 public class OptionGeneratorCollection {
 
@@ -148,7 +159,7 @@ public class OptionGeneratorCollection {
                     new LinkedHashMap<>() {{
                         put("Action", "Schedule an Appointment");
                     }}
-                ).setNextMenuState(MenuState.PATIENT_APPOINTMENT_SELECTION_TYPE)
+                ).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE)
                 .setNextAction((formData) -> new HashMap<String, Object>() {{
                         put("yearValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
                         put("monthValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
@@ -206,7 +217,7 @@ public class OptionGeneratorCollection {
         ).setNextAction((formData) -> {
             p.setBloodType((String) formData.get("input"));
             return formData;
-        }).setNextMenuState(MenuState.PATIENT_VIEW_MEDICAL_RECORD)
+        })
         .setExitMenuState(MenuState.getUserMainMenuState())
         .setEditRedirect(true);
     }
@@ -222,7 +233,7 @@ public class OptionGeneratorCollection {
         ).setNextAction((formData) -> {
             patient.setMobileNumber((String) formData.get("input"));
             return null;
-        }).setNextMenuState(MenuState.PATIENT_VIEW_MEDICAL_RECORD)
+        })
         .setExitMenuState(MenuState.getUserMainMenuState())
         .setEditRedirect(true);
     }
@@ -238,7 +249,7 @@ public class OptionGeneratorCollection {
         ).setNextAction((formData) -> {
             patient.setHomeNumber((String) formData.get("input"));
             return null;
-        }).setNextMenuState(MenuState.PATIENT_VIEW_MEDICAL_RECORD)
+        })
         .setExitMenuState(MenuState.getUserMainMenuState())
         .setEditRedirect(true);
     }
@@ -261,34 +272,104 @@ public class OptionGeneratorCollection {
     
     public static Option getEditAppointmentOption() {
         return new Option(
-            "(edit( )?)?appointment",
+            "edit( )?",
             OptionType.UNNUMBERED,
             new LinkedHashMap<>() {{
-                put("Select", "A");
-                put("Action", "Edit Appointment");
+                put("Select", "edit");
+                put("Action", "Edit Appointments");
             }}
         ).setNextMenuState(MenuState.SELECT_PATIENT_APPOINTMENT)
-         .setNextAction((formData) -> formData)
-         .setEditRedirect(true);
+            .setNextAction((formData) -> formData);
     }
 
     public static List<Option> generateEditPatientDetailsOptions(Patient p) {
         List<Option> options = new ArrayList<>();
 
-        if (List.of(Doctor.class).contains(UserService.getCurrentUser().getClass())) {
-            options.add(OptionGeneratorCollection.getEditBloodTypeOption(p));
+        boolean isDoctor = UserService.getCurrentUser().getClass() == Doctor.class;
+        MenuState nextMenuState = isDoctor ? 
+            MenuState.DOCTOR_EDIT_PAST_PATIENT : 
+            MenuState.PATIENT_VIEW_MEDICAL_RECORD;
+
+        if (UserService.getCurrentUser().getClass() == Doctor.class) {
+            options.add(OptionGeneratorCollection.getEditBloodTypeOption(p).setNextMenuState(nextMenuState));
             options.add(OptionGeneratorCollection.getEditAppointmentOption());
         }
 
-        options.add(OptionGeneratorCollection.getEditMobileNumberOption(p));
-        options.add(OptionGeneratorCollection.getEditHomeNumberOption(p));
-        options.add(OptionGeneratorCollection.getEditEmailOption(p));
+        options.add(OptionGeneratorCollection.getEditMobileNumberOption(p).setNextMenuState(nextMenuState));
+        options.add(OptionGeneratorCollection.getEditHomeNumberOption(p).setNextMenuState(nextMenuState));
+        options.add(OptionGeneratorCollection.getEditEmailOption(p).setNextMenuState(nextMenuState));
 
         return options;
     }
 
-    public static List<Option> getAppointmentOptionGenerator() {
-    List<Option> options = new ArrayList<>(Arrays.asList(
+    public static List<Option> generateAppointmentDisplayOptions(List<Appointment> appointments) {
+        return IntStream.range(0, appointments.size())
+            .mapToObj(appointmentIndex -> {
+                Appointment appointment = appointments.get(appointmentIndex);
+                
+                String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
+                String patientName = UserService
+                    .findUserByIdAndType(appointment.getPatientId(), Patient.class, true)
+                    .getName();
+                Doctor doctor = UserService.findUserByIdAndType(appointment.getDoctorId(), Doctor.class, true);
+                String doctorName = (doctor == null) ? "No doctor assigned" : doctor.getName();
+                String status = appointment.getAppointmentStatus().toString();
+                
+                // Create display fields for this appointment
+                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
+                displayFields.put("Appointment Timeslot", timeslot);
+                displayFields.put("Patient Name", patientName);
+                displayFields.put("Doctor Name", doctorName);
+                displayFields.put("Appointment Status", status);
+
+                boolean hasOutcome = appointment.getAppointmentOutcome() != null;
+
+                displayFields.put("Appointment Date", !hasOutcome ? "N/A" : DateTimeUtil.printShortDateTime(appointment.getTimeslot()));
+                displayFields.put("Service Type", !hasOutcome ? "N/A" : appointment.getAppointmentOutcome().getServiceType());
+                displayFields.put("Consultation Notes", !hasOutcome ? "N/A" : appointment.getAppointmentOutcome().getConsultationNotes());
+    
+                return new Option(
+                    String.format("Appointment #%d", appointmentIndex + 1),
+                    Option.OptionType.DISPLAY,
+                    displayFields
+                );
+            })
+            .collect(Collectors.toList());
+    }
+
+    public static List<Option> generateAvailableTimeslotOptions(Map<Doctor, List<Timeslot>> timeslotsByDoctor) {
+        // Collect all unique timeslots
+        Set<LocalDateTime> uniqueTimeslots = timeslotsByDoctor.values().stream()
+            .flatMap(List::stream)
+            .map(Timeslot::getTimeSlot)
+            .collect(Collectors.toCollection(TreeSet::new)); // Sorted by default for ordering
+
+        // Generate options for each doctor
+        List<Option> options = new ArrayList<>();
+
+        timeslotsByDoctor.forEach((doctor, timeslots) -> {
+            LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
+            displayFields.put("Doctor Name", doctor.getName());
+
+            // Populate availability for each timeslot with ticks and crosses
+            uniqueTimeslots.forEach(timeslot -> {
+                String availability = timeslots.stream().anyMatch(t -> t.getTimeSlot().equals(timeslot)) ? "✓" : "✗";
+                displayFields.put(DateTimeUtil.printShortestDateTime(timeslot), availability);
+            });
+
+            // Create an Option for each doctor with their timeslot availability
+            options.add(new Option(
+                doctor.getName(),
+                Option.OptionType.DISPLAY,
+                displayFields
+            ));
+        });
+
+        return options;
+    }
+
+    public static List<Option> generateTimeSlotSelectOptions() {
+        List<Option> options = new ArrayList<>(Arrays.asList(
             new Option(
                 "tmr|tomorrow",
                 OptionType.NUMBERED,
@@ -334,7 +415,7 @@ public class OptionGeneratorCollection {
         return options;
     }
 
-    public static List<Option> getInputAppointmentYearOptionGenerator() {
+    public static List<Option> getInputYearOptionGenerator() {
         LocalDateTime now = LocalDateTime.now();
         // Do not show this year if today is last day of the year and current time exceeds
         // last time slot
@@ -358,7 +439,7 @@ public class OptionGeneratorCollection {
     }
 
     // Month option generator
-    public static List<Option> getInputAppointmentMonthOptionGenerator(Map<String, Object> formValues) {
+    public static List<Option> getInputMonthOptionGenerator(Map<String, Object> formValues) {
         LocalDateTime now = LocalDateTime.now();
         int selectedYear = Integer.parseInt((String) formValues.get("year"));
         int startMonth = (selectedYear == now.getYear()) ? now.getMonthValue() : 1;
@@ -395,7 +476,9 @@ public class OptionGeneratorCollection {
     }
 
     // Hour option generator
-    public static List<Option> getInputAppointmentHourOptionGenerator(Map<String, Object> formValues) {
+    public static List<Option> getInputHourOptionGenerator(Map<String, Object> formValues) {
+        boolean isPatient = UserService.getCurrentUser() instanceof Patient;
+
         LocalDateTime now = LocalDateTime.now();
         int selectedYear = Integer.parseInt((String) formValues.get("year"));
         int selectedMonth = Integer.parseInt((String) formValues.get("month"));
@@ -407,18 +490,66 @@ public class OptionGeneratorCollection {
         int startHour = isToday && now.toLocalTime().isAfter(Timeslot.firstSlotStartTime) ? 
             now.getHour() + 1 : Timeslot.firstSlotStartTime.getHour();
 
+        System.out.println("Getting hours");
+
         return IntStream.range(startHour, Timeslot.lastSlotStartTime.getHour() + 1)
-            .<Option>mapToObj(hour -> new Option(
-                String.format("%02d:00", hour), 
-                OptionType.NUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Hour", LocalTime.of(hour, 0).toString());
-                }}
-            ).setNextAction((newFormValues) -> {
-                newFormValues.put("dateTime", LocalDateTime.of(selectedDate, LocalTime.of(hour, 0)));
-                return newFormValues;
+            .<Option>mapToObj(hour -> {
+                Option option = new Option(
+                    String.format("%02d:00", hour), 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Hour", LocalTime.of(hour, 0).toString());
+                    }}
+                );
+                if (isPatient) {
+                    option
+                    .setNextAction((newFormValues) -> {
+                        newFormValues.put("dateTime", LocalDateTime.of(selectedDate, LocalTime.of(hour, 0)));
+                        return newFormValues;
+                    })
+                    .setNextMenuState(MenuState.INPUT_APPOINTMENT_DOCTOR);
+                } else {
+                    Doctor d = (Doctor) UserService.getCurrentUser();
+                    option
+                    .setNextAction((newFormValues) -> {
+                        LocalDateTime selectedBusyDateTime = LocalDateTime.of(selectedDate, LocalTime.of(hour, 0));
+                        if (selectedBusyDateTime == null) {
+                            throw new IllegalArgumentException("No timeslot selected.");
+                        }
+                        Optional<DoctorEvent> existingEvent = ((Doctor) UserService.getCurrentUser()).getDoctorEvents()
+                            .stream()
+                            .filter(event -> event.getTimeslot().equals(selectedBusyDateTime))
+                            .findFirst();
+                        
+                        if (existingEvent.isPresent()) {
+                            throw new IllegalArgumentException("An event already exists at this timeslot");
+                        }
+
+                        if (newFormValues != null && newFormValues.containsKey("originalDateTime")) {
+                            LocalDateTime originalDateTime = DateTimeUtil.parseShortDateTime(
+                                (String) newFormValues.get("originalDateTime")
+                            );
+                            d.deleteDoctorEvent(originalDateTime);
+                        }
+                        
+                        d.addDoctorEvent(
+                            DoctorEvent.create(d.getRoleId(), selectedBusyDateTime)
+                        );
+                        System.out.println(String.format(
+                            "New event created at %s",
+                            DateTimeUtil.printLongDateTime(selectedBusyDateTime)
+                        ));
+
+                        if (newFormValues != null) newFormValues.remove("originalDateTime");
+                        
+                        return newFormValues;
+                    })
+                    .setExitMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY)
+                    .setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY)
+                    .setRequiresConfirmation(true);
+                }
+                return option;
             })
-            .setNextMenuState(MenuState.INPUT_APPOINTMENT_DOCTOR))
             .collect(Collectors.toList());
     }
 
@@ -454,7 +585,7 @@ public class OptionGeneratorCollection {
                         put("DateTime", DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
                     }}
                 )
-                .setNextMenuState(MenuState.PATIENT_APPOINTMENT_SELECTION_TYPE)
+                .setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE)
                 .setNextAction((formValues) -> {
                     formValues.put("currentAppointment", appointment);
                     return formValues;
@@ -648,7 +779,7 @@ public class OptionGeneratorCollection {
         return medications.stream()
             .map(medication -> new Option(
                 medication.getName(),
-                Option.OptionType.NUMBERED,
+                OptionType.NUMBERED,
                 new LinkedHashMap<>() {{
                     put("Medication ID", String.valueOf(medication.getId()));
                     put("Medication Name", medication.getName());
@@ -656,7 +787,7 @@ public class OptionGeneratorCollection {
                 }}
             ).setNextAction(formValues -> {
                 Map<String, Object> newFormValues = new HashMap<>();
-                newFormValues.put("medicationId", medication.getId());
+                newFormValues.put("medication", medication);
                 return newFormValues;
             }).setNextMenuState(MenuState.PHARMACIST_ADD_COUNT))
             .collect(Collectors.toCollection(ArrayList::new));
@@ -1084,7 +1215,7 @@ public class OptionGeneratorCollection {
                     put("Stock", String.valueOf(medication.getStock()));
                     put("Low Alert Level", String.valueOf(medication.getLowAlertLevel()));
                 }}
-            ).setNextMenuState(MenuState.ADMIN_EDIT_MEDICATION)
+            ).setNextMenuState(MenuState.DOCTOR_ADD_QUANTITY)
              .setNextAction((formValues) -> {
                  Map<String, Object> newFormValues = new HashMap<>();
                  newFormValues.put("medication", medication);
@@ -1190,32 +1321,480 @@ public class OptionGeneratorCollection {
         return options;
     }
 
-
-
-
-
-    // private static Option generatePatientOptions(Patient p, MenuState nextMenuState) {
-    //     Map<String, String> displayFields = Map.of(
-    //         "Name", p.getName(),
-    //         "Patient ID", "P" + p.getRoleId()
-    //     );
+    public static List<Option> generateDoctorMenuOptions() {
+        return new ArrayList<>(List.of(
+            new Option(
+                    "view( )?(patient(\\'s)?( )?)?(medical( )?)?record", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "View Patient's Medical Record");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_PATIENTS),
     
-    //     // Create the Option with display fields and actions
-    //     return new Option(
-    //         String.format(
-    //             "%s|\\(?P?%d\\)?|%s( )?\\(?P?%d\\)?",
-    //             p.getName(),
-    //             p.getRoleId(),
-    //             p.getName(),
-    //             p.getRoleId()
-    //         ),
-    //         OptionType.NUMBERED,
-    //         displayFields
-    //     ).setNextMenuState(nextMenuState)
-    //      .setNextAction((fd) -> {
-    //          formData = new HashMap<String, Object>();
-    //          formData.put("patientId", Integer.toString(p.getRoleId()));
-    //          return formData;
-    //      });
-    // }
+            new Option(
+                    "(edit( )?)?(patient( )?('s)?)?(medical( )?)?record", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "Update Patient's Medical Record");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_EDIT_PAST_PATIENT),
+    
+            new Option(
+                    "(view( )?)?(personal( )?)?schedule", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "View Personal Schedule");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_EVENTS),
+    
+            new Option(
+                    "(manage( )?)?Availability", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "Manage Availability");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY),
+    
+            new Option(
+                    "accept|decline|(appointment)?( )?requests", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "Accept or Decline Appointment Requests");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENTS),
+    
+            new Option(
+                    "cancel|upcoming", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "Cancel Upcoming Appointments");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_CANCEL_UPCOMING_APPOINTMENTS),
+    
+            new Option(
+                    "record|outcome", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "Record Appointment Outcome");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_ADD_RECORDS)
+        ));
+    }
+
+    public static List<Option> generatePatientOptions() {
+        Set<Integer> patientIds = ((Doctor) UserService.getCurrentUser()).getAppointments().stream()
+            .map(Appointment::getPatientId)
+            .collect(Collectors.toSet());
+        List<Option> userOptions = patientIds.stream()
+            .map(patientId -> UserService.findUserByIdAndType(patientId, Patient.class, true))
+            .filter(Objects::nonNull)
+            .map(patient -> new Option(
+                patient.getName(),
+                Option.OptionType.NUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Name", patient.getName());
+                    put("Patient ID", "P" + patient.getRoleId());
+                }}
+            ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_APPOINTMENTS)
+                .setNextAction(formValues -> new HashMap<String, Object>() {{
+                    put("patient", patient);
+                }}))
+            .collect(Collectors.toList());
+        return userOptions;
+    }
+
+    public static List<Option> generateUpcomingEventControlOptions(UpcomingEventControl control) {
+        EnumSet<UpcomingEventControl> busyControls = EnumSet.of(
+            UpcomingEventControl.VIEW_BUSY,
+            UpcomingEventControl.EDIT_BUSY,
+            UpcomingEventControl.DEL_BUSY
+        );
+
+        EnumSet<UpcomingEventControl> apptControls = EnumSet.of(
+            UpcomingEventControl.VIEW_APPT,
+            UpcomingEventControl.CANCEL_APPT,
+            UpcomingEventControl.RESPOND_APPT
+        );
+
+        EnumSet<UpcomingEventControl> viewControls = EnumSet.of(
+            UpcomingEventControl.VIEW_BUSY,
+            UpcomingEventControl.VIEW_APPT,
+            UpcomingEventControl.VIEW
+        );
+
+        Doctor doctor = (Doctor) UserService.getCurrentUser();
+
+        List<Option> options = doctor.getDoctorEvents()
+            .stream()
+            .filter(event -> event.getTimeslot().isAfter(LocalDateTime.now()))
+            .filter(event -> busyControls.contains(control) ? !event.isAppointment() : true)
+            .filter(event -> apptControls.contains(control) ? event.isAppointment() : true)
+            .filter(event -> control == UpcomingEventControl.CANCEL_APPT ? ((Appointment) event).getAppointmentStatus() == AppointmentStatus.CONFIRMED : true)
+            .filter(event -> control == UpcomingEventControl.RESPOND_APPT ? ((Appointment) event).getAppointmentStatus() == AppointmentStatus.PENDING : true)
+            .sorted(Comparator.comparing(DoctorEvent::getTimeslot))
+            .map(event -> {
+                String eventTime = DateTimeUtil.printLongDateTime(event.getTimeslot());
+    
+                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
+                displayFields.put("Event Type", event.isAppointment() ? "Appointment" : "Event");
+                displayFields.put("Timeslot", eventTime);
+                displayFields.put("Status", event.isAppointment() ? ((Appointment) event).getAppointmentStatus().toString() : "Confirmed");
+    
+                Option option = new Option(
+                    eventTime,
+                    viewControls.contains(control) ? OptionType.DISPLAY : OptionType.NUMBERED,
+                    displayFields
+                );
+
+                if (control == UpcomingEventControl.EDIT_BUSY) {
+                    option.setNextAction(formValues -> {
+                        if (formValues == null) {
+                            formValues = new HashMap<>();
+                        }
+                        formValues.put(
+                            "originalDateTime",
+                            DateTimeUtil.printShortDateTime(event.getTimeslot())
+                        );
+                        return formValues;
+                    }).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE);
+                }
+
+                if (control == UpcomingEventControl.DEL_BUSY) {
+                    option.setNextAction(formValues -> {
+                        doctor.deleteDoctorEvent(event);
+                        return null;
+                    }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY);
+                }
+
+                if (control == UpcomingEventControl.CANCEL_APPT) {
+                    option.setNextAction(formValues -> {
+                        ((Appointment) event).cancel();
+                        return null;
+                    }).setRequiresConfirmation(true);
+                }
+
+                if (control == UpcomingEventControl.RESPOND_APPT) {
+                    option.setNextAction(formValues -> {
+                        formValues.put("appointment", event);
+                        return formValues;
+                    }).setNextMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENT);
+                }
+                return option;
+            }).collect(Collectors.toList());
+
+        if (busyControls.contains(control)) {
+            options.add(new Option(
+                "add( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "add");
+                    put("Action", "Add Busy Timeslot");
+                }}
+            ).setNextAction((formValues) -> {
+                return null;
+            }).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE));
+        }
+
+        if (control != UpcomingEventControl.VIEW) {
+            options.add(new Option(
+                "reset( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "reset");
+                    put("Action", "Reset filters");
+                }}
+            ).setNextAction((formValues) -> {
+                return null;
+            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_EVENTS));
+        } else {
+            options.add(new Option(
+                "busy( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "busy");
+                    put("Action", "Show Busy Dates Only");
+                }}
+            ).setNextAction((formValues) -> {
+                return null;
+            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY));
+            options.add(new Option(
+                "appt( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "appt");
+                    put("Action", "Show Appointments Only");
+                }}
+            ).setNextAction((formValues) -> {
+                return null;
+            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_APPOINTMENTS));
+        }
+
+        if (control == UpcomingEventControl.VIEW_BUSY) {
+            options.add(new Option(
+                "edit( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "edit");
+                    put("Action", "Edit Busy Timeslot");
+                }}
+            ).setNextAction((formValues) -> {
+                return formValues;
+            }).setNextMenuState(MenuState.DOCTOR_EDIT_UPCOMING_UNAVAILABILITY));
+            
+            options.add(new Option(
+                "del( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "del");
+                    put("Action", "Delete Busy Timeslot");
+                }}
+            ).setNextAction((formValues) -> {
+                return formValues;
+            }).setNextMenuState(MenuState.DOCTOR_DELETE_UPCOMING_UNAVAILABILITY));
+        } else if (control == UpcomingEventControl.VIEW_APPT) {
+            options.add(new Option(
+                "cancel( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "cancel");
+                    put("Action", "Cancel Appointment");
+                }}
+            ).setNextAction((formValues) -> {
+                return formValues;
+            }).setNextMenuState(MenuState.DOCTOR_CANCEL_UPCOMING_APPOINTMENTS));
+            
+            options.add(new Option(
+                "rsvp( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "rsvp");
+                    put("Action", "Respond to appointment request");
+                }}
+            ).setNextAction((formValues) -> {
+                return formValues;
+            }).setNextMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENTS));
+        }
+
+        return options;
+    }
+
+    public static List<Option> generateAcceptRejectOptions() {
+        return List.of(
+            new Option(
+                "Accept Appointment",
+                OptionType.NUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Action", "Accept");
+                }}
+            ).setNextAction(formValues -> {
+                Appointment appointment = null;
+                if (formValues != null && formValues.containsKey("appointment")) {
+                    appointment = (Appointment) formValues.get("appointment");
+                } else throw new IllegalArgumentException("Appointment not found");
+                appointment.confirm();
+                return null;
+            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_APPOINTMENTS)
+            .setRequiresConfirmation(true),
+    
+            new Option(
+                "Reject Appointment",
+                Option.OptionType.NUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Action", "Reject");
+                }}
+            ).setNextAction(formValues -> {
+                Appointment appointment = null;
+                if (formValues != null && formValues.containsKey("appointment")) {
+                    appointment = (Appointment) formValues.get("appointment");
+                } else throw new IllegalArgumentException("Appointment not found");
+                appointment.cancel();
+                return null;
+            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_APPOINTMENTS)
+            .setRequiresConfirmation(true)
+        );
+    }
+    
+
+    public static List<Option> generateAddMedicationOptions(Prescription prescription) {
+        List<Option> options = prescription.getMedicationOrders().stream()
+            .map(order -> {
+                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
+                displayFields.put("Order ID", String.valueOf(order.getId()));
+                displayFields.put("Medication ID", String.valueOf(order.getMedicationId()));
+                displayFields.put("Prescription ID", String.valueOf(order.getPrescriptionId()));
+                displayFields.put("Quantity", String.valueOf(order.getQuantity()));
+
+                return new Option(
+                    "Order " + order.getId(),
+                    OptionType.DISPLAY,
+                    displayFields
+                );
+            })
+            .collect(Collectors.toList());
+        
+        options.add(
+            new Option(
+                "ADD( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "ADD");
+                    put("Action", "Add Medication");
+                }}
+            ).setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
+        );
+
+        return options;
+    }
+
+    public static List<Option> generateServiceTypeOptions() {
+        return Stream.of(ServiceType.values())
+            .map(serviceType -> new Option(
+                    serviceType.toString(),
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Service Type", serviceType.toString());
+                    }}
+                ).setNextAction((formValues) -> {
+                    formValues.put("serviceType", serviceType.toString());
+                    return formValues;
+                }).setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
+            ).collect(Collectors.toList());
+        }
+
+    public static List<Option> generateMedicationOptions(List<Medication> medications) {
+        return medications.stream().
+            map(medication -> new Option(
+                    medication.getName(),
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Medication", medication.getName());
+                    }}
+                ).setNextAction((formValues) -> {
+                    formValues.put("medication", medication);
+                    return formValues;
+                }).setNextMenuState(MenuState.DOCTOR_ADD_QUANTITY)
+            ).collect(Collectors.toList());
+        }
+    
+    public static List<Option> generateSelectDoctorPastAppointmentOptions(
+            Patient p, 
+            boolean showNullOutcomes,
+            boolean showNonNullOutcomes
+        ) {
+        if (!showNullOutcomes && !showNonNullOutcomes) System.err.println("Warning: Not showing any outcomes");
+        List<Option> options = AppointmentService
+            .getAllAppointments()
+            .stream()
+            .filter(appointment ->
+                appointment.getDoctorId() == UserService.getCurrentUser().getRoleId() &&
+                (appointment.getAppointmentStatus() == AppointmentStatus.CONFIRMED ||
+                appointment.getAppointmentStatus() == AppointmentStatus.COMPLETED)
+            )
+            .filter(appointment -> p != null ? appointment.getPatientId() == p.getRoleId() : true)
+            .filter(appointment -> !showNonNullOutcomes ? appointment.getAppointmentOutcome() == null : true)
+            .filter(appointment -> !showNullOutcomes ? appointment.getAppointmentOutcome() != null : true)
+            .sorted(Comparator.comparing(Appointment::getTimeslot).reversed())
+            .map(appointment -> {
+                Patient patient = UserService.findUserByIdAndType(
+                    appointment.getPatientId(),
+                    Patient.class,
+                    true
+                );
+    
+                String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
+                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
+    
+                displayFields.put("Timeslot", timeslot);
+                if (patient != null) {
+                    displayFields.put("Patient", patient.getName());
+                } else {
+                    displayFields.put("Patient", "Error not found");
+                }
+                displayFields.put("Outcome Added", String.valueOf(appointment.getAppointmentOutcome() != null));
+    
+                Option option = new Option(
+                    timeslot,
+                    showNullOutcomes && showNonNullOutcomes ? OptionType.DISPLAY : OptionType.NUMBERED,
+                    displayFields
+                ).setNextAction(formValues -> {
+                    return new HashMap<>() {{
+                        put("appointment", Integer.toString(appointment.getAppointmentId()));
+                    }};
+                });
+
+                if(showNullOutcomes && !showNonNullOutcomes) {
+                    option.setNextAction(formValues -> {
+                        formValues.put("patient", patient);
+                        formValues.put("appointment", appointment);
+                        return formValues;
+                    }).setNextMenuState(MenuState.DOCTOR_ADD_SERVICE_TYPE);
+                } else if (!showNullOutcomes && showNonNullOutcomes) {
+                    option.setNextAction(formValues -> {
+                        formValues.put("patient", patient);
+                        formValues.put("appointment", appointment);
+                        return formValues;
+                    }).setNextMenuState(MenuState.DOCTOR_VIEW_RECORD);
+                }
+                return option;
+            })
+            .collect(Collectors.toList());
+
+        if (p != null) {
+            options.add(new Option(
+                "edit( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "edit");
+                    put("Action", "Edit User Details");
+                }}
+            ).setNextMenuState(MenuState.DOCTOR_EDIT_PAST_PATIENT)
+            .setNextAction(formValues -> {
+                return formValues;
+            }));
+        }
+    
+        if (p != null || !showNullOutcomes || !showNonNullOutcomes) {
+            options.add(new Option(
+                "reset( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "reset");
+                    put("Action", "Reset Filters");
+                }}
+            ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_APPOINTMENTS)
+            .setNextAction(formValues -> {
+                formValues.remove("patient");
+                return formValues;
+            }));
+        }
+
+        if (showNullOutcomes) {
+            options.add(new Option(
+                "update( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "update");
+                    put("Action", "Manage completed outcomes");
+                }}
+            )
+            .setNextMenuState(MenuState.DOCTOR_VIEW_RECORDS));
+            
+        }
+
+        if (showNonNullOutcomes) {
+            options.add(new Option(
+                "add( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "add");
+                    put("Action", "Manage pending outcomes");
+                }}
+            ).setNextMenuState(MenuState.DOCTOR_ADD_RECORDS));
+        }
+
+        // add control to view completed appointments of patient
+        // add control to edit completed appointments of patient (filter appts with outcome), redirects to the main Outcome view page
+
+        return options;
+    }
 }

@@ -8,18 +8,9 @@ import java.util.List;
 
 public class OptionMenu extends NewMenu {
 
-    private enum DisplayMode {
-        MATCH_FOUND,
-        NO_MATCH_FOUND,
-        MULTIPLE_MATCHES_FOUND,
-        INITIAL
-    }
-
     // Options START
-    private List<Option> options;
-    private List<Option> matchingOptions;
+    private List<Option> options = new ArrayList<>();
     private OptionGenerator optionGenerator;
-    private DisplayMode displayMode = DisplayMode.INITIAL;
     private boolean shouldHaveMainMenuOption;
     private boolean shouldHaveLogoutOption;
     private OptionTable optionTable;
@@ -44,27 +35,27 @@ public class OptionMenu extends NewMenu {
 
         int totalMatches = matches.size();
         
-        if (totalMatches < 1) {
-            this.displayMode = DisplayMode.NO_MATCH_FOUND;
+        if (totalMatches < 1 || totalMatches > 1) {
             System.out.println("No option match found"); // TODO: REMOVE
             throw new IllegalArgumentException("No match found for the selected input.");
-        } else if (totalMatches > 1) {
-            this.displayMode = DisplayMode.MULTIPLE_MATCHES_FOUND;
-            return null;
         } else {
             return matches.get(0);
         }
     }
 
     public void display() {
+        this.options = new ArrayList<>();
+        
         try {
             this.options = optionGenerator.apply();
             System.out.println("GETTING OPTIONS");
         } catch (Exception e) {
             System.out.println("No Options Found");
         }
+
+        boolean optionsFound = !this.options.isEmpty();
         
-        if (this.shouldHaveMainMenuOption) {
+        if (!optionsFound || this.shouldHaveMainMenuOption) {
             this.addMainMenuOption();
         }
 
@@ -73,14 +64,10 @@ public class OptionMenu extends NewMenu {
         }
         System.out.println("Options table created");
         this.optionTable = new OptionTable(this.options);
-        // else {
-        //     // refresh options after editing
-        //     this.matchingOptions = this.optionTable.getNumberedOptions(true);
-        // } // TODO what is this for?
 
-        if (this.options == null || this.options.size() < 1) {
-            throw new Error("Menu with type select should have at least one option");
-        }
+        // if (this.options == null || this.options.size() < 1) { // IMPT now always add main menu when no options
+        //     throw new Error("Menu with type select should have at least one option");
+        // }
 
         if (!(this.title == null || this.title.length() < 1)) {
             System.out.println(this.title);
@@ -90,25 +77,27 @@ public class OptionMenu extends NewMenu {
         if (!(this.label == null || this.label.length() < 1)) {
             System.out.print("\n" + this.label + "\n\n");
         } else if (!this.optionTable.getNumberedOptions(true).isEmpty()) {
-            System.out.println("");
-            switch (this.displayMode) {
-                case NO_MATCH_FOUND -> System.out.println("No option matched your selection. Please try again:");
-                case MULTIPLE_MATCHES_FOUND -> System.out.println("Please be more specific:");
-                case INITIAL -> System.out.println("Please select an option:");
-                default -> { break; }
-            }
-            System.out.println("");
+            System.out.println("Please select an option:");
+            // switch (this.displayMode) {
+            //     case NO_MATCH_FOUND -> System.out.println("No option matched your selection. Please try again:");
+            //     case MULTIPLE_MATCHES_FOUND -> System.out.println("Please be more specific:");
+            //     case INITIAL -> System.out.println("Please select an option:");
+            //     default -> { break; }
+            // }
+            // System.out.println("");
         }
 
         if (this.displayGenerator != null) {
             try {
                 this.displayGenerator.apply();
             } catch (Exception e) {
+                e.printStackTrace();
                 System.out.println("Error printing display");
             }
             
         }
 
+        System.out.println("\n");
         this.optionTable.printTable();
     }
 

@@ -131,7 +131,7 @@ public class AdminMenuCollection {
         return menu;
     }
     public static NewMenu getAdminAddNameMenu() {
-        InputMenu menu = new InputMenu("Name", "Enter Name");
+        InputMenu menu = new InputMenu("Name", "Enter Name").setParseUserInput(false);
 
         menu.getInput()
             .setNextAction((formValues) -> {
@@ -157,8 +157,14 @@ public class AdminMenuCollection {
                 String role = (String) formValues.get("role");
 
                 LocalDate dob = DateTimeUtil.parseShortDate(input);
-                if (dob.isAfter(LocalDate.now())) {
-                    throw new IllegalArgumentException("Date of Birth cannot be in the future.");
+                try {
+                    if (dob.isAfter(LocalDate.now())) {
+                        throw new IllegalArgumentException("Date of Birth cannot be in the future.");
+                    }
+                } catch (IllegalArgumentException e) {
+                    throw e;
+                } catch (Exception e) {
+                    throw new IllegalArgumentException("Date of Birth is erronous.");
                 }
     
                 if (role.equals(Patient.class.getSimpleName())) {

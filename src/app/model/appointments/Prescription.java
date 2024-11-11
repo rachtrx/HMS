@@ -2,6 +2,7 @@ package app.model.appointments;
 
 import app.db.DatabaseManager;
 import app.model.ISerializable;
+import app.model.appointments.Prescription.PrescriptionStatus;
 import app.model.inventory.Medication;
 import app.model.inventory.MedicationOrder;
 import app.service.MedicationService;
@@ -24,7 +25,7 @@ public class Prescription implements ISerializable {
     private final int id;
     private final List<MedicationOrder> medicationOrders;
     private PrescriptionStatus status;
-    private final int outcomeId;
+    private int outcomeId;
 
     public static int getUuid() {
         return uuid;
@@ -59,6 +60,15 @@ public class Prescription implements ISerializable {
         return medicationOrders;
     }
 
+    public void addMedicationOrder(int medicationId, int quantity, int prescriptionId) throws Exception {
+        MedicationOrder order = MedicationOrder.create(
+            medicationId, 
+            quantity
+        );
+        order.setPrescriptionId(prescriptionId);
+        this.medicationOrders.add(order);
+    }
+
     // public String getMedicationOrdersString() {
     //     return this.medicationOrders
     //         .stream()
@@ -76,15 +86,16 @@ public class Prescription implements ISerializable {
     //         .collect(Collectors.joining("\n"));
     // }
 
-    private Prescription(int outcomeId, List<MedicationOrder> medicationOrders, PrescriptionStatus status) {
+    private Prescription(MedicationOrder medicationOrder) {
         this.id = Prescription.uuid++;
-        this.outcomeId = outcomeId;
-        this.medicationOrders = medicationOrders;
-        this.status = status;
+        this.medicationOrders = new ArrayList<>() {{
+            add(medicationOrder);
+        }};
+        this.status = PrescriptionStatus.PENDING;
     }
 
-    public static Prescription create(int outcomeId, List<MedicationOrder> medicationOrders, PrescriptionStatus status) {
-        Prescription prescription = new Prescription(outcomeId, medicationOrders, status);
+    public static Prescription create(MedicationOrder medicationOrder) {
+        Prescription prescription = new Prescription(medicationOrder);
         DatabaseManager.add(prescription);
         LoggerUtils.info("Prescription created");
         return prescription;
@@ -114,6 +125,10 @@ public class Prescription implements ISerializable {
 
     public int getOutcomeId() {
         return outcomeId;
+    }
+
+    public void setOutcomeId(int outcomeId) {
+        this.outcomeId = outcomeId;
     }
 
     public PrescriptionStatus getStatus() {
