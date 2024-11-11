@@ -45,7 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
-import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
@@ -278,7 +277,7 @@ public class OptionGeneratorCollection {
                 put("Select", "edit");
                 put("Action", "Edit Appointments");
             }}
-        ).setNextMenuState(MenuState.SELECT_PATIENT_APPOINTMENT)
+        ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_APPOINTMENTS)
             .setNextAction((formData) -> formData);
     }
 
@@ -302,8 +301,8 @@ public class OptionGeneratorCollection {
         return options;
     }
 
-    public static List<Option> generateAppointmentDisplayOptions(List<Appointment> appointments) {
-        return IntStream.range(0, appointments.size())
+    public static List<Option> generateAppointmentDisplayOptions(List<Appointment> appointments, Control ctl) {
+        List<Option> options = IntStream.range(0, appointments.size())
             .mapToObj(appointmentIndex -> {
                 Appointment appointment = appointments.get(appointmentIndex);
                 
@@ -327,14 +326,41 @@ public class OptionGeneratorCollection {
                 displayFields.put("Appointment Date", !hasOutcome ? "N/A" : DateTimeUtil.printShortDateTime(appointment.getTimeslot()));
                 displayFields.put("Service Type", !hasOutcome ? "N/A" : appointment.getAppointmentOutcome().getServiceType());
                 displayFields.put("Consultation Notes", !hasOutcome ? "N/A" : appointment.getAppointmentOutcome().getConsultationNotes());
-    
-                return new Option(
+                displayFields.put("Outcome Added", String.valueOf(appointment.getAppointmentOutcome() != null));
+
+                Option option = new Option(
                     String.format("Appointment #%d", appointmentIndex + 1),
-                    Option.OptionType.DISPLAY,
+                    ctl != Control.EDIT ? OptionType.DISPLAY : OptionType.NUMBERED,
                     displayFields
                 );
+
+                if (ctl == Control.EDIT) {
+                    option.setNextMenuState(MenuState.VIEW_RECORD)
+                    .setNextAction(formValues -> {
+                        formValues.put("appointment", appointment);
+                        return formValues;
+                    });
+                }
+
+                return option;
             })
             .collect(Collectors.toList());
+        
+        if (ctl != Control.EDIT) {
+            options.add(new Option(
+                "view( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "view");
+                    put("Action", "View Appointment Outcomes");
+                }}
+            ).setNextAction((formValues) -> {
+                return new HashMap<>();
+            }).setNextMenuState(MenuState.PATIENT_VIEW_OUTCOMES));
+        }
+        
+
+        return options;
     }
 
     public static List<Option> generateAvailableTimeslotOptions(Map<Doctor, List<Timeslot>> timeslotsByDoctor) {
@@ -364,6 +390,17 @@ public class OptionGeneratorCollection {
                 displayFields
             ));
         });
+
+        options.add(new Option(
+            "add",
+            OptionType.UNNUMBERED,
+            new LinkedHashMap<>() {{
+                put("Select", "add");
+                put("Action", "Schedule an Appointment");
+            }}
+        ).setNextAction((formValues) -> {
+            return new HashMap<>();
+        }).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE));
 
         return options;
     }
@@ -588,39 +625,36 @@ public class OptionGeneratorCollection {
             .collect(Collectors.toList());
     }
 
-    public static List<Option> generateRescheduleAppointmentOptions(List<Appointment> appointments) {
+    public static List<Option> generateUpdateAppointmentOptions(List<Appointment> appointments, Control ctl) {
         return appointments.stream()
-            .<Option>map(appointment -> new Option(
+            .<Option>map(appointment -> {
+                
+                Option option = new Option(
                     DateTimeUtil.printShortDateTime(appointment.getTimeslot()), 
                     OptionType.NUMBERED,
                     new LinkedHashMap<>() {{
                         put("DateTime", DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
+                        put("Doctor", UserService.findUserByIdAndType(appointment.getDoctorId(), Doctor.class, true).getName());
                     }}
-                )
-                .setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE)
-                .setNextAction((formValues) -> {
-                    formValues.put("appointment", appointment);
-                    return formValues;
-                })
-            )
-            .collect(Collectors.toList());
-    }
+                );
 
-    public static List<Option> generateCancelAppointmentOptions(List<Appointment> appointments) {
-        return appointments.stream()
-            .<Option>map(appointment -> new Option(
-                DateTimeUtil.printShortDateTime(appointment.getTimeslot()), 
-                OptionType.NUMBERED,
-                new LinkedHashMap<>() {{
-                    put("DateTime", DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
-                }}
-            )
-                .setNextMenuState(MenuState.PATIENT_MAIN_MENU)
-                .setNextAction((formValues) -> {
-                    AppointmentService.cancelAppointment(appointment);
-                    return formValues;
-                })
-            )
+                if (ctl == Control.EDIT) {
+                    option.setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE)
+                    .setNextAction((formValues) -> {
+                        formValues.put("appointment", appointment);
+                        return formValues;
+                    });
+                } else { // IMPT Control.DELETE = cancel appt
+                    option.setNextMenuState(MenuState.PATIENT_MAIN_MENU)
+                    .setNextAction((formValues) -> {
+                        AppointmentService.cancelAppointment(appointment);
+                        return formValues;
+                    })
+                    .setRequiresConfirmation(true);
+                }
+
+                return option;
+            })
             .collect(Collectors.toList());
     }
 
@@ -1625,71 +1659,6 @@ public class OptionGeneratorCollection {
         );
     }
     
-
-    public static List<Option> generateAddMedicationOptions(Prescription prescription) {
-        List<Option> options = prescription.getMedicationOrders().stream()
-            .map(order -> {
-                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
-                displayFields.put("Order ID", String.valueOf(order.getId()));
-                displayFields.put("Medication ID", String.valueOf(order.getMedicationId()));
-                displayFields.put("Prescription ID", String.valueOf(order.getPrescriptionId()));
-                displayFields.put("Quantity", String.valueOf(order.getQuantity()));
-
-                return new Option(
-                    "Order " + order.getId(),
-                    OptionType.DISPLAY,
-                    displayFields
-                );
-            })
-            .collect(Collectors.toList());
-        
-        options.add(
-            new Option(
-                "ADD( )?",
-                OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "ADD");
-                    put("Action", "Add Medication");
-                }}
-            ).setNextAction(formValues -> {
-                return formValues;
-            }).
-            setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
-        );
-
-        return options;
-    }
-
-    public static List<Option> generateServiceTypeOptions() {
-        return Stream.of(ServiceType.values())
-            .map(serviceType -> new Option(
-                    serviceType.toString(),
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Service Type", serviceType.toString());
-                    }}
-                ).setNextAction((formValues) -> {
-                    formValues.put("serviceType", serviceType.toString());
-                    return formValues;
-                }).setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
-            ).collect(Collectors.toList());
-        }
-
-    public static List<Option> generateMedicationOptions(List<Medication> medications) {
-        return medications.stream().
-            map(medication -> new Option(
-                    medication.getName(),
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Medication", medication.getName());
-                    }}
-                ).setNextAction((formValues) -> {
-                    formValues.put("medication", medication);
-                    return formValues;
-                }).setNextMenuState(MenuState.DOCTOR_ADD_QUANTITY)
-            ).collect(Collectors.toList());
-        }
-    
     public static List<Option> generateSelectDoctorPastAppointmentOptions(
             Patient p, 
             boolean showNullOutcomes,
@@ -1747,7 +1716,7 @@ public class OptionGeneratorCollection {
                         formValues.put("patient", patient);
                         formValues.put("appointment", appointment);
                         return formValues;
-                    }).setNextMenuState(MenuState.DOCTOR_VIEW_RECORD);
+                    }).setNextMenuState(MenuState.VIEW_RECORD);
                 }
                 return option;
             })
@@ -1811,4 +1780,85 @@ public class OptionGeneratorCollection {
 
         return options;
     }
+
+    public static List<Option> generateAddMedicationOptions(Prescription prescription) {
+        List<Option> options = prescription.getMedicationOrders().stream()
+            .map(order -> {
+                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
+                displayFields.put("Order ID", String.valueOf(order.getId()));
+                displayFields.put("Medication ID", String.valueOf(order.getMedicationId()));
+                displayFields.put("Prescription ID", String.valueOf(order.getPrescriptionId()));
+                displayFields.put("Quantity", String.valueOf(order.getQuantity()));
+
+                return new Option(
+                    "Order " + order.getId(),
+                    OptionType.DISPLAY,
+                    displayFields
+                );
+            })
+            .collect(Collectors.toList());
+        
+        if (UserService.getCurrentUser().getClass() == Admin.class) {
+            options.add(
+                new Option(
+                    "add( )?",
+                    OptionType.UNNUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Select", "add");
+                        put("Action", "Add Medication");
+                    }}
+                ).setNextAction(formValues -> {
+                    return formValues;
+                }).
+                setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
+            );
+        } else {
+            options.add(
+                new Option(
+                    "view( )?",
+                    OptionType.UNNUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Select", "view");
+                        put("Action", "View Another Outcome");
+                    }}
+                ).setNextAction(formValues -> {
+                    return formValues;
+                }).
+                setNextMenuState(MenuState.PATIENT_VIEW_OUTCOMES)
+            );
+        }
+        
+
+        return options;
+    }
+
+    public static List<Option> generateServiceTypeOptions() {
+        return Stream.of(ServiceType.values())
+            .map(serviceType -> new Option(
+                    serviceType.toString(),
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Service Type", serviceType.toString());
+                    }}
+                ).setNextAction((formValues) -> {
+                    formValues.put("serviceType", serviceType.toString());
+                    return formValues;
+                }).setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
+            ).collect(Collectors.toList());
+        }
+
+    public static List<Option> generateMedicationOptions(List<Medication> medications) {
+        return medications.stream().
+            map(medication -> new Option(
+                    medication.getName(),
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Medication", medication.getName());
+                    }}
+                ).setNextAction((formValues) -> {
+                    formValues.put("medication", medication);
+                    return formValues;
+                }).setNextMenuState(MenuState.DOCTOR_ADD_QUANTITY)
+            ).collect(Collectors.toList());
+        }
 }

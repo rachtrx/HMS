@@ -39,7 +39,6 @@ public enum MenuState {
     PATIENT_RESCHEDULE_SELECTION(PatientMenuCollection::getPatientRescheduleSelectionMenu),
     PATIENT_CANCEL_SELECTION(PatientMenuCollection::getPatientCancelSelectionMenu),
     PATIENT_VIEW_OUTCOMES(PatientMenuCollection::getPatientViewOutcomesMenu),
-    SELECT_PATIENT_APPOINTMENT(PatientMenuCollection::getPatientMainMenu), // getSelectPatientAppointmentMenu
     
     // // DOCTOR
     DOCTOR_MAIN_MENU(DoctorMenuCollection::getDoctorMainMenu),
@@ -60,7 +59,7 @@ public enum MenuState {
     // given the patient
     DOCTOR_VIEW_PAST_APPOINTMENTS(DoctorMenuCollection::getDoctorPastApptViewMenu), // IMPT select the record to view, to include edit option and add option
     DOCTOR_VIEW_RECORDS(DoctorMenuCollection::getDoctorOutcomesViewMenu),
-    DOCTOR_VIEW_RECORD(DoctorMenuCollection::getDoctorOutcomeViewMenu), // to include edit options
+    VIEW_RECORD(DoctorMenuCollection::getDoctorOutcomeViewMenu), // to include edit options
 
     DOCTOR_ADD_RECORDS(DoctorMenuCollection::getDoctorOutcomesAddMenu), // select the record to add
     DOCTOR_ADD_SERVICE_TYPE(DoctorMenuCollection::getDoctorServiceAddMenu),

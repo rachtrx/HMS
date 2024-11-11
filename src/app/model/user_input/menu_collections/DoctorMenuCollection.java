@@ -2,25 +2,19 @@ package app.model.user_input.menu_collections;
 
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
-import app.model.user_input.FunctionalInterfaces.NextAction;
 import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.Prescription;
 import app.model.inventory.Medication;
 import app.model.inventory.MedicationOrder;
 import app.model.user_input.InputMenu;
-import app.model.user_input.MenuState;
 import app.model.user_input.Menu;
+import app.model.user_input.MenuState;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.users.Patient;
-import app.model.users.user_credentials.Email;
-import app.service.AppointmentService;
 import app.service.MedicationService;
 import app.service.UserService;
 import app.utils.DateTimeUtil;
-
-import java.util.ArrayList;
-import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -220,7 +214,7 @@ public class DoctorMenuCollection {
                 appointment.setAppointmentOutcome(outcome);
                 appointment.setAppointmentStatus(AppointmentStatus.COMPLETED);
                 return formValues;
-            }).setNextMenuState(MenuState.DOCTOR_VIEW_RECORD).setExitMenuState(MenuState.DOCTOR_ADD_QUANTITY);
+            }).setNextMenuState(MenuState.VIEW_RECORD).setExitMenuState(MenuState.DOCTOR_ADD_QUANTITY);
 
         return menu;
     }
@@ -232,9 +226,14 @@ public class DoctorMenuCollection {
                 Map<String, Object> formValues = menu.getFormData();
                 Patient p = null;
                 Appointment appointment = null;
-                if (formValues != null && formValues.containsKey("patient")) {
-                    p = (Patient) formValues.get("patient");
-                } else throw new IllegalArgumentException("Patient not found");
+
+                if(UserService.getCurrentUser().getClass() == Patient.class) {
+                    p = (Patient) UserService.getCurrentUser();
+                } else {
+                    if (formValues != null && formValues.containsKey("patient")) {
+                        p = (Patient) formValues.get("patient");
+                    } else throw new IllegalArgumentException("Patient not found");
+                }
                 if (formValues.containsKey("appointment")) {
                     appointment = (Appointment) formValues.get("appointment");
                 } else throw new IllegalArgumentException("Appointment not found");

@@ -2,15 +2,13 @@ package app.model.user_input.menu_collections;
 
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
-import app.model.appointments.AppointmentDisplay;
-import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.Timeslot;
-import app.model.user_input.FunctionalInterfaces;
 import app.model.user_input.InputMenu;
-import app.model.user_input.MenuState;
 import app.model.user_input.Menu;
+import app.model.user_input.MenuState;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
+import app.model.user_input.option_collections.OptionGeneratorCollection.Control;
 import app.model.users.Patient;
 import app.model.users.staff.Doctor;
 import app.service.AppointmentService;
@@ -36,9 +34,15 @@ public class PatientMenuCollection {
         Patient patient = (Patient) UserService.getCurrentUser();
         
         menu
+        .setDisplayGenerator(() -> {
+            Patient p = (Patient) UserService.getCurrentUser();
+            System.out.println();
+            System.out.println("Your Details: ");
+            System.out.println(p);
+        })
         .setOptionGenerator(() -> {
             List<Appointment> appointments = AppointmentService.getAllAppointmentsForPatient(patient.getRoleId());
-            return OptionGeneratorCollection.generateAppointmentDisplayOptions(appointments);
+            return OptionGeneratorCollection.generateAppointmentDisplayOptions(appointments, Control.NONE);
         })
         .shouldAddLogoutOptions()
         .shouldAddMainMenuOption();
@@ -91,7 +95,7 @@ public class PatientMenuCollection {
                 )
                 .collect(Collectors.toList());
             if (!appointments.isEmpty()) {
-                return OptionGeneratorCollection.generateAppointmentDisplayOptions(appointments);
+                return OptionGeneratorCollection.generateAppointmentDisplayOptions(appointments, Control.NONE);
             } else {
                 System.out.println("No appointments scheduled. Start scheduling one today.\n");
                 return new ArrayList<>();
@@ -136,7 +140,6 @@ public class PatientMenuCollection {
                         String.format("Please enter a valid date between %d and %d", startDay, endDay)
                     );
                 }
-                
                 formValues.put("day", String.valueOf(day));
                 return formValues;
             });
@@ -189,7 +192,7 @@ public class PatientMenuCollection {
                 if (appointments.isEmpty()) {
                     throw new IllegalArgumentException("No appointments available.");
                 }
-                return OptionGeneratorCollection.generateRescheduleAppointmentOptions(appointments);
+                return OptionGeneratorCollection.generateUpdateAppointmentOptions(appointments, Control.EDIT);
             })
             .shouldAddMainMenuOption();
     }
@@ -208,7 +211,7 @@ public class PatientMenuCollection {
                 if (appointments.isEmpty()) {
                     throw new IllegalArgumentException("No appointments available.");
                 }
-                return OptionGeneratorCollection.generateCancelAppointmentOptions(appointments);
+                return OptionGeneratorCollection.generateUpdateAppointmentOptions(appointments, Control.DELETE);
             })
             .shouldAddMainMenuOption();
     }
@@ -222,7 +225,7 @@ public class PatientMenuCollection {
                 .filter(appointment -> appointment.getAppointmentOutcome() != null)
                 .collect(Collectors.toList());
             if (!appointments.isEmpty()) {
-                return OptionGeneratorCollection.generateAppointmentDisplayOptions(appointments);
+                return OptionGeneratorCollection.generateAppointmentDisplayOptions(appointments, Control.EDIT);
             } else {
                 System.out.println("No appointment outcomes found. Start scheduling an appointment today.\n");
                 return new ArrayList<>();
