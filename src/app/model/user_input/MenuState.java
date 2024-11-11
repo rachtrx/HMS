@@ -110,17 +110,17 @@ public enum MenuState {
     VIEW_INVENTORY(MenuCollection::getViewInventoryMenu);
     
 
-    private final Supplier<NewMenu> menuProvider;
+    private final Supplier<Menu> menuProvider;
 
-    MenuState(Supplier<NewMenu> menuProvider) {
+    MenuState(Supplier<Menu> menuProvider) {
         this.menuProvider = menuProvider;
     }
 
-    public NewMenu getMenu(Map<String, Object> formValues) {
+    public Menu getMenu(Map<String, Object> formValues) {
 
         // Add in any middleware here
 
-        NewMenu menu = menuProvider.get().setMenuState(this);
+        Menu menu = menuProvider.get().setMenuState(this);
 
         if(menu == null) {
             System.out.println("No Menu Found for" + this);
@@ -163,7 +163,7 @@ public enum MenuState {
             return mainMenuState; // Use mainMenuState to retrieve the menu
         } catch (Exception e) {
             UserService.logout();
-            return MenuState.LOGIN_USERNAME; // Return NewMenu instance instead of enum
+            return MenuState.LOGIN_USERNAME; // Return Menu instance instead of enum
         }
     }
 

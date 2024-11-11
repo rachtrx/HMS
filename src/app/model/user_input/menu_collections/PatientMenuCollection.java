@@ -8,7 +8,7 @@ import app.model.appointments.Timeslot;
 import app.model.user_input.FunctionalInterfaces;
 import app.model.user_input.InputMenu;
 import app.model.user_input.MenuState;
-import app.model.user_input.NewMenu;
+import app.model.user_input.Menu;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.users.Patient;
@@ -24,13 +24,13 @@ import java.util.stream.Collectors;
 
 public class PatientMenuCollection {
 
-    public static NewMenu getPatientMainMenu() {
+    public static Menu getPatientMainMenu() {
         return new OptionMenu("Select Option", "Choose an option")
             .setOptionGenerator(OptionGeneratorCollection::generatePatientMenuOptions)
             .shouldAddLogoutOptions().shouldAddMainMenuOption();
     }
 
-    public static NewMenu getPatientViewMedicalRecordMenu() {
+    public static Menu getPatientViewMedicalRecordMenu() {
         OptionMenu menu = new OptionMenu("Select Patient To Edit Medical Record", "Enter 'M' or 'MenuState' to return to the main menu.");
 
         Patient patient = (Patient) UserService.getCurrentUser();
@@ -46,7 +46,7 @@ public class PatientMenuCollection {
         return menu;
     }
 
-    public static NewMenu getPatientEditMedicalRecordMenu() {
+    public static Menu getPatientEditMedicalRecordMenu() {
         OptionMenu menu = new OptionMenu("Select Field to update", "");
 
         menu.setOptionGenerator(() -> {
@@ -56,7 +56,7 @@ public class PatientMenuCollection {
         return menu;
     }
 
-    public static NewMenu getPatientViewAvailAppointmentsMenu() {
+    public static Menu getPatientViewAvailAppointmentsMenu() {
         return new OptionMenu("Available Appointments Today", null)
             .setOptionGenerator(() -> {
                 Map<Doctor, List<Timeslot>> timeslotsByDoctor = AppointmentService.getAvailableAppointmentSlotsByDoctor(LocalDateTime.now());
@@ -79,7 +79,7 @@ public class PatientMenuCollection {
             .shouldAddMainMenuOption().shouldAddLogoutOptions();
     }
 
-    public static NewMenu getPatientViewConfirmedAppointmentsMenu() {
+    public static Menu getPatientViewConfirmedAppointmentsMenu() {
         return new OptionMenu("Upcoming Scheduled Appointments", null)
         .setOptionGenerator(() -> {
             Patient patient = (Patient) UserService.getCurrentUser();
@@ -101,19 +101,19 @@ public class PatientMenuCollection {
         .shouldAddLogoutOptions();
     }
 
-    public static NewMenu getTimeSlotSelectionMenu() {
+    public static Menu getTimeSlotSelectionMenu() {
         return new OptionMenu("Select a Date", null)
             .setOptionGenerator(() -> OptionGeneratorCollection.generateTimeSlotSelectOptions())
             .shouldAddMainMenuOption();
     }
 
-    public static NewMenu getInputAppointmentYearMenu() {
+    public static Menu getInputAppointmentYearMenu() {
         return new OptionMenu("Choose Year", null)
             .setOptionGenerator(() -> OptionGeneratorCollection.getInputYearOptionGenerator())
             .shouldAddMainMenuOption();
     }
 
-    public static NewMenu getInputAppointmentMonthMenu() {
+    public static Menu getInputAppointmentMonthMenu() {
         OptionMenu menu = new OptionMenu("Choose a Month", null);
 
         menu.setOptionGenerator(() -> OptionGeneratorCollection.getInputMonthOptionGenerator(menu.getFormData()))
@@ -121,7 +121,7 @@ public class PatientMenuCollection {
         return menu;
     }
 
-    public static NewMenu getInputAppointmentDayMenu() {
+    public static Menu getInputAppointmentDayMenu() {
         InputMenu menu = new InputMenu("Enter a day from selected range", "");
 
         menu.getInput()
@@ -143,14 +143,14 @@ public class PatientMenuCollection {
         return menu;
     }
 
-    public static NewMenu getInputAppointmentHourMenu() {
+    public static Menu getInputAppointmentHourMenu() {
         OptionMenu menu = new OptionMenu("Choose an Hour", null);
         return menu
             .setOptionGenerator(() -> OptionGeneratorCollection.getInputHourOptionGenerator(menu.getFormData()))
             .shouldAddMainMenuOption();
     }
 
-    public static NewMenu getInputAppointmentDoctorMenu() {
+    public static Menu getInputAppointmentDoctorMenu() {
         OptionMenu menu = new OptionMenu("Select Available Doctor", null);
         menu
             .setOptionGenerator(() -> {
@@ -173,7 +173,7 @@ public class PatientMenuCollection {
         return menu;
     }
 
-    public static NewMenu getPatientRescheduleSelectionMenu() {
+    public static Menu getPatientRescheduleSelectionMenu() {
         return new OptionMenu("Reschedule Appointment", null)
             .setOptionGenerator(() -> {
                 Patient patient = (Patient) UserService.getCurrentUser();
@@ -194,7 +194,7 @@ public class PatientMenuCollection {
             .shouldAddMainMenuOption();
     }
 
-    public static NewMenu getPatientCancelSelectionMenu() {
+    public static Menu getPatientCancelSelectionMenu() {
         return new OptionMenu("Cancel Appointment", null)
             .setOptionGenerator(() -> {
                 
@@ -212,7 +212,7 @@ public class PatientMenuCollection {
             .shouldAddMainMenuOption();
     }
 
-    public static NewMenu getPatientViewOutcomesMenu() {
+    public static Menu getPatientViewOutcomesMenu() {
         return new OptionMenu("View Appointment Outcomes", null)
         .setOptionGenerator(() -> {
             Patient patient = (Patient) UserService.getCurrentUser();

@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.stream.IntStream;
 
 
-public abstract class NewMenu {
+public abstract class Menu {
     protected String title;
     protected String label;
     public void setLabel(String label) {
@@ -27,15 +27,15 @@ public abstract class NewMenu {
     protected Boolean parseUserInput = true;
     protected MenuState menuState;
 
-    private NewMenu nextMenu;
-    private NewMenu previousMenu;
+    private Menu nextMenu;
+    private Menu previousMenu;
 
     public abstract Input getField(String userInput);
     public abstract void display();
     
     // Transitions & Actions END
 
-    public NewMenu(String title, String label) {
+    public Menu(String title, String label) {
         this.title = title;
         this.label = label;
     }
@@ -44,7 +44,7 @@ public abstract class NewMenu {
         return menuState;
     }
 
-    public NewMenu setMenuState(MenuState menuState) {
+    public Menu setMenuState(MenuState menuState) {
         this.menuState = menuState;
         return this;
     }
@@ -53,7 +53,7 @@ public abstract class NewMenu {
         return formData;
     }
 
-    public NewMenu setFormData(Map<String, Object> formData) {
+    public Menu setFormData(Map<String, Object> formData) {
         // shallow copy 
         if (formData == null) formData = new HashMap<>();
         this.formData = new HashMap<>(formData);
@@ -65,12 +65,12 @@ public abstract class NewMenu {
         System.out.println();
     }
 
-    public NewMenu setDisplayGenerator(DisplayGenerator displayGenerator) {
+    public Menu setDisplayGenerator(DisplayGenerator displayGenerator) {
         this.displayGenerator = displayGenerator;
         return this;
     }
 
-    public NewMenu setParseUserInput(Boolean parseUserInput) {
+    public Menu setParseUserInput(Boolean parseUserInput) {
         this.parseUserInput = parseUserInput;
         return this;
     }
@@ -137,19 +137,19 @@ public abstract class NewMenu {
         }
     }
 
-    public NewMenu getNextMenu() {
+    public Menu getNextMenu() {
         return nextMenu;
     }
 
-    public void setNextMenu(NewMenu nextMenu) {
+    public void setNextMenu(Menu nextMenu) {
         this.nextMenu = nextMenu;
     }
 
-    public NewMenu getPreviousMenu() {
+    public Menu getPreviousMenu() {
         return previousMenu;
     }
 
-    public void setPreviousMenu(NewMenu previousMenu) {
+    public void setPreviousMenu(Menu previousMenu) {
         this.previousMenu = previousMenu;
     }
 }

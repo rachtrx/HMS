@@ -2,7 +2,7 @@ package app.service;
 
 import app.constants.exceptions.ExitApplication;
 import app.model.user_input.MenuState;
-import app.model.user_input.NewMenu;
+import app.model.user_input.Menu;
 import java.util.HashMap;
 
 /**
@@ -13,7 +13,7 @@ import java.util.HashMap;
 * @since 2024-10-17
 */
 public class MenuService {
-    private static NewMenu currentMenu = MenuState.LANDING.getMenu(new HashMap<>());
+    private static Menu currentMenu = MenuState.LANDING.getMenu(new HashMap<>());
 
     public static void handleUserInput(String userInput) throws Exception {
         MenuState oldMenuState = MenuService.currentMenu.getMenuState();
@@ -22,7 +22,7 @@ public class MenuService {
         setCurrentMenu(menuState);
     }
 
-    public static NewMenu getCurrentMenu() {
+    public static Menu getCurrentMenu() {
         return MenuService.currentMenu;
     }
 
@@ -32,7 +32,7 @@ public class MenuService {
             newMenuState = MenuState.getUserMainMenuState();
             if (newMenuState == null) throw new ExitApplication();
         }
-        NewMenu newMenu = newMenuState.getMenu(MenuService.currentMenu.getFormData());
+        Menu newMenu = newMenuState.getMenu(MenuService.currentMenu.getFormData());
         MenuService.currentMenu.setNextMenu(newMenu);
         newMenu.setPreviousMenu(MenuService.currentMenu);
         MenuService.currentMenu = newMenu;

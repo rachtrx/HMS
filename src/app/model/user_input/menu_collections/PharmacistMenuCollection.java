@@ -18,20 +18,20 @@ import javax.swing.text.html.Option;
 import app.model.user_input.FunctionalInterfaces.NextAction;
 import app.model.user_input.InputMenu;
 import app.model.user_input.MenuState;
-import app.model.user_input.NewMenu;
+import app.model.user_input.Menu;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.service.AppointmentService;
 import app.service.MedicationService;
 
 public class PharmacistMenuCollection {
-    public static NewMenu getPharmacistMainMenu() {
+    public static Menu getPharmacistMainMenu() {
         return new OptionMenu("Select Option", "Choose an option")
             .setOptionGenerator(OptionGeneratorCollection::generatePharmacistMenuOptions)
             .shouldAddLogoutOptions().shouldAddMainMenuOption();
     }
 
-    public static NewMenu getPharmacistViewOutcomeRecordsMenu() {
+    public static Menu getPharmacistViewOutcomeRecordsMenu() {
         OptionMenu menu = new OptionMenu("All Appointment Outcomes", null);
             menu.setOptionGenerator(() -> {
                 final Boolean hideCompleted = menu.getFormData() != null && menu.getFormData().containsKey("hideCompleted") && (Boolean) menu.getFormData().get("hideCompleted");
@@ -56,7 +56,7 @@ public class PharmacistMenuCollection {
         return menu;
     }
 
-    public static NewMenu getPharmacistUpdateOutcomesMenu() {
+    public static Menu getPharmacistUpdateOutcomesMenu() {
         OptionMenu menu = new OptionMenu("Update Outcomes", "");
             
         menu.setOptionGenerator(() -> {
@@ -74,7 +74,7 @@ public class PharmacistMenuCollection {
         return menu;
     }
 
-    public static NewMenu getPharmacistUpdatePrescriptionsMenu() {
+    public static Menu getPharmacistUpdatePrescriptionsMenu() {
         return new OptionMenu("Update Prescriptions", "")
             .setOptionGenerator(() -> {
                 List<Prescription> prescriptions = AppointmentService.getAllAppointments().stream()
@@ -89,7 +89,7 @@ public class PharmacistMenuCollection {
             });
     }
 
-    public static NewMenu getPharmacistHandlePrescriptionMenu() {
+    public static Menu getPharmacistHandlePrescriptionMenu() {
         OptionMenu menu = new OptionMenu("Prescription and Medication Order Details", "");
         menu
             .setDisplayGenerator(() -> {
@@ -116,7 +116,7 @@ public class PharmacistMenuCollection {
         return menu;
     }
 
-    public static NewMenu getPharmacistAddRequestMenu() {
+    public static Menu getPharmacistAddRequestMenu() {
     return new OptionMenu("Submit Replenish Request", "Please select the medication: ")
         .setOptionGenerator(() -> {
             List<Medication> medications = MedicationService.getAllMedications();
@@ -124,7 +124,7 @@ public class PharmacistMenuCollection {
         }).shouldAddMainMenuOption();
     }
 
-    public static NewMenu getPharmacistAddCountMenu() {
+    public static Menu getPharmacistAddCountMenu() {
         InputMenu menu = new InputMenu("Medication Quantity", "Please enter the quantity of medication to add: ");
     
         menu.getInput()

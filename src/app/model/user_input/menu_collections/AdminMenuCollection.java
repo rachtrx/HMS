@@ -4,7 +4,7 @@ import app.model.appointments.Appointment;
 import app.model.inventory.Medication;
 import app.model.user_input.InputMenu;
 import app.model.user_input.MenuState;
-import app.model.user_input.NewMenu;
+import app.model.user_input.Menu;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.user_input.option_collections.OptionGeneratorCollection.Control;
@@ -30,12 +30,12 @@ import java.util.stream.Collectors;
 
 public class AdminMenuCollection {
     
-    public static NewMenu getAdminMainMenu() {
+    public static Menu getAdminMainMenu() {
         return new OptionMenu("Admin Main Menu", null)
             .setOptionGenerator(OptionGeneratorCollection::generateAdminMainMenuOptions)
             .shouldAddLogoutOptions().shouldAddMainMenuOption();
     }
-    public static NewMenu getAdminViewAppointmentsMenu() {
+    public static Menu getAdminViewAppointmentsMenu() {
         return new OptionMenu("All Appointments", null)
             .setOptionGenerator(() -> {
                 List<Appointment> appointments = AppointmentService.getAllAppointments()
@@ -49,21 +49,21 @@ public class AdminMenuCollection {
                 }
             });
     }
-    public static NewMenu getAdminViewUsersMenu() {
+    public static Menu getAdminViewUsersMenu() {
         OptionMenu menu = new OptionMenu("All Staff", null);
         return setUserOptionGenerator(menu, Control.NONE);
     }
 
-    public static NewMenu getAdminSelectUserEditMenu() {
+    public static Menu getAdminSelectUserEditMenu() {
         OptionMenu menu = new OptionMenu("Select a Staff to edit", null);
         return setUserOptionGenerator(menu, Control.EDIT); 
     }
-    public static NewMenu getAdminSelectUserDeleteMenu() {
+    public static Menu getAdminSelectUserDeleteMenu() {
         OptionMenu menu = new OptionMenu("Select a Staff to delete", null);
         return setUserOptionGenerator(menu, Control.DELETE);
     }
 
-    private static NewMenu setUserOptionGenerator(OptionMenu menu, Control ctl) {
+    private static Menu setUserOptionGenerator(OptionMenu menu, Control ctl) {
         menu
             .setOptionGenerator(() -> {
                 List<Staff> sortedUsers;
@@ -86,7 +86,7 @@ public class AdminMenuCollection {
         return menu;
     }
 
-    public static NewMenu getAdminEditUserMenu() {
+    public static Menu getAdminEditUserMenu() {
         OptionMenu menu = new OptionMenu("User details", "Select a field to edit");
         menu.setOptionGenerator(() -> {
             Map<String, Object> formValues = menu.getFormData();
@@ -96,13 +96,13 @@ public class AdminMenuCollection {
         });
         return menu;
     }
-    public static NewMenu getAdminAddUserTypeMenu() {
+    public static Menu getAdminAddUserTypeMenu() {
         System.out.println("Creating user type menu");
         return new OptionMenu("User roles", "Select a role").setOptionGenerator(
             OptionGeneratorCollection::getRoleOptions
         ).shouldAddMainMenuOption();
     }
-    public static NewMenu getAdminAddUserNameMenu() {
+    public static Menu getAdminAddUserNameMenu() {
         InputMenu menu = new InputMenu("Username", "Enter Username").setParseUserInput(false);
 
         menu.getInput()
@@ -116,7 +116,7 @@ public class AdminMenuCollection {
 
         return menu;
     }
-    public static NewMenu getAdminAddPasswordMenu() {
+    public static Menu getAdminAddPasswordMenu() {
         InputMenu menu = new InputMenu("Password", "Enter Password").setParseUserInput(false);
 
         menu.getInput()
@@ -130,7 +130,7 @@ public class AdminMenuCollection {
 
         return menu;
     }
-    public static NewMenu getAdminAddNameMenu() {
+    public static Menu getAdminAddNameMenu() {
         InputMenu menu = new InputMenu("Name", "Enter Name").setParseUserInput(false);
 
         menu.getInput()
@@ -143,12 +143,12 @@ public class AdminMenuCollection {
         
         return menu;
     }
-    public static NewMenu getAdminAddGenderMenu() {
+    public static Menu getAdminAddGenderMenu() {
         return new OptionMenu("Gender", "Enter Gender")
             .setOptionGenerator(OptionGeneratorCollection::getGenderOptions);
     }
 
-    public static NewMenu getAdminAddDobMenu() {
+    public static Menu getAdminAddDobMenu() {
         InputMenu menu = new InputMenu("Date of Birth", "Enter Date of Birth");
     
         menu.getInput()
@@ -192,7 +192,7 @@ public class AdminMenuCollection {
         return menu;
     }
 
-    public static NewMenu getAdminAddMobileNoMenu() {
+    public static Menu getAdminAddMobileNoMenu() {
         InputMenu menu = new InputMenu("Mobile No.", "Enter Mobile No.");
 
         menu.getInput()
@@ -206,7 +206,7 @@ public class AdminMenuCollection {
         
         return menu;
     }
-    public static NewMenu getAdminAddHomeNoMenu() {
+    public static Menu getAdminAddHomeNoMenu() {
         InputMenu menu = new InputMenu("Home No.", "Enter Home No.");
 
         menu.getInput()
@@ -220,7 +220,7 @@ public class AdminMenuCollection {
 
         return menu;
     }
-    public static NewMenu getAdminAddEmailMenu() {
+    public static Menu getAdminAddEmailMenu() {
         InputMenu menu = new InputMenu("Email", "Enter Email");
 
         menu.getInput()
@@ -234,12 +234,12 @@ public class AdminMenuCollection {
         return menu;
     }
     
-    public static NewMenu getAdminAddBloodTypeMenu() {
+    public static Menu getAdminAddBloodTypeMenu() {
         return new OptionMenu("Blood Type", "Enter Blood Type")
             .setOptionGenerator(OptionGeneratorCollection::getBloodTypeOptions);
     }
 
-    public static NewMenu getAdminAddMedicationMenu() {
+    public static Menu getAdminAddMedicationMenu() {
         InputMenu menu = new InputMenu("New Medication Name", "Enter new medication name");
 
         menu.getInput()
@@ -253,7 +253,7 @@ public class AdminMenuCollection {
         return menu;
     }
 
-    public static NewMenu getAdminAddInitialStockMenu() {
+    public static Menu getAdminAddInitialStockMenu() {
         InputMenu menu = new InputMenu("Stock level", "Set stock level");
 
         menu.getInput()
@@ -267,7 +267,7 @@ public class AdminMenuCollection {
         return menu;
     }
 
-    public static NewMenu getAdminAddLowLevelAlertMenu() {
+    public static Menu getAdminAddLowLevelAlertMenu() {
         InputMenu menu = new InputMenu("Low level alert", "Set low level alert");
 
         menu.getInput()
@@ -281,13 +281,13 @@ public class AdminMenuCollection {
         return menu;
     }
 
-    public static NewMenu getAdminEditInventoryMenu() {
+    public static Menu getAdminEditInventoryMenu() {
         OptionMenu menu = new OptionMenu("Update Inventory", "Select a medication to edit");
         MenuCollection.setOptionGeneratorForInventory(menu);
         return menu.shouldAddLogoutOptions().shouldAddMainMenuOption();
     }
 
-    public static NewMenu getAdminEditMedicationMenu() {
+    public static Menu getAdminEditMedicationMenu() {
         OptionMenu menu = new OptionMenu("Medication details", "Select a field to edit");
         menu
             .setOptionGenerator(() -> {
@@ -301,21 +301,21 @@ public class AdminMenuCollection {
 
         return menu;
     }
-    public static NewMenu getAdminViewRequestMenu() {
+    public static Menu getAdminViewRequestMenu() {
         return new OptionMenu("Replenish requests", "Select a request to approve or reject")
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption()
             .setOptionGenerator(() -> OptionGeneratorCollection.getRequestOptions(Control.NONE));
         
     }
-    public static NewMenu getApproveReplenishRequestMenu() {
+    public static Menu getApproveReplenishRequestMenu() {
         return new OptionMenu("Handle request", null)
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption()
             .setOptionGenerator(() -> OptionGeneratorCollection.getRequestOptions(Control.APPROVE));
     }
 
-    public static NewMenu getRejectReplenishRequestMenu() {
+    public static Menu getRejectReplenishRequestMenu() {
         return new OptionMenu("Handle request", null)
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption()

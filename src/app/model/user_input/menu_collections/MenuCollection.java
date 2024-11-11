@@ -2,7 +2,7 @@ package app.model.user_input.menu_collections;
 
 import app.model.user_input.InputMenu;
 import app.model.user_input.MenuState;
-import app.model.user_input.NewMenu;
+import app.model.user_input.Menu;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.user_input.option_collections.OptionGeneratorCollection.Control;
@@ -14,15 +14,15 @@ import java.util.Map;
 
 public class MenuCollection {
     
-    public static NewMenu getEditMenu() {
+    public static Menu getEditMenu() {
         return new InputMenu("Edit Menu", "Enter a new value: ").setParseUserInput(false);
     }
 
-    public static NewMenu getConfirmMenu() {
+    public static Menu getConfirmMenu() {
         return new OptionMenu("Confirm Menu", "Please confirm your decision: ");
     }
 
-    public static NewMenu getLandingMenu() {
+    public static Menu getLandingMenu() {
         InputMenu menu = new InputMenu("Landing Menu", "Press any key to continue");
         menu
             .getInput()
@@ -33,7 +33,7 @@ public class MenuCollection {
         return menu;
     }
 
-    public static NewMenu getLoginUsernameMenu() {
+    public static Menu getLoginUsernameMenu() {
         InputMenu menu = new InputMenu("Login Username Menu", "Please enter your username");
 
         menu
@@ -45,7 +45,7 @@ public class MenuCollection {
         return menu;
     }
 
-    public static NewMenu getLoginPasswordMenu() {
+    public static Menu getLoginPasswordMenu() {
         InputMenu menu = new InputMenu("Login Password Menu", "Please enter your password")
             .setParseUserInput(false);
         menu
@@ -66,16 +66,16 @@ public class MenuCollection {
         return menu;
     }
 
-    public static NewMenu getViewInventoryMenu() {
+    public static Menu getViewInventoryMenu() {
         OptionMenu menu = new OptionMenu("All Medications", "")
         .shouldAddLogoutOptions()
         .shouldAddMainMenuOption();
-        
+
         setOptionGeneratorForInventory(menu);
         return menu;
     }
 
-    public static NewMenu setOptionGeneratorForInventory(OptionMenu menu) {
+    public static Menu setOptionGeneratorForInventory(OptionMenu menu) {
         menu.setOptionGenerator(() -> {
                 Control ctl = Control.NONE;
                 Map<String, Object> formValues = menu.getFormData();

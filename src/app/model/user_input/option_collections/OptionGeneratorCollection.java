@@ -1217,9 +1217,8 @@ public class OptionGeneratorCollection {
                 }}
             ).setNextMenuState(MenuState.DOCTOR_ADD_QUANTITY)
              .setNextAction((formValues) -> {
-                 Map<String, Object> newFormValues = new HashMap<>();
-                 newFormValues.put("medication", medication);
-                 return newFormValues;
+                formValues.put("medication", medication);
+                return formValues;
              }))
             .collect(Collectors.toList());
     
@@ -1262,7 +1261,7 @@ public class OptionGeneratorCollection {
                 .filter(request -> request.getStatus() == Request.Status.PENDING)
                 .map(request -> {
                     Option option = new Option(
-                        String.valueOf(request.getId()),
+                        String.valueOf(medication.getName()),
                         ctl == Control.NONE ? OptionType.DISPLAY : OptionType.NUMBERED,
                         new LinkedHashMap<>() {{
                             put("Request ID", String.valueOf(request.getId()));
@@ -1640,7 +1639,10 @@ public class OptionGeneratorCollection {
                     put("Select", "ADD");
                     put("Action", "Add Medication");
                 }}
-            ).setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
+            ).setNextAction(formValues -> {
+                return formValues;
+            }).
+            setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
         );
 
         return options;

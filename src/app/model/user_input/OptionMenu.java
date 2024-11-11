@@ -6,7 +6,7 @@ import app.model.user_input.option_collections.OptionGeneratorCollection;
 import java.util.ArrayList;
 import java.util.List;
 
-public class OptionMenu extends NewMenu {
+public class OptionMenu extends Menu {
 
     // Options START
     private List<Option> options = new ArrayList<>();
@@ -45,7 +45,7 @@ public class OptionMenu extends NewMenu {
 
     public void display() {
         this.options = new ArrayList<>();
-        
+
         try {
             this.options = optionGenerator.apply();
             System.out.println("GETTING OPTIONS");
@@ -71,7 +71,7 @@ public class OptionMenu extends NewMenu {
 
         if (!(this.title == null || this.title.length() < 1)) {
             System.out.println(this.title);
-            NewMenu.printLineBreak(50);
+            Menu.printLineBreak(50);
         }
 
         if (!(this.label == null || this.label.length() < 1)) {
@@ -101,7 +101,7 @@ public class OptionMenu extends NewMenu {
         this.optionTable.printTable();
     }
 
-    private NewMenu addOptions(List<Option> options) {
+    private Menu addOptions(List<Option> options) {
         if (this.options == null) {
             this.options = new ArrayList<>();
         }
