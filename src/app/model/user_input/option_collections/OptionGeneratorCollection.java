@@ -62,7 +62,7 @@ public class OptionGeneratorCollection {
         NONE
     }
 
-    public static List<Option> generateConfirmOptions(NextAction nextAction, MenuState nextState, MenuState exitState) {
+    public static List<Option> generateConfirmOptions(NextAction<Exception> nextAction, MenuState nextState, MenuState exitState) {
         // Define options for confirmation
         Option yesOption = new Option(
             "yes|y|yes( )?\\(?y\\)?", 
@@ -1840,7 +1840,7 @@ public class OptionGeneratorCollection {
                     new LinkedHashMap<>() {{
                         put("Service Type", serviceType.toString());
                     }}
-                ).setNextAction((formValues) -> {
+                ).setNextAction(formValues -> {
                     formValues.put("serviceType", serviceType.toString());
                     return formValues;
                 }).setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)

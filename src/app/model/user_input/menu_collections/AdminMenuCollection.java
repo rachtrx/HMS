@@ -3,8 +3,8 @@ package app.model.user_input.menu_collections;
 import app.model.appointments.Appointment;
 import app.model.inventory.Medication;
 import app.model.user_input.InputMenu;
-import app.model.user_input.MenuState;
 import app.model.user_input.Menu;
+import app.model.user_input.MenuState;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.user_input.option_collections.OptionGeneratorCollection.Control;
@@ -257,7 +257,7 @@ public class AdminMenuCollection {
         InputMenu menu = new InputMenu("Stock level", "Set stock level");
 
         menu.getInput()
-            .setNextAction((formValues) -> {
+            .setNextAction(formValues -> {  // Specify the type here
                 String input = (String) menu.getFormData().get("input");
                 formValues.put("stock", input);
                 return formValues;

@@ -1,15 +1,12 @@
 package app.model.user_input;
 
-import java.util.List;
-import java.util.Map;
-
 import app.model.user_input.FunctionalInterfaces.NextAction;
 
 public class Input {
 
     protected MenuState nextMenuState;
     protected MenuState exitMenuState;
-    protected NextAction nextAction = (formData) -> formData;
+    protected NextAction<Exception> nextAction = (formData) -> formData;
     protected boolean requiresConfirmation;
     protected boolean isEditRedirect;
 
@@ -53,7 +50,7 @@ public class Input {
         return this;
     }
 
-    public Input setNextAction(NextAction nextAction) {
+    public Input setNextAction(NextAction<Exception> nextAction) {
         this.nextAction = nextAction;
         return this;
     }

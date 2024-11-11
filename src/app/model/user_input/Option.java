@@ -45,7 +45,7 @@ public class Option extends Input {
     }
 
     @Override
-    public Option setNextAction(NextAction nextAction) {
+    public Option setNextAction(NextAction<Exception> nextAction) {
         super.setNextAction(nextAction);
         return this;
     }
