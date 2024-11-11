@@ -10,6 +10,7 @@ import app.model.user_input.InputMenu;
 import app.model.user_input.Menu;
 import app.model.user_input.MenuState;
 import app.model.user_input.OptionMenu;
+import app.model.user_input.menu_collections.MenuCollection.Control;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.users.Patient;
 import app.service.MedicationService;
@@ -238,7 +239,7 @@ public class DoctorMenuCollection {
                     .stream()
                     .filter(medication -> medication.getStock() > 0)
                     .collect(Collectors.toList());
-                    return OptionGeneratorCollection.generateMedicationOptions();
+                    return OptionGeneratorCollection.generateMedicationOptions(Control.ADD);
             });
         return menu;
     }
@@ -292,7 +293,7 @@ public class DoctorMenuCollection {
     /**
      * @return
      */
-    public static Menu getDoctorOutcomeViewMenu() {
+    public static Menu getOutcomeViewMenu() {
         OptionMenu menu = new OptionMenu("Appointment Outcome", null);
         menu.
             setDisplayGenerator(() -> {

@@ -26,6 +26,7 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class AdminMenuCollection {
@@ -282,9 +283,9 @@ public class AdminMenuCollection {
     }
 
     public static Menu getAdminEditInventoryMenu() {
-        OptionMenu menu = new OptionMenu("Update Inventory", "Select a medication to edit");
-        MenuCollection.setOptionGeneratorForInventory(menu);
-        return menu.shouldAddLogoutOptions().shouldAddMainMenuOption();
+        return new OptionMenu("Update Inventory", "Select a medication to edit")
+        .setOptionGenerator(() -> OptionGeneratorCollection.generateMedicationOptions(Control.EDIT))
+        .shouldAddLogoutOptions().shouldAddMainMenuOption();
     }
 
     public static Menu getAdminEditMedicationMenu() {

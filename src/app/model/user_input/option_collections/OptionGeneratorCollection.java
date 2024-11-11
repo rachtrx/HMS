@@ -20,6 +20,7 @@ import app.model.user_input.Option.OptionType;
 import app.model.user_input.menu_collections.MenuCollection.Control;
 import app.model.user_input.menu_collections.DoctorMenuCollection.UpcomingEventControl;
 import app.model.users.Patient;
+import app.model.users.User;
 import app.model.users.staff.Admin;
 import app.model.users.staff.Doctor;
 import app.model.users.staff.Pharmacist;
@@ -54,6 +55,24 @@ import java.util.stream.Stream;
 
 public class OptionGeneratorCollection {
 
+    /**
+     * Generates a list of confirmation options, allowing users to confirm or cancel an action.
+     * This method acts as a middleware option generator that accepts the specific actions 
+     * and menu states to use for each confirmation choice, allowing for flexibility in various 
+     * workflows.
+     * <p>
+     * The generated options include:
+     * <ul>
+     *   <li>Yes Option (confirm): Sets the <code>nextAction</code> and transitions to <code>nextState</code>.</li>
+     *   <li>No Option (cancel): Returns to the <code>exitState</code> without modifying form data.</li>
+     * </ul>
+     * Each option is unnumbered, with "Y" and "N" as selectors for confirmation and cancellation, respectively.
+     *
+     * @param nextAction The action to execute when the "Yes" option is selected.
+     * @param nextState  The menu state to navigate to after confirming.
+     * @param exitState  The menu state to navigate to if canceled.
+     * @return A list containing "Yes" and "No" options for confirmation and cancellation.
+     */
     public static List<Option> generateConfirmOptions(NextAction<Exception> nextAction, MenuState nextState, MenuState exitState) {
         // Define options for confirmation
         Option yesOption = new Option(
@@ -103,6 +122,18 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    /**
+     * Generates a list of options for logging out or exiting the application, often appended to existing option menus.
+     * <p>
+     * The generated options include:
+     * <ul>
+     *   <li>Logout Option ("LO"): Logs the user out and navigates back to the login screen.</li>
+     *   <li>Exit Option ("E"): Exits the application, throwing an <code>ExitApplication</code> exception.</li>
+     * </ul>
+     * Each option is unnumbered and provides a concise selection pattern for easy access.
+     *
+     * @return A list containing logout and exit options.
+     */
     public static List<Option> generateMainMenuOption() {
         List<Option> options = new ArrayList<>();
 
@@ -121,6 +152,18 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    /**
+     * Generates an option for returning to the main menu, often appended to existing option menus.
+     * <p>
+     * The generated option allows users to select "Main Menu" or "M" to navigate 
+     * back to their respective main menu state.
+     * <ul>
+     *   <li>Main Menu Option ("M"): Navigates back to the main menu for the current user.</li>
+     * </ul>
+     * Additional options can be added to this list if needed.
+     *
+     * @return A list containing the main menu option.
+     */
     public static List<Option> generatePatientMenuOptions() {
         return new ArrayList<>(List.of(
             new Option(
@@ -197,6 +240,16 @@ public class OptionGeneratorCollection {
         ));
     }
 
+    /**
+     * Generates an option for editing the blood type of a patient.
+     * <p>
+     * When selected, this option prompts the user to enter a new blood type 
+     * for the specified patient, updating the patient’s record with the inputted value.
+     * </p>
+     *
+     * @param p The patient whose blood type is being edited.
+     * @return An option for editing the patient’s blood type, which redirects to the main menu state after updating.
+     */
     public static Option getEditBloodTypeOption(Patient p) {
         return new Option(
             "blood|type|blood(( )?type)?|(blood( )?)?type",
@@ -213,6 +266,16 @@ public class OptionGeneratorCollection {
         .setEditRedirect(true);
     }
     
+    /**
+     * Generates an option for editing the mobile number of a patient.
+     * <p>
+     * This option allows the user to input a new mobile number, updating the patient’s record.
+     * The default country code "+65" is prefixed to the current and new numbers.
+     * </p>
+     *
+     * @param patient The patient whose mobile number is being edited.
+     * @return An option for editing the patient’s mobile number, which exits to the main menu state after updating.
+     */
     public static Option getEditMobileNumberOption(Patient patient) {
         return new Option(
             "mobile(( )?number)?",
@@ -229,6 +292,16 @@ public class OptionGeneratorCollection {
         .setEditRedirect(true);
     }
     
+    /**
+     * Generates an option for editing the home number of a patient.
+     * <p>
+     * This option allows the user to input a new home number, with the default country code "+65"
+     * prefixed to the displayed current and new values.
+     * </p>
+     *
+     * @param patient The patient whose home number is being edited.
+     * @return An option for editing the patient’s home number, with a redirect to the main menu state upon completion.
+     */
     public static Option getEditHomeNumberOption(Patient patient) {
         return new Option(
             "home(( )?number)?",
@@ -245,6 +318,15 @@ public class OptionGeneratorCollection {
         .setEditRedirect(true);
     }
     
+    /**
+     * Generates an option for editing the email address of a patient.
+     * <p>
+     * Upon selection, this option allows input of a new email address, which is saved to the patient’s record.
+     * </p>
+     *
+     * @param patient The patient whose email is being edited.
+     * @return An option for editing the patient’s email, redirecting to the medical record view upon completion.
+     */
     public static Option getEditEmailOption(Patient patient) {
         return new Option(
             "email",
@@ -261,6 +343,12 @@ public class OptionGeneratorCollection {
         .setEditRedirect(true);
     }
     
+    /**
+     * Creates an option for doctors to edit appointments. Selecting this option
+     * redirects the doctor to a menu where they can manage patient appointments.
+     * 
+     * @return An <code>Option</code> for editing appointments, accessible only to doctors.
+     */
     public static Option getEditAppointmentOption() {
         return new Option(
             "edit( )?",
@@ -273,6 +361,33 @@ public class OptionGeneratorCollection {
             .setNextAction((formData) -> formData);
     }
 
+    /**
+     * Generates a list of options for editing a patient's details. The available options
+     * depend on the user type (doctor or patient):
+     * <ul>
+     *   <li><b>Doctors:</b> Can edit the patient's blood type and have the additional option
+     *   to edit appointments.</li>
+     *   <li><b>Patients:</b> Can only edit their personal contact details: mobile number,
+     *   home number, and email.</li>
+     * </ul>
+     * 
+     * Each option provides a redirection to the appropriate menu state based on the user type,
+     * ensuring that:
+     * <ul>
+     *   <li>Doctors are directed to <code>MenuState.DOCTOR_EDIT_PAST_PATIENT</code> after
+     *   each edit, allowing them to manage multiple details sequentially.</li>
+     *   <li>Patients are redirected to <code>MenuState.PATIENT_VIEW_MEDICAL_RECORD</code>,
+     *   allowing them to return to their personal medical record after editing contact details.</li>
+     * </ul>
+     * 
+     * @param p The patient whose details are being edited.
+     * @return A list of <code>Option</code> objects representing editable fields based on
+     * the user's role.
+     * @see #getEditBloodTypeOption(Patient)
+     * @see #getEditMobileNumberOption(Patient)
+     * @see #getEditHomeNumberOption(Patient)
+     * @see #getEditEmailOption(Patient)
+     */
     public static List<Option> generateEditPatientDetailsOptions(Patient p) {
         List<Option> options = new ArrayList<>();
 
@@ -293,6 +408,31 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    /**
+     * Generates a list of options for displaying or editing appointments. This method provides a detailed view of each
+     * appointment, including appointment timeslot, patient and doctor names, status, and (if available) additional outcome
+     * details such as service type and consultation notes.
+     * <p>
+     * The generated options vary based on the provided <code>Control</code> parameter:
+     * <ul>
+     *   <li><b>Display Only:</b> When <code>ctl</code> is <code>Control.NONE</code>, the options provide a read-only 
+     *   display of appointment details.</li>
+     *   <li><b>Select Mode:</b> When <code>ctl</code> is <code>Control.SELECT</code>, the options are numbered, allowing 
+     *   users to select an appointment for viewing. Selecting an option redirects to the detailed appointment record.</li>
+     * </ul>
+     * 
+     * Additional actions:
+     * <ul>
+     *   <li>A "View Appointment Outcomes" option is added for patients if they are viewing without SELECT access. 
+     *   This redirects to the <code>MenuState.PATIENT_VIEW_OUTCOMES</code> for viewing detailed outcome information.</li>
+     * </ul>
+     *
+     * @param appointments The list of appointments to be displayed.
+     * @param ctl Specifies whether options are displayed as read-only (<code>Control.NONE</code>) or allow editing 
+     * (<code>Control.EDIT</code>).
+     * @return A list of <code>Option</code> objects representing each appointment's details, with select or view functionality
+     * depending on the control type.
+     */
     public static List<Option> generateAppointmentDisplayOptions(List<Appointment> appointments, Control ctl) {
         List<Option> options = IntStream.range(0, appointments.size())
             .mapToObj(appointmentIndex -> {
@@ -337,7 +477,7 @@ public class OptionGeneratorCollection {
             })
             .collect(Collectors.toList());
         
-        if (ctl != Control.EDIT) {
+        if (ctl != Control.SELECT) {
             options.add(new Option(
                 "view( )?",
                 OptionType.UNNUMBERED,
@@ -354,6 +494,24 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    /**
+     * Generates a list of options displaying available timeslots for each doctor, along with their availability.
+     * This list is intended to provide an overview of each doctor's schedule with quick availability indicators 
+     * (ticks and crosses) for each timeslot.
+     * <p>
+     * This option generator performs the following:
+     * <ul>
+     *   <li>Collects all unique timeslots across the doctors' schedules to standardize the display.</li>
+     *   <li>Creates a display option for each doctor, listing their name and marking each unique timeslot as 
+     *   available ("✓") or unavailable ("✗").</li>
+     * </ul>
+     * Additionally, an unnumbered "Schedule an Appointment" option is included at the end of the list for users 
+     * to initiate the scheduling process, redirecting them to <code>MenuState.TIMESLOT_SELECTION_TYPE</code>.
+     *
+     * @param timeslotsByDoctor A map of doctors to their list of available timeslots.
+     * @return A list of <code>Option</code> objects, each representing a doctor's availability for each timeslot, 
+     * with an added scheduling option at the end.
+     */
     public static List<Option> generateAvailableTimeslotOptions(Map<Doctor, List<Timeslot>> timeslotsByDoctor) {
         // Collect all unique timeslots
         Set<LocalDateTime> uniqueTimeslots = timeslotsByDoctor.values().stream()
@@ -396,6 +554,24 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    /**
+     * Generates a list of options for selecting a date to schedule an appointment. 
+     * The options include pre-defined choices for "Today" (if available) and "Tomorrow," 
+     * as well as a "Custom" option to select any other date.
+     * <p>
+     * This option generator performs the following:
+     * <ul>
+     *   <li>If it is before the last available timeslot of the day, includes a "Today" option 
+     *   that automatically sets the date to the current day.</li>
+     *   <li>Includes a "Tomorrow" option that sets the date to the next day.</li>
+     *   <li>Includes a "Custom" option allowing the user to manually select a date, 
+     *   leading to <code>MenuState.INPUT_APPOINTMENT_YEAR</code>.</li>
+     * </ul>
+     * Each option sets the date fields (year, month, and day) in the <code>formData</code> 
+     * map for use in subsequent scheduling steps.
+     *
+     * @return A list of <code>Option</code> objects, each representing a date selection choice.
+     */
     public static List<Option> generateTimeSlotSelectOptions() {
         List<Option> options = new ArrayList<>(Arrays.asList(
             new Option(
@@ -443,6 +619,17 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    /**
+     * Generates a list of year options for scheduling appointments or specifying unavailability.
+     * <p>
+     * This option generator is shared between patients and doctors:
+     * <ul>
+     *   <li>Patients: Used to select the year when adding or rescheduling an appointment.</li>
+     *   <li>Doctors: Used to select the year when adding or editing unavailability.</li>
+     * </ul>
+     *
+     * @return A list of <code>Option</code> representing available years.
+     */
     public static List<Option> getInputYearOptionGenerator() {
         LocalDateTime now = LocalDateTime.now();
         // Do not show this year if today is last day of the year and current time exceeds
@@ -466,7 +653,18 @@ public class OptionGeneratorCollection {
             ).collect(Collectors.toList());
     }
 
-    // Month option generator
+    /**
+     * Generates a list of month options based on the selected year for scheduling appointments or specifying unavailability.
+     * <p>
+     * This option generator is shared between patients and doctors:
+     * <ul>
+     *   <li>Patients: Used to select the month when adding or rescheduling an appointment.</li>
+     *   <li>Doctors: Used to select the month when adding or editing unavailability.</li>
+     * </ul>
+     *
+     * @param formValues Contains previously selected year information to determine start month.
+     * @return A list of <code>Option</code> representing available months within the selected year.
+     */
     public static List<Option> getInputMonthOptionGenerator(Map<String, Object> formValues) {
         LocalDateTime now = LocalDateTime.now();
         int selectedYear = Integer.parseInt((String) formValues.get("year"));
@@ -503,7 +701,19 @@ public class OptionGeneratorCollection {
             }).collect(Collectors.toList());
     }
 
-    // Hour option generator
+    /**
+     * Generates a list of hour options for the selected date, allowing patients to set appointment times
+     * or doctors to specify unavailability times.
+     * <p>
+     * This option generator is shared between patients and doctors:
+     * <ul>
+     *   <li>Patients: Used to select the hour when adding or rescheduling an appointment.</li>
+     *   <li>Doctors: Used to select the hour when adding or editing unavailability.</li>
+     * </ul>
+     *
+     * @param formValues Contains the selected year, month, and day to determine available hours.
+     * @return A list of <code>Option</code> representing available hours within the selected date.
+     */
     public static List<Option> getInputHourOptionGenerator(Map<String, Object> formValues) {
         System.out.println("Start Getting hours");
         
@@ -584,6 +794,22 @@ public class OptionGeneratorCollection {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Generates a list of options for selecting an available doctor for a patient’s appointment, 
+     * either to schedule a new appointment or reschedule an existing one.
+     * <p>
+     * This option generator is used by patients to view and select from a list of available doctors 
+     * for the specified date and time.
+     * <ul>
+     *   <li>If rescheduling, it updates the existing appointment with the selected doctor.</li>
+     *   <li>If scheduling a new appointment, it creates the appointment with the selected doctor.</li>
+     * </ul>
+     *
+     * @param availableDoctors List of doctors available for the specified date and time.
+     * @param p The patient who is scheduling or rescheduling the appointment.
+     * @param selectedDateTime The chosen date and time for the appointment.
+     * @return A list of <code>Option</code> representing available doctors, with actions for scheduling or rescheduling.
+     */
     public static List<Option> getInputDoctorOptionGenerator(List<Doctor> availableDoctors, Patient p, LocalDateTime selectedDateTime) {
         
         return availableDoctors.stream()
@@ -616,6 +842,19 @@ public class OptionGeneratorCollection {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Generates a list of options for patients to update their appointments by either rescheduling or canceling.
+     * <p>
+     * This option generator is exclusively for patients:
+     * <ul>
+     *   <li>If the control type is <code>Control.EDIT</code>, patients can reschedule their appointments by selecting a new timeslot.</li>
+     *   <li>If the control type is <code>Control.DELETE</code>, patients can cancel their appointment, requiring confirmation.</li>
+     * </ul>
+     *
+     * @param appointments List of appointments for the patient to manage.
+     * @param ctl Specifies the control type, either <code>Control.EDIT</code> (reschedule) or <code>Control.DELETE</code> (cancel).
+     * @return A list of <code>Option</code> representing each appointment, with actions for rescheduling or canceling.
+     */
     public static List<Option> generateUpdateAppointmentOptions(List<Appointment> appointments, Control ctl) {
         return appointments.stream()
             .<Option>map(appointment -> {
@@ -649,6 +888,19 @@ public class OptionGeneratorCollection {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Generates a list of menu options for pharmacists, providing quick access to their primary functions.
+     * <p>
+     * This menu includes options for:
+     * <ul>
+     *   <li>Viewing appointment outcomes, showing pending items by default.</li>
+     *   <li>Updating prescriptions based on appointment outcomes.</li>
+     *   <li>Submitting requests to replenish inventory stock.</li>
+     *   <li>Viewing the current inventory levels and details.</li>
+     * </ul>
+     *
+     * @return A list of <code>Option</code> representing the pharmacist's main menu actions, each linked to its appropriate menu state.
+     */
     public static List<Option> generatePharmacistMenuOptions() {
         return new ArrayList<>(List.of(
             new Option(
@@ -684,6 +936,20 @@ public class OptionGeneratorCollection {
         ));
     }
 
+    /**
+    * Generates a list of options for pharmacists to view or update appointment outcomes.
+    * <p>
+    * This option generator is used to display appointment outcomes and related prescription details:
+    * <ul>
+    *   <li>If <code>isUpdate</code> is <code>true</code>, pharmacists can select an option to update the prescription.</li>
+    *   <li>If <code>isUpdate</code> is <code>false</code>, options are displayed without further action.</li>
+    * </ul>
+    * Each option displays details such as patient ID, doctor ID, the number of medications, prescription status, and consultation notes.
+    *
+    * @param appointments List of appointments for which outcomes are displayed or updated.
+    * @param isUpdate Specifies whether the options are for updating (<code>true</code>) or just displaying (<code>false</code>) outcomes.
+    * @return A list of <code>Option</code> representing appointment outcomes, with actions for updating or displaying based on <code>isUpdate</code>.
+    */
     public static List<Option> generatePharmacistOutcomesOptions(List<Appointment> appointments, boolean isUpdate) {
         return appointments.stream()
         .map(appointment -> {
@@ -707,6 +973,26 @@ public class OptionGeneratorCollection {
         .collect(Collectors.toList());
     }
 
+    /**
+     * Generates a list of options for pharmacists to view and manage appointment outcomes, including 
+     * actions to update prescriptions and toggle the visibility of completed (DISPENSED) outcomes.
+     * <p>
+     * This method combines two types of options:
+     * <ul>
+     *   <li>Outcome options: Lists appointment outcomes for viewing, generated by <code>generatePharmacistOutcomesOptions</code>.</li>
+     *   <li>Action options:
+     *     <ul>
+     *       <li>Update Prescription: Allows pharmacists to navigate to a menu for updating prescriptions.</li>
+     *       <li>Show/Hide Completed: Toggles visibility of outcomes based on whether their prescriptions have been set to <code>DISPENSED</code>.</li>
+     *     </ul>
+     *   </li>
+     * </ul>
+     * The <code>hideCompleted</code> flag determines if outcomes with a prescription status of <code>DISPENSED</code> are shown or hidden.
+     *
+     * @param appointments List of appointments for which outcomes are displayed.
+     * @param hideCompleted If <code>true</code>, hides outcomes with prescriptions marked as <code>DISPENSED</code>; if <code>false</code>, shows them.
+     * @return A combined list of outcome and action <code>Option</code> for viewing and managing appointment outcomes.
+     */
     public static List<Option> generatePharmacistViewOutcomeOptions(List<Appointment> appointments, boolean hideCompleted) {
         List<Option> outcomeOptions = generatePharmacistOutcomesOptions(appointments, false);
         List<Option> actionOptions = new ArrayList<>();
@@ -750,11 +1036,26 @@ public class OptionGeneratorCollection {
         return combinedOptions;
     }
 
+    /**
+     * Generates a list of options for pharmacists to update pending prescriptions, displaying key details
+     * such as outcome ID, medication count, and prescription status.
+     * <p>
+     * This option generator is used by pharmacists to:
+     * <ul>
+     *   <li>View and select prescriptions that are pending updates.</li>
+     *   <li>Navigate to a detailed view to handle the selected prescription's updates.</li>
+     * </ul>
+     * Each option includes details about the prescription, such as the outcome ID, number of medications, 
+     * and the current status.
+     *
+     * @param prescriptions List of prescriptions available for updating.
+     * @return A list of <code>Option</code> representing each prescription that can be updated, with actions to navigate to the update menu.
+     */
     public static List<Option> generatePharmacistUpdatePrescriptionOptions(List<Prescription> prescriptions) {
         List<Option> options = prescriptions.stream()
             .map(prescription -> new Option(
-                "Update Prescription " + prescription.getOutcomeId(),  // Title for each option
-                OptionType.NUMBERED,  // Mark as a numbered option
+                "Update Prescription " + prescription.getOutcomeId(),
+                OptionType.NUMBERED,
                 new LinkedHashMap<>() {{
                     put("Outcome ID", String.valueOf(prescription.getOutcomeId()));
                     put("Medications", String.valueOf(prescription.getMedicationOrders().size()));
@@ -767,13 +1068,23 @@ public class OptionGeneratorCollection {
                 }).setNextMenuState(MenuState.PHARMACIST_HANDLE_PRESCRIPTION)
             )
             .collect(Collectors.toList());
-    
-        if (options.isEmpty()) {
-            throw new IllegalArgumentException("No prescriptions to update.");
-        }
         return options;
     }
 
+    /**
+     * Generates a list of options for pharmacists to handle a prescription, including viewing 
+     * medication orders and updating the prescription status.
+     * <p>
+     * This option generator creates:
+     * <ul>
+     *   <li>Medication Order Options: Displays details for each medication order in the prescription, including order ID, medication name, and quantity.</li>
+     *   <li>Status Options: Provides selectable status options that allow the pharmacist to progress the prescription status beyond its current state.</li>
+     * </ul>
+     * The generated options allow pharmacists to view each medication order and update the prescription status.
+     *
+     * @param p The prescription for which medication orders and status options are generated.
+     * @return A combined list of <code>Option</code>, starting with medication order details, followed by status update options.
+     */
     public static List<Option> getPharmacistHandleStatusOptions(Prescription p) {
         // Generate options for each medication order
         List<Option> medicationOrderOptions = p.getMedicationOrders().stream()
@@ -812,32 +1123,34 @@ public class OptionGeneratorCollection {
         return combinedOptions;
     }
 
-    public static List<Option> getPharmacistMedicationOptions(List<Medication> medications) {
-        return medications.stream()
-            .map(medication -> new Option(
-                medication.getName(),
-                OptionType.NUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Medication ID", String.valueOf(medication.getId()));
-                    put("Medication Name", medication.getName());
-                    put("Available Stock", String.valueOf(medication.getStock()));
-                }}
-            ).setNextAction(formValues -> {
-                Map<String, Object> newFormValues = new HashMap<>();
-                newFormValues.put("medication", medication);
-                return newFormValues;
-            }).setNextMenuState(MenuState.PHARMACIST_ADD_COUNT))
-            .collect(Collectors.toCollection(ArrayList::new));
-    }
-
-    public static List<Option> getMedicationDisplayOptions(Control ctl) {
-        boolean isAdmin = UserService.getCurrentUser() instanceof Admin;
+    /**
+     * Generates a list of options for selecting medications, tailored to the specific actions allowed 
+     * for Admins, Pharmacists, and Doctors.
+     * <p>
+     * This option generator provides the following role-based functionalities:
+     * <ul>
+     *   <li><b>Pharmacists:</b> Can select a medication to submit a replenishment request by choosing a medication and specifying the desired quantity. This functionality is accessed with <code>Control.ADD</code>.</li>
+     *   <li><b>Admins:</b> Can view and manage the medication inventory. Admins can either select a medication to edit details (using <code>Control.EDIT</code>) or view a list with unnumbered options for adding or editing medications (with <code>Control.NONE</code>).</li>
+     *   <li><b>Doctors:</b> Can select medications to add to a patient’s prescription, using <code>Control.ADD</code>.</li>
+     * </ul>
+     * 
+     * The generated options allow:
+     * <ul>
+     *   <li>Medication information display for all roles, showing ID, name, stock level, and low alert level.</li>
+     *   <li>Conditional actions based on the user role and control type.</li>
+     * </ul>
+     *
+     * @param ctl Specifies the control type, determining if options are for display, replenishment request, or prescription addition.
+     * @return A list of medication selection <code>Option</code>, with actions available based on the user's role and control type.
+     */
+    public static List<Option> generateMedicationOptions(Control ctl) {
+        User user = UserService.getCurrentUser();
 
         List<Option> options = MedicationService.getAllMedications().stream()
             .map(medication -> {
                 Option option = new Option(
                     medication.getName(),
-                    ctl == Control.EDIT ? OptionType.NUMBERED : OptionType.DISPLAY,
+                    ctl == Control.NONE ? OptionType.DISPLAY : OptionType.NUMBERED,
                     new LinkedHashMap<>() {{
                         put("Medication ID", String.valueOf(medication.getId()));
                         put("Name", medication.getName());
@@ -846,19 +1159,34 @@ public class OptionGeneratorCollection {
                     }}
                 );
 
-                if (isAdmin && ctl == Control.EDIT) {
+                if (user.getClass() == Admin.class && ctl == Control.EDIT) {
+                    // Select medication to update fields
                     option.setNextAction(formData -> {
                         formData.put("medication", medication);
                         return formData;
                     })
                     .setNextMenuState(MenuState.ADMIN_EDIT_MEDICATION);
+                } else if (user.getClass() == Pharmacist.class && ctl == Control.ADD) {
+                    // Replenish Request
+                    option.setNextAction(formValues -> {
+                        Map<String, Object> newFormValues = new HashMap<>();
+                        newFormValues.put("medication", medication);
+                        return newFormValues;
+                    }).setNextMenuState(MenuState.PHARMACIST_ADD_COUNT);
+                } else if (user.getClass() == Doctor.class && ctl == Control.ADD) {
+                    // Add medication to prescription
+                    option.setNextAction((formValues) -> {
+                        formValues.put("medication", medication);
+                        return formValues;
+                    })
+                    .setNextMenuState(MenuState.DOCTOR_ADD_QUANTITY);
                 }
 
                 return option;
             })
             .collect(Collectors.toList());
 
-        if (isAdmin && ctl == Control.NONE) {
+        if (user.getClass() == Admin.class && ctl == Control.NONE) {
             options.add(new Option(
                 "ADD( )",
                 OptionType.UNNUMBERED,
@@ -879,6 +1207,22 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    /**
+     * Generates a list of main menu options for administrators, providing access to user, appointment, 
+     * and inventory management, as well as viewing requests.
+     * <p>
+     * This option generator allows administrators to:
+     * <ul>
+     *   <li>View and manage users, including filtering by role.</li>
+     *   <li>View and manage appointments.</li>
+     *   <li>Add new users to the system.</li>
+     *   <li>View the medication inventory.</li>
+     *   <li>View submitted requests, such as replenishment requests from pharmacists.</li>
+     * </ul>
+     * Each option is linked to a specific menu state to handle the selected action.
+     *
+     * @return A list of <code>Option</code> representing the main menu actions available to administrators.
+     */
     public static List<Option> generateAdminMainMenuOptions() {
         return new ArrayList<>(List.of(
             new Option(
@@ -927,6 +1271,22 @@ public class OptionGeneratorCollection {
         ));
     }
 
+    /**
+     * Generates a list of options for administrators to view appointment details, including 
+     * appointment ID, timeslot, patient and doctor information, and the appointment status.
+     * <p>
+     * This option generator provides a detailed view of each appointment, allowing administrators to:
+     * <ul>
+     *   <li>See the appointment ID and scheduled timeslot.</li>
+     *   <li>View the patient’s name associated with each appointment.</li>
+     *   <li>See the assigned doctor’s name or indicate if no doctor is assigned.</li>
+     *   <li>Check the current status of the appointment (e.g., pending, completed).</li>
+     * </ul>
+     * Each option is displayed in a read-only format.
+     *
+     * @param appointments List of appointments to be displayed.
+     * @return A list of display <code>Option</code> representing each appointment's details.
+     */
     public static List<Option> generateAdminAppointmentsView(List<Appointment> appointments) {
         return appointments.stream()
         .map(appointment -> new Option(
@@ -945,6 +1305,35 @@ public class OptionGeneratorCollection {
         .collect(Collectors.toList());
     }
 
+    /**
+     * Generates a list of options for viewing, sorting, and managing the staff list, tailored for administrators.
+     * The generated options allow sorting by various fields (role, gender, age) and control user management actions.
+     * <p>
+     * This method provides the following options:
+     * <ul>
+     *   <li><b>View Staff List:</b> Displays a list of staff members with details including role, ID, name, gender, and age.</li>
+     *   <li><b>Sorting Options:</b> Allows sorting the staff list by role, gender, or age in ascending or descending order, based on the specified filter and sorting direction.</li>
+     *   <li><b>Management Controls:</b> Based on the control type:
+     *       <ul>
+     *         <li><code>Control.EDIT</code>: Allows editing a selected staff member's details.</li>
+     *         <li><code>Control.DELETE</code>: Allows deleting a selected staff member, with a confirmation step.</li>
+     *       </ul>
+     *   </li>
+     *   <li><b>Additional Admin Actions:</b> If no specific control is specified, admins are provided with additional options to:
+     *       <ul>
+     *         <li><code>ADD</code>: Add a new user to the system.</li>
+     *         <li><code>EDIT</code>: Select a user for editing.</li>
+     *         <li><code>DEL</code>: Select a user for deletion.</li>
+     *       </ul>
+     *   </li>
+     * </ul>
+     *
+     * @param sortedUsers List of sorted staff members to be displayed, filtered based on the specified criteria.
+     * @param filter Specifies the field to sort by (role, gender, or age).
+     * @param isAsc Defines the sorting order; <code>true</code> for ascending, <code>false</code> for descending.
+     * @param ctl Determines the control type for user management actions, either <code>Control.EDIT</code> or <code>Control.DELETE</code>, or none for view-only.
+     * @return A list of <code>Option</code> representing the staff list view, including sorting and management actions.
+     */
     public static List<Option> generateStaffListView(
         List<Staff> sortedUsers,
         SortFilter filter,
@@ -1114,6 +1503,24 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    /**
+     * Generates a list of options for editing fields related to a staff member's account, including 
+     * username, password, name, and gender. Each option allows updating the selected field.
+     * <p>
+     * This option generator is specific to editing <code>Staff</code> objects and cannot be used 
+     * for editing <code>Patient</code> fields.
+     * <ul>
+     *   <li><b>Username:</b> Displays the current username and allows modification.</li>
+     *   <li><b>Password:</b> Displays the masked current password and allows modification.</li>
+     *   <li><b>Name:</b> Displays the current name and allows modification.</li>
+     *   <li><b>Gender:</b> Displays the current gender and allows modification.</li>
+     * </ul>
+     * Each option saves the updated field back to the <code>Staff</code> object and redirects to the 
+     * main user menu upon completion.
+     *
+     * @param staff The staff member whose fields are being edited.
+     * @return A list of <code>Option</code> representing editable fields for the specified staff member.
+     */
     public static List<Option> generateUserFieldsEditOptions(Staff staff) {
         return List.of(
             new Option(
@@ -1174,6 +1581,21 @@ public class OptionGeneratorCollection {
         );
     }
 
+    /**
+     * Generates a list of options for selecting a user role, allowing administrators to specify the 
+     * type of user to add (e.g., Patient, Doctor, Pharmacist, or Admin).
+     * <p>
+     * Each option represents a role type:
+     * <ul>
+     *   <li><b>Patient:</b> Creates a patient user.</li>
+     *   <li><b>Doctor:</b> Creates a doctor user.</li>
+     *   <li><b>Pharmacist:</b> Creates a pharmacist user.</li>
+     *   <li><b>Admin:</b> Creates an admin user.</li>
+     * </ul>
+     * Each option sets the selected role in the form data and navigates to the menu for adding the user's name.
+     *
+     * @return A list of <code>Option</code> representing each available user role.
+     */
     public static List<Option> getRoleOptions() {
         return new ArrayList<>(List.of(
             createRoleOption(Patient.class),
@@ -1183,6 +1605,19 @@ public class OptionGeneratorCollection {
         ));
     }
 
+    /**
+     * Helper method to create an option for selecting a specific user role.
+     * <p>
+     * This method generates an option based on the provided <code>roleClass</code>:
+     * <ul>
+     *   <li>Displays the role's class name as the option.</li>
+     *   <li>Sets the role type in form data upon selection for further processing.</li>
+     * </ul>
+     * Each option is numbered and configured to transition to the username entry menu state after selection.
+     *
+     * @param roleClass The class representing the user role (e.g., <code>Patient.class</code>, <code>Doctor.class</code>).
+     * @return An <code>Option</code> representing the specified role, with an action to set the role in form data.
+     */
     private static Option createRoleOption(Class<?> roleClass) {
         String className = roleClass.getSimpleName();
         
@@ -1199,6 +1634,19 @@ public class OptionGeneratorCollection {
         });
     }
 
+    /**
+     * Generates a list of options for selecting a user’s gender, allowing administrators to specify 
+     * the gender of a new user during the registration process.
+     * <p>
+     * Each option corresponds to a gender value from the <code>Gender</code> enum:
+     * <ul>
+     *   <li>Displays the gender name as the option title.</li>
+     *   <li>Sets the selected gender in the form data for further processing.</li>
+     * </ul>
+     * Upon selecting a gender, the menu transitions to the date-of-birth entry stage.
+     *
+     * @return A list of <code>Option</code> representing each gender, with actions to save the selection in form data.
+     */
     public static List<Option> getGenderOptions() {
         return Arrays.stream(Gender.values())
             .map(gender -> new Option(
@@ -1214,6 +1662,20 @@ public class OptionGeneratorCollection {
             .collect(Collectors.toList());
     }
 
+    /**
+     * Generates a list of options for selecting a patient’s blood type, enabling administrators 
+     * to finalize the registration of a new patient with all required attributes.
+     * <p>
+     * Each option corresponds to a blood type from the <code>BloodType</code> enum:
+     * <ul>
+     *   <li>Displays the blood type as the option title.</li>
+     *   <li>Sets the selected blood type in the form data and completes the creation of a new <code>Patient</code> object.</li>
+     * </ul>
+     * Selecting a blood type triggers patient creation using previously gathered details and redirects 
+     * the user to the main user view.
+     *
+     * @return A list of <code>Option</code> representing each blood type, with actions to finalize patient creation.
+     */
     public static List<Option> getBloodTypeOptions() {
         return Arrays.stream(BloodType.values())
             .map(bloodType -> new Option(
@@ -1241,28 +1703,22 @@ public class OptionGeneratorCollection {
             .collect(Collectors.toList());
     }
 
-    public static List<Option> generateMedicationOptions() {
-        List<Option> options = MedicationService.getAllMedications().stream()
-            .map(medication -> new Option(
-                medication.getName(),
-                OptionType.NUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Medication ID", String.valueOf(medication.getId()));
-                    put("Name", medication.getName());
-                    put("Stock", String.valueOf(medication.getStock()));
-                    put("Low Alert Level", String.valueOf(medication.getLowAlertLevel()));
-                }}
-            ).setNextMenuState(MenuState.DOCTOR_ADD_QUANTITY)
-             .setNextAction((formValues) -> {
-                formValues.put("medication", medication);
-                return formValues;
-             }))
-            .collect(Collectors.toList());
-    
-        return options;
-    }
-
-    public static List<Option> generateMedicationEditOptions(Medication medication) throws Exception {
+    /**
+     * Generates a list of options for administrators to edit medication properties, specifically 
+     * stock level and low alert level, within the inventory.
+     * <p>
+     * This option generator allows administrators to:
+     * <ul>
+     *   <li><b>Update Stock:</b> Displays the current stock level and allows modification.</li>
+     *   <li><b>Update Low Alert Level:</b> Displays the current low alert threshold and allows modification.</li>
+     * </ul>
+     * Each option captures the updated value from user input and saves it to the <code>Medication</code> object, 
+     * then redirects to the inventory view.
+     *
+     * @param medication The medication item to be edited.
+     * @return A list of <code>Option</code> for editing the specified medication's stock and low alert level.
+     */
+    public static List<Option> generateMedicationEditOptions(Medication medication) {
         return new ArrayList<>(List.of(
             new Option(
                 "update stock",
@@ -1292,6 +1748,21 @@ public class OptionGeneratorCollection {
         ));
     }
 
+    /**
+     * Generates a list of options for managing medication replenishment requests from Pharmacists, supporting display, 
+     * approval, and rejection actions.
+     * <p>
+     * This method enables administrators to:
+     * <ul>
+     *   <li><b>Display Requests:</b> View pending replenishment requests for medications, showing details such as request ID, medication name, quantity, and status.</li>
+     *   <li><b>Approve Requests:</b> Set a selected request’s status to approved, marking it for replenishment.</li>
+     *   <li><b>Reject Requests:</b> Set a selected request’s status to rejected.</li>
+     * </ul>
+     * If <code>Control.NONE</code> is passed, options are displayed only; otherwise, action options for approving or rejecting requests are included.
+     *
+     * @param ctl The control type specifying the allowed actions, such as <code>Control.APPROVE</code> or <code>Control.REJECT</code>.
+     * @return A list of <code>Option</code> representing the request display and management options, with actions determined by the control type.
+     */
     public static List<Option> getRequestOptions(Control ctl) {
         List<Option> options = MedicationService.getAllMedications().stream()
             .flatMap(medication -> medication.getRequestList().stream()
@@ -1357,6 +1828,24 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    /**
+     * Generates a list of menu options for doctors, enabling them to manage patient records, 
+     * view and update their schedule, and handle appointment requests.
+     * <p>
+     * This menu provides the following options:
+     * <ul>
+     *   <li><b>View Patient's Medical Record:</b> Navigate to a menu for viewing past patients' medical records.</li>
+     *   <li><b>Update Patient's Medical Record:</b> Access a menu to update information in a patient’s medical record.</li>
+     *   <li><b>View Personal Schedule:</b> View upcoming scheduled events and appointments.</li>
+     *   <li><b>Manage Availability:</b> Adjust availability by setting or removing unavailability periods.</li>
+     *   <li><b>Accept or Decline Appointment Requests:</b> Review and manage appointment requests from patients.</li>
+     *   <li><b>Cancel Upcoming Appointments:</b> Cancel scheduled appointments that are yet to occur.</li>
+     *   <li><b>Record Appointment Outcome:</b> Enter outcomes of past appointments, updating the patient’s record with consultation details.</li>
+     * </ul>
+     * Each option transitions the doctor to the appropriate menu state for managing the selected task.
+     *
+     * @return A list of <code>Option</code> representing the various administrative and clinical tasks available to doctors.
+     */
     public static List<Option> generateDoctorMenuOptions() {
         return new ArrayList<>(List.of(
             new Option(
@@ -1417,6 +1906,20 @@ public class OptionGeneratorCollection {
         ));
     }
 
+    /**
+     * Generates a list of options for doctors to view patients under their care, enabling further 
+     * actions or navigation related to each patient.
+     * <p>
+     * This method retrieves all unique patients associated with the current doctor’s appointments, 
+     * displaying basic details for each patient. Doctors can:
+     * <ul>
+     *   <li>See the patient’s name and ID.</li>
+     *   <li>Select a patient to navigate to the past appointments view for that patient.</li>
+     * </ul>
+     * Each selected option adds the patient to the form data, allowing the doctor to view past appointments upon selection.
+     *
+     * @return A list of <code>Option</code> representing each patient under the doctor’s care, with actions to view their past appointments.
+     */
     public static List<Option> generatePatientOptions() {
         Set<Integer> patientIds = ((Doctor) UserService.getCurrentUser()).getAppointments().stream()
             .map(Appointment::getPatientId)
@@ -1426,7 +1929,7 @@ public class OptionGeneratorCollection {
             .filter(Objects::nonNull)
             .map(patient -> new Option(
                 patient.getName(),
-                Option.OptionType.NUMBERED,
+                OptionType.NUMBERED,
                 new LinkedHashMap<>() {{
                     put("Name", patient.getName());
                     put("Patient ID", "P" + patient.getRoleId());
@@ -1439,6 +1942,25 @@ public class OptionGeneratorCollection {
         return userOptions;
     }
 
+    /**
+     * Generates a list of options for doctors to manage upcoming events and appointments, with actions 
+     * tailored to the specified control type. This menu supports viewing, adding, editing, and deleting 
+     * busy timeslots, as well as managing appointment requests.
+     * <p>
+     * This method enables the following actions based on the <code>control</code> parameter:
+     * <ul>
+     *   <li><b>View Busy Timeslots:</b> Display times where the doctor is marked as unavailable.</li>
+     *   <li><b>Manage Appointments:</b> Show upcoming appointments, with options to cancel or respond to requests.</li>
+     *   <li><b>Edit Busy Timeslots:</b> Allows editing specific busy timeslots, useful for adjusting the doctor’s schedule.</li>
+     *   <li><b>Delete Busy Timeslots:</b> Enables removing selected times where the doctor is marked as busy.</li>
+     *   <li><b>Add Busy Timeslot:</b> Option to set a new busy timeslot for unavailability.</li>
+     *   <li><b>Reset Filters:</b> Allows toggling views between busy timeslots and appointments, and displaying both.</li>
+     * </ul>
+     * Each option transitions the user to an appropriate menu state for handling further actions.
+     *
+     * @param control Specifies the type of control action to generate options for, such as viewing, editing, or deleting busy timeslots, or managing appointments.
+     * @return A list of <code>Option</code> for managing upcoming events based on the specified control type, including actions for viewing, modifying, and responding to events or appointments.
+     */
     public static List<Option> generateUpcomingEventControlOptions(UpcomingEventControl control) {
         EnumSet<UpcomingEventControl> busyControls = EnumSet.of(
             UpcomingEventControl.VIEW_BUSY,
@@ -1614,6 +2136,25 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    /**
+     * Generates options for doctors to respond to appointment requests, allowing them to either 
+     * accept or reject each request.
+     * <p>
+     * This method provides the following options:
+     * <ul>
+     *   <li><b>Accept Appointment:</b> Confirms the selected appointment, setting its status to confirmed.</li>
+     *   <li><b>Reject Appointment:</b> Cancels the selected appointment, marking it as rejected.</li>
+     * </ul>
+     * Each option:
+     * <ul>
+     *   <li>Validates the presence of an appointment object in <code>formValues</code>.</li>
+     *   <li>Transitions to the upcoming appointments view after completion.</li>
+     *   <li>Requires confirmation before proceeding with the action.</li>
+     * </ul>
+     *
+     * @return A list of <code>Option</code> representing actions to accept or reject an appointment request.
+     * @throws IllegalArgumentException If the appointment is not found in <code>formValues</code>.
+     */
     public static List<Option> generateAcceptRejectOptions() {
         return List.of(
             new Option(
@@ -1650,6 +2191,31 @@ public class OptionGeneratorCollection {
         );
     }
     
+    /**
+     * Generates a list of options for doctors to view, add, and manage past appointment outcomes, 
+     * allowing toggling between completed and pending outcomes.
+     * <p>
+     * This method enables doctors to:
+     * <ul>
+     *   <li><b>View Appointments:</b> View past confirmed or completed appointments for a specific patient or all patients under their care.</li>
+     *   <li><b>Toggle Outcomes:</b> Switch between viewing appointments with existing outcomes and those without, allowing the doctor to manage outcomes as needed.</li>
+     *   <li><b>Add Outcomes:</b> Navigate to add a service type and consultation notes for appointments without existing outcomes.</li>
+     *   <li><b>View Completed Outcomes:</b> Access appointments that have recorded outcomes for review and editing.</li>
+     *   <li><b>Edit Patient Details:</b> Access options to edit the patient’s personal information.</li>
+     *   <li><b>Reset Filters:</b> Reset view filters to show all past appointments regardless of outcome status.</li>
+     * </ul>
+     * 
+     * Depending on the flags <code>showNullOutcomes</code> and <code>showNonNullOutcomes</code>, the doctor can:
+     * <ul>
+     *   <li><b>Show Pending Outcomes:</b> View appointments without outcomes, navigating to add details if needed.</li>
+     *   <li><b>Show Completed Outcomes:</b> Access appointments with recorded outcomes, allowing for review and potential updates.</li>
+     * </ul>
+     *
+     * @param p The patient to filter appointments by, or <code>null</code> to include all patients.
+     * @param showNullOutcomes Flag to display appointments without outcomes (pending).
+     * @param showNonNullOutcomes Flag to display appointments with outcomes (completed).
+     * @return A list of <code>Option</code> representing the past appointments, with actions to view, add, or toggle outcomes.
+     */
     public static List<Option> generateSelectDoctorPastAppointmentOptions(
             Patient p, 
             boolean showNullOutcomes,
@@ -1765,13 +2331,27 @@ public class OptionGeneratorCollection {
                 }}
             ).setNextMenuState(MenuState.DOCTOR_ADD_RECORDS));
         }
-
-        // add control to view completed appointments of patient
-        // add control to edit completed appointments of patient (filter appts with outcome), redirects to the main Outcome view page
-
         return options;
     }
 
+    /**
+     * Generates options to display and manage medication orders within an existing outcome record.
+     * <p>
+     * This method serves both doctors and patients, enabling:
+     * <ul>
+     *   <li><b>Viewing Medication Orders:</b> Displays each medication order associated with the prescription, showing fields such as order ID, medication ID, prescription ID, and quantity.</li>
+     *   <li><b>Doctor Actions:</b> Adds an option for doctors to add a new medication order to the existing prescription of the selected outcome record.</li>
+     *   <li><b>Patient Navigation:</b> Provides patients with an option to view other outcome records, facilitating a comprehensive review.</li>
+     * </ul>
+     * Depending on the role of the user, different options and next menu states are presented:
+     * <ul>
+     *   <li>If the user is a doctor, an "Add Medication" option is included, navigating to the add-medication workflow.</li>
+     *   <li>If the user is a patient, a "View Another Outcome" option is included, allowing the patient to continue viewing related outcomes.</li>
+     * </ul>
+     *
+     * @param prescription The prescription object containing medication orders linked to an outcome record.
+     * @return A list of <code>Option</code>, each representing a medication order, along with role-specific actions for adding or viewing.
+     */
     public static List<Option> generateAddMedicationOptions(Prescription prescription) {
         List<Option> options = prescription.getMedicationOrders().stream()
             .map(order -> {
@@ -1789,7 +2369,7 @@ public class OptionGeneratorCollection {
             })
             .collect(Collectors.toList());
         
-        if (UserService.getCurrentUser().getClass() == Admin.class) {
+        if (UserService.getCurrentUser().getClass() == Doctor.class) {
             options.add(
                 new Option(
                     "add( )?",
@@ -1803,7 +2383,7 @@ public class OptionGeneratorCollection {
                 }).
                 setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
             );
-        } else {
+        } else { // PATIENT
             options.add(
                 new Option(
                     "view( )?",
@@ -1819,10 +2399,24 @@ public class OptionGeneratorCollection {
             );
         }
         
-
         return options;
     }
 
+    /**
+     * Generates a list of options for selecting a service type when starting to add a new outcome record 
+     * to an appointment. This option generator is used exclusively by doctors to define the service type 
+     * for a specific appointment outcome.
+     * <p>
+     * The options allow:
+     * <ul>
+     *   <li>Displaying available service types as numbered options for selection.</li>
+     *   <li>Saving the selected service type in form data with the key <code>"serviceType"</code>.</li>
+     *   <li>Navigating to the <code>DOCTOR_ADD_MEDICATION</code> menu state after selecting a service type, 
+     *       where additional details can be specified.</li>
+     * </ul>
+     * 
+     * @return A list of <code>Option</code> representing each available service type for adding to an outcome record.
+     */
     public static List<Option> generateServiceTypeOptions() {
         return Stream.of(ServiceType.values())
             .map(serviceType -> new Option(
@@ -1835,21 +2429,6 @@ public class OptionGeneratorCollection {
                     formValues.put("serviceType", serviceType.toString());
                     return formValues;
                 }).setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
-            ).collect(Collectors.toList());
-        }
-
-    public static List<Option> generateMedicationOptions(List<Medication> medications) {
-        return medications.stream().
-            map(medication -> new Option(
-                    medication.getName(),
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Medication", medication.getName());
-                    }}
-                ).setNextAction((formValues) -> {
-                    formValues.put("medication", medication);
-                    return formValues;
-                }).setNextMenuState(MenuState.DOCTOR_ADD_QUANTITY)
             ).collect(Collectors.toList());
         }
 }

@@ -11,6 +11,7 @@ import app.service.MenuService;
 import app.service.UserService;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.ResourceBundle;
 
 public class MenuCollection {
 
@@ -20,6 +21,7 @@ public class MenuCollection {
         DELETE,
         APPROVE,
         REJECT,
+        SELECT,
         NONE
     }
     
@@ -87,24 +89,61 @@ public class MenuCollection {
         return menu;
     }
 
-    public static Menu getViewInventoryMenu() {
-        OptionMenu menu = new OptionMenu("All Medications", "")
-        .shouldAddLogoutOptions()
-        .shouldAddMainMenuOption();
+    // The following are shared by Doctors and Patients
+    public static Menu getTimeSlotSelectionMenu() {
+        return new OptionMenu("Select a Date", null)
+            .setOptionGenerator(() -> OptionGeneratorCollection.generateTimeSlotSelectOptions())
+            .shouldAddMainMenuOption();
+    }
 
-        setOptionGeneratorForInventory(menu);
+    public static Menu getInputAppointmentYearMenu() {
+        return new OptionMenu("Choose Year", null)
+            .setOptionGenerator(() -> OptionGeneratorCollection.getInputYearOptionGenerator())
+            .shouldAddMainMenuOption();
+    }
+
+    public static Menu getInputAppointmentMonthMenu() {
+        OptionMenu menu = new OptionMenu("Choose a Month", null);
+
+        menu.setOptionGenerator(() -> OptionGeneratorCollection.getInputMonthOptionGenerator(menu.getFormData()))
+            .shouldAddMainMenuOption();
         return menu;
     }
 
-    public static Menu setOptionGeneratorForInventory(OptionMenu menu) {
-        menu.setOptionGenerator(() -> {
-                Control ctl = Control.NONE;
-                Map<String, Object> formValues = menu.getFormData();
-                if (formValues != null && formValues.containsKey("ctl")) {
-                    ctl = (Control) formValues.get("ctl");
+    public static Menu getInputAppointmentDayMenu() {
+        InputMenu menu = new InputMenu("Enter a day from selected range", "");
+
+        menu.getInput()
+            .setNextMenuState(MenuState.INPUT_APPOINTMENT_HOUR)
+            .setNextAction((formValues) -> {
+                int startDay = Integer.parseInt(formValues.get("startDay").toString());
+                int endDay = Integer.parseInt(formValues.get("endDay").toString());
+                int day = Integer.parseInt(formValues.get("input").toString());
+                
+                if (day < startDay || day > endDay) {
+                    throw new IllegalArgumentException(
+                        String.format("Please enter a valid date between %d and %d", startDay, endDay)
+                    );
                 }
-                return OptionGeneratorCollection.getMedicationDisplayOptions(ctl);
+                formValues.put("day", String.valueOf(day));
+                return formValues;
             });
+        return menu;
+    }
+
+    public static Menu getInputAppointmentHourMenu() {
+        OptionMenu menu = new OptionMenu("Choose an Hour", null);
+        return menu
+            .setOptionGenerator(() -> OptionGeneratorCollection.getInputHourOptionGenerator(menu.getFormData()))
+            .shouldAddMainMenuOption();
+    }
+
+     // The following are shared by Pharmacists and Admins
+    public static Menu getViewInventoryMenu() {
+        OptionMenu menu = new OptionMenu("All Medications", "")
+        .shouldAddLogoutOptions()
+        .shouldAddMainMenuOption()
+        .setOptionGenerator(() -> OptionGeneratorCollection.generateMedicationOptions(Control.NONE));
         return menu;
     }
 }

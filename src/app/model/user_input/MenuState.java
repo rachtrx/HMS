@@ -18,6 +18,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 public enum MenuState {
+
     EDIT(MenuCollection::getEditMenu),
     CONFIRM(MenuCollection::getConfirmMenu),
     LANDING(MenuCollection::getLandingMenu),
@@ -59,7 +60,7 @@ public enum MenuState {
     // given the patient
     DOCTOR_VIEW_PAST_APPOINTMENTS(DoctorMenuCollection::getDoctorPastApptViewMenu), // IMPT select the record to view, to include edit option and add option
     DOCTOR_VIEW_RECORDS(DoctorMenuCollection::getDoctorOutcomesViewMenu),
-    VIEW_RECORD(DoctorMenuCollection::getDoctorOutcomeViewMenu), // to include edit options
+    VIEW_RECORD(DoctorMenuCollection::getOutcomeViewMenu), // to include edit options
 
     DOCTOR_ADD_RECORDS(DoctorMenuCollection::getDoctorOutcomesAddMenu), // select the record to add
     DOCTOR_ADD_SERVICE_TYPE(DoctorMenuCollection::getDoctorServiceAddMenu),

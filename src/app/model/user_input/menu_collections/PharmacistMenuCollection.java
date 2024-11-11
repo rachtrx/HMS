@@ -8,10 +8,12 @@ import app.model.user_input.InputMenu;
 import app.model.user_input.Menu;
 import app.model.user_input.MenuState;
 import app.model.user_input.OptionMenu;
+import app.model.user_input.menu_collections.MenuCollection.Control;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.service.AppointmentService;
 import app.service.MedicationService;
 import java.util.List;
+import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class PharmacistMenuCollection {
@@ -109,8 +111,7 @@ public class PharmacistMenuCollection {
     public static Menu getPharmacistAddRequestMenu() {
     return new OptionMenu("Submit Replenish Request", "Please select the medication: ")
         .setOptionGenerator(() -> {
-            List<Medication> medications = MedicationService.getAllMedications();
-            return OptionGeneratorCollection.getPharmacistMedicationOptions(medications);
+            return OptionGeneratorCollection.generateMedicationOptions(Control.ADD);
         }).shouldAddMainMenuOption();
     }
 
