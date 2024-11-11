@@ -9,6 +9,7 @@ import app.constants.exceptions.MissingCharacterException;
 import app.constants.exceptions.NonNegativeException;
 import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
 import app.service.MenuService;
+import app.utils.LoggerUtils;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -81,7 +82,7 @@ public abstract class Menu {
             userInput = userInput.trim().toLowerCase();
         }
         
-        System.out.printf("Before Executing Action: %s%n", this.menuState);
+        LoggerUtils.info("Before Executing Action: " + this.menuState);
 
         Input field = null;
         try {
@@ -103,10 +104,10 @@ public abstract class Menu {
             MenuState nextMenuState = field.getNextMenuState(); // IMPT only set data to null afterwards
 
             if (field.nextAction != null) {
-                System.out.println("Calling form values: " + this.formData);
+                LoggerUtils.info("Calling form values: " + this.formData);
                 this.formData = (Map<String, Object>) field.nextAction.apply(this.formData);
-                System.out.println("Returned form values: " + this.formData); // TODO: remove test
-                System.out.printf("After Executing Action: %s%n", nextMenuState);
+                LoggerUtils.info("Returned form values: " + this.formData); // TODO: remove test
+                LoggerUtils.info("After Executing Action: " + nextMenuState);
             }
             
             return nextMenuState;

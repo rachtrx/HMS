@@ -64,6 +64,7 @@ public class OptionTable {
         if (!displayOptions.isEmpty()) {
             printHeader(displayColumnConfig, true);
             displayOptions.forEach(option -> printRow(option.getDisplayFields(), 0, displayColumnConfig, true));
+            System.out.println("\n");
         }
     }
 
@@ -75,24 +76,27 @@ public class OptionTable {
             for (Option option : numberedOptions) {
                 printRow(option.getDisplayFields(), index++, numberedColumnConfig, false);
             }
+            System.out.println("\n");
         }
     }
 
     // Print all UNNUMBERED options in a simple table
     private void printUnNumberedOptions() {
-        System.out.printf("%-20s%-20s%n", "Select", "Action");
-        System.out.println("=".repeat(40));
-        for (Option option : unNumberedOptions) {
-            System.out.printf("%-20s%-20s%n",
-                option.getDisplayFields().getOrDefault("Select", ""),
-                option.getDisplayFields().getOrDefault("Action", ""));
+        if (!unNumberedOptions.isEmpty()) {
+            System.out.printf("%-8s%-20s%n", "Select", "Action");
+            System.out.println("=".repeat(28));
+            for (Option option : unNumberedOptions) {
+                System.out.printf("%-8s%-20s%n",
+                    option.getDisplayFields().getOrDefault("Select", ""),
+                    option.getDisplayFields().getOrDefault("Action", ""));
+            }
+            System.out.println("\n");
         }
     }
 
     public void printTable() {
         printDisplayOptions();
         printNumberedOptions();
-        System.out.println("\n");
         printUnNumberedOptions();
     }
 

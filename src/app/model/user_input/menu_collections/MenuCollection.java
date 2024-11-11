@@ -1,5 +1,6 @@
 package app.model.user_input.menu_collections;
 
+import app.constants.AppMetadata;
 import app.model.user_input.InputMenu;
 import app.model.user_input.MenuState;
 import app.model.user_input.Menu;
@@ -23,7 +24,19 @@ public class MenuCollection {
     }
 
     public static Menu getLandingMenu() {
-        InputMenu menu = new InputMenu("Landing Menu", "Press any key to continue");
+        InputMenu menu = new InputMenu("Landing Menu", String.join(
+            "\n",
+            "| |  | |  \\/  |/ ____|",
+            "| |__| | \\  / | (___  ",
+            "|  __  | |\\/| |\\___ \\ ",
+            "| |  | | |  | |____) |",
+            "|_|  |_|_|  |_|_____/ ",
+            String.format(
+                "\nWelcome to the %s (%s)!",
+                AppMetadata.APP_FULL_NAME.toString(),
+                AppMetadata.APP_SHORT_NAME.toString()
+            ), "\nPress 'Enter' to continue..."
+        ));
         menu
             .getInput()
             .setNextAction((formData) -> new HashMap<>())

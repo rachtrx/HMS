@@ -43,10 +43,8 @@ public enum MenuState {
     
     // // DOCTOR
     DOCTOR_MAIN_MENU(DoctorMenuCollection::getDoctorMainMenu),
-    
     // MOVE THIS INTO OPTIONS OF UPCOMING // DOCTOR_SET_UNAVAILABILITY(DoctorMenuCollection::getDoctorSetAvailabilityMenu),
     DOCTOR_VIEW_UPCOMING_EVENTS(DoctorMenuCollection::getDoctorViewEventsMenu), // VIEW SCHEDULE
-    
     // Availability
     DOCTOR_VIEW_UPCOMING_UNAVAILABILITY(DoctorMenuCollection::getDoctorViewUnAvailMenu), // ADD option redirects to timeslot menu
     DOCTOR_EDIT_UPCOMING_UNAVAILABILITY(DoctorMenuCollection::getDoctorEditUnAvailMenu),
@@ -56,11 +54,9 @@ public enum MenuState {
     DOCTOR_CANCEL_UPCOMING_APPOINTMENTS(DoctorMenuCollection::getDoctorCancelApptMenu),
     DOCTOR_HANDLE_UPCOMING_APPOINTMENTS(DoctorMenuCollection::getDoctorHandleApptsMenu),
     DOCTOR_HANDLE_UPCOMING_APPOINTMENT(DoctorMenuCollection::getDoctorHandleApptMenu), // choose accept or reject
-    
     // VIEW OR SELECT THE MEDICAL RECORD
     DOCTOR_VIEW_PAST_PATIENTS(DoctorMenuCollection::getSelectPatientViewMenu),
     DOCTOR_EDIT_PAST_PATIENT(DoctorMenuCollection::getPatientEditMenu), // select the patient to edit, put into args
-    
     // given the patient
     DOCTOR_VIEW_PAST_APPOINTMENTS(DoctorMenuCollection::getDoctorPastApptViewMenu), // IMPT select the record to view, to include edit option and add option
     DOCTOR_VIEW_RECORDS(DoctorMenuCollection::getDoctorOutcomesViewMenu),
@@ -157,7 +153,6 @@ public enum MenuState {
 
     public static MenuState getUserMainMenuState() {
         try {
-            System.out.println("Getting User Main Menu");
             Class<?> userClass = UserService.getCurrentUser().getClass();
             MenuState mainMenuState = USER_MENU_MAP.getOrDefault(userClass, MenuState.LANDING); // Set default as LANDING
             return mainMenuState; // Use mainMenuState to retrieve the menu

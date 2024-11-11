@@ -18,7 +18,7 @@ public class App {
 			DatabaseManager.stop();
 		} catch (Exception e) {
 			System.out.println("Error saving database: " + e.getMessage());
-			e.printStackTrace();
+			// e.printStackTrace();
 		}
 		
 	}
@@ -26,14 +26,14 @@ public class App {
     public static void main(String[] args) throws Exception {
 		DatabaseManager.start();
 		
-		// MenuService.clearScreen();
+		MenuService.clearScreen();
         MenuService.getCurrentMenu().display();
 		
 		while (true) {
 			try {
-				System.out.printf("Current Menu: %s%n", MenuService.getCurrentMenu().getMenuState());
+				LoggerUtils.info("Current Menu: " + MenuService.getCurrentMenu().getMenuState());
 				if (App.scanner.hasNextLine()) {
-					// MenuService.clearScreen(); // TODO uncomment once done
+					MenuService.clearScreen();
 					MenuService.handleUserInput(App.scanner.nextLine());
 					MenuService.getCurrentMenu().display();
 				} else {
@@ -41,13 +41,13 @@ public class App {
 					break;
 				}
 			} catch (ExitApplication | NoSuchElementException | IllegalStateException e) {
-				e.printStackTrace();
+				// e.printStackTrace();
 				App.exitApplication();
 				break;
 			} catch (Exception e) {
 				LoggerUtils.info("Exception Caught!");
 				LoggerUtils.info(e.getMessage() + "\n");
-				e.printStackTrace();
+				// e.printStackTrace();
 
 				System.out.println(e.getMessage());
 				MenuService.getCurrentMenu().display();

@@ -6,5 +6,6 @@ ID,Doctor Event ID,Patient ID,Status
 5,6,1,Cancelled
 6,7,1,Pending
 7,8,1,Pending
-8,13,1,Pending
+8,13,1,Cancelled
 9,14,1,Pending
+10,15,1,Pending

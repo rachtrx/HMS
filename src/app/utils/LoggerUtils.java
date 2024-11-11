@@ -7,7 +7,6 @@ import java.util.logging.SimpleFormatter;
 
 public class LoggerUtils {
     private static final Logger logger = Logger.getLogger(Logger.GLOBAL_LOGGER_NAME);
-
     static {
         try {
             // Set the root logger level

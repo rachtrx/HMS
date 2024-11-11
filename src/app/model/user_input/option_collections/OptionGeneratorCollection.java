@@ -459,7 +459,7 @@ public class OptionGeneratorCollection {
                         }}
                     ).setNextAction((formData) -> {
                         if (formData.isEmpty()) {
-                            formData = new HashMap<>();
+                            formData = new HashMap<String, Object>();
                         }
                         formData.put("month", Integer.toString(month));
                         formData.put(
@@ -477,6 +477,9 @@ public class OptionGeneratorCollection {
 
     // Hour option generator
     public static List<Option> getInputHourOptionGenerator(Map<String, Object> formValues) {
+        System.out.println("Start Getting hours");
+        
+
         boolean isPatient = UserService.getCurrentUser() instanceof Patient;
 
         LocalDateTime now = LocalDateTime.now();
@@ -488,9 +491,9 @@ public class OptionGeneratorCollection {
         boolean isToday = (selectedDate.isEqual(now.toLocalDate()) || selectedDate.isBefore(now.toLocalDate()));
         
         int startHour = isToday && now.toLocalTime().isAfter(Timeslot.firstSlotStartTime) ? 
-            now.getHour() + 1 : Timeslot.firstSlotStartTime.getHour();
+        now.getHour() + 1 : Timeslot.firstSlotStartTime.getHour();
 
-        System.out.println("Getting hours");
+        System.out.println("End Getting hours");
 
         return IntStream.range(startHour, Timeslot.lastSlotStartTime.getHour() + 1)
             .<Option>mapToObj(hour -> {
@@ -565,11 +568,20 @@ public class OptionGeneratorCollection {
                 )
                 .setNextMenuState(MenuState.getUserMainMenuState())
                 .setNextAction((formData) -> {
-                    AppointmentService.scheduleAppointment(
-                        p.getRoleId(),
-                        doctor.getRoleId(),
-                        selectedDateTime
-                    );
+                    if (formData.get("appointment") != null) {
+                        AppointmentService.rescheduleAppointment(
+                            ((Patient) UserService.getCurrentUser()).getRoleId(),
+                            doctor.getRoleId(),
+                            selectedDateTime,
+                            (Appointment) formData.get("appointment")
+                        );
+                    } else {
+                        AppointmentService.scheduleAppointment(
+                            ((Patient) UserService.getCurrentUser()).getRoleId(),
+                            doctor.getRoleId(),
+                            selectedDateTime
+                        );
+                    }
                     return formData;
                 })
                 .setRequiresConfirmation(true))
@@ -587,7 +599,7 @@ public class OptionGeneratorCollection {
                 )
                 .setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE)
                 .setNextAction((formValues) -> {
-                    formValues.put("currentAppointment", appointment);
+                    formValues.put("appointment", appointment);
                     return formValues;
                 })
             )
@@ -746,7 +758,7 @@ public class OptionGeneratorCollection {
                 new LinkedHashMap<>() {{
                     put("Order ID", String.valueOf(order.getId()));
                     put("Prescription ID", String.valueOf(order.getPrescriptionId()));
-                    put("Medication ID", String.valueOf(order.getMedicationId()));
+                    put("Medication", MedicationService.getMedication(order.getMedicationId()).getName());
                     put("Quantity", String.valueOf(order.getQuantity()));
                 }}
             ).setNextMenuState(MenuState.PHARMACIST_VIEW_OUTCOME_RECORDS))
@@ -1772,11 +1784,11 @@ public class OptionGeneratorCollection {
 
         if (showNullOutcomes) {
             options.add(new Option(
-                "update( )?",
+                "view( )?",
                 OptionType.UNNUMBERED,
                 new LinkedHashMap<>() {{
-                    put("Select", "update");
-                    put("Action", "Manage completed outcomes");
+                    put("Select", "view");
+                    put("Action", "View completed outcomes");
                 }}
             )
             .setNextMenuState(MenuState.DOCTOR_VIEW_RECORDS));

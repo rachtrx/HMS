@@ -3,6 +3,7 @@ package app.service;
 import app.constants.exceptions.ExitApplication;
 import app.model.user_input.MenuState;
 import app.model.user_input.Menu;
+import app.utils.LoggerUtils;
 import java.util.HashMap;
 
 /**
@@ -27,7 +28,7 @@ public class MenuService {
     }
 
     public static void setCurrentMenu(MenuState newMenuState) throws ExitApplication{
-        System.out.println("Next Menu State: " + newMenuState);
+        LoggerUtils.info("Next Menu State: " + newMenuState);
         if (newMenuState == null) {
             newMenuState = MenuState.getUserMainMenuState();
             if (newMenuState == null) throw new ExitApplication();

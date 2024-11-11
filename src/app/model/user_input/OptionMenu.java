@@ -3,6 +3,8 @@ package app.model.user_input;
 import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
 import app.model.user_input.FunctionalInterfaces.OptionGenerator;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
+import app.utils.LoggerUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,7 +50,7 @@ public class OptionMenu extends Menu {
 
         try {
             this.options = optionGenerator.apply();
-            System.out.println("GETTING OPTIONS");
+            LoggerUtils.info("GETTING OPTIONS");
         } catch (Exception e) {
             System.out.println("No Options Found");
         }
@@ -62,7 +64,7 @@ public class OptionMenu extends Menu {
         if (this.shouldHaveLogoutOption) {
             this.addLogoutOptions();
         }
-        System.out.println("Options table created");
+        LoggerUtils.info("Options table created");
         this.optionTable = new OptionTable(this.options);
 
         // if (this.options == null || this.options.size() < 1) { // IMPT now always add main menu when no options
@@ -75,7 +77,7 @@ public class OptionMenu extends Menu {
         }
 
         if (!(this.label == null || this.label.length() < 1)) {
-            System.out.print("\n" + this.label + "\n\n");
+            System.out.print("\n" + this.label + "\n");
         } else if (!this.optionTable.getNumberedOptions(true).isEmpty()) {
             System.out.println("Please select an option:");
             // switch (this.displayMode) {
@@ -90,14 +92,13 @@ public class OptionMenu extends Menu {
         if (this.displayGenerator != null) {
             try {
                 this.displayGenerator.apply();
+                System.out.println("\n");
             } catch (Exception e) {
                 e.printStackTrace();
                 System.out.println("Error printing display");
             }
             
         }
-
-        System.out.println("\n");
         this.optionTable.printTable();
     }
 

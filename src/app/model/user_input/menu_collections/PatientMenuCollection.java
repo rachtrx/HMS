@@ -137,7 +137,7 @@ public class PatientMenuCollection {
                     );
                 }
                 
-                formValues.put("day", day);
+                formValues.put("day", String.valueOf(day));
                 return formValues;
             });
         return menu;
@@ -201,7 +201,8 @@ public class PatientMenuCollection {
                 Patient patient = (Patient) UserService.getCurrentUser();
                 List<Appointment> appointments = AppointmentService.getAllAppointmentsForPatient(patient.getRoleId())
                     .stream()
-                    .filter(appointment -> appointment.getAppointmentStatus() == AppointmentStatus.CONFIRMED)
+                    .filter(appointment -> (appointment.getAppointmentStatus() == AppointmentStatus.CONFIRMED
+                    || appointment.getAppointmentStatus() == AppointmentStatus.PENDING))
                     .collect(Collectors.toList());
 
                 if (appointments.isEmpty()) {
