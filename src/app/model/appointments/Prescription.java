@@ -3,14 +3,11 @@ package app.model.appointments;
 import app.db.DatabaseManager;
 import app.model.ISerializable;
 import app.model.appointments.Prescription.PrescriptionStatus;
-import app.model.inventory.Medication;
 import app.model.inventory.MedicationOrder;
-import app.service.MedicationService;
 import app.utils.EnumUtils;
 import app.utils.LoggerUtils;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 /**
 * Appointments' outcome record.
@@ -68,23 +65,6 @@ public class Prescription implements ISerializable {
         order.setPrescriptionId(prescriptionId);
         this.medicationOrders.add(order);
     }
-
-    // public String getMedicationOrdersString() {
-    //     return this.medicationOrders
-    //         .stream()
-    //         .map(order -> {
-    //             Medication medication = MedicationService.getMedication(order.getMedicationId());
-    //             if (medication == null) {
-    //                 return null;
-    //             }
-    //             return String.format(
-    //                 "- Medication: %s\n- Quantity: %d",
-    //                 medication.getName(),
-    //                 order.getQuantity()
-    //             );
-    //         }).filter(line -> line != null)
-    //         .collect(Collectors.joining("\n"));
-    // }
 
     private Prescription(MedicationOrder medicationOrder) {
         this.id = Prescription.uuid++;

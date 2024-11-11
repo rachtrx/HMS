@@ -234,11 +234,4 @@ public class PatientMenuCollection {
         .shouldAddMainMenuOption()
         .shouldAddLogoutOptions();
     }
-    
-    
-    // public static MenuState getTimeSlotSelectionMenu(Map<String, Object> formData) {
-    //     return new OptionMenu(
-
-    //     )
-    // }
 }

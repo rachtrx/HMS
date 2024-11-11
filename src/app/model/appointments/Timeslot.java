@@ -15,7 +15,7 @@ import java.time.LocalTime;
 public class Timeslot {
     public static final LocalTime firstSlotStartTime = LocalTime.of(9, 0);
     public static final LocalTime lastSlotStartTime = LocalTime.of(16, 0);
-    public static final int timeslotLengthInHours = 1;
+    public static final int TIMESLOTLENGTHINHOURS = 1;
     private LocalDateTime timeslotDateTime;
 
     public Timeslot(LocalDateTime timeslotDateTime) throws InvalidTimeslotException {
@@ -39,7 +39,7 @@ public class Timeslot {
         );
         if (
             desiredTime.isBefore(Timeslot.firstSlotStartTime) ||
-            desiredTime.isAfter(Timeslot.lastSlotStartTime.plusHours(Timeslot.timeslotLengthInHours))
+            desiredTime.isAfter(Timeslot.lastSlotStartTime.plusHours(Timeslot.TIMESLOTLENGTHINHOURS))
         ) {
             throw new InvalidTimeslotException("Timeslot does not exist");
         }

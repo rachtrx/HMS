@@ -16,11 +16,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 /**
 * CRUD functionality for appointments.
@@ -139,10 +137,10 @@ public class AppointmentService {
         Map<Doctor, List<Timeslot>> availableSlotsByDoctor = new HashMap<>();
     
         IntStream.range(0, (int) (earliestSlotTime.until(Timeslot.lastSlotStartTime, ChronoUnit.HOURS) /
-                Timeslot.timeslotLengthInHours))
+                Timeslot.TIMESLOTLENGTHINHOURS))
             .forEach(timeslotOffset -> {
                 LocalDateTime slotDateTime = LocalDateTime.of(date.toLocalDate(),
-                        earliestSlotTime.plusHours(timeslotOffset * Timeslot.timeslotLengthInHours));
+                        earliestSlotTime.plusHours(timeslotOffset * Timeslot.TIMESLOTLENGTHINHOURS));
                 try {
                     Timeslot timeslot = new Timeslot(slotDateTime);
                     List<Doctor> availableDoctors = AppointmentService.getAvailableDoctorsAtTimeslot(slotDateTime);

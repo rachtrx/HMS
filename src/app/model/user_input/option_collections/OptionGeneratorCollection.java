@@ -314,7 +314,6 @@ public class OptionGeneratorCollection {
                 String doctorName = (doctor == null) ? "No doctor assigned" : doctor.getName();
                 String status = appointment.getAppointmentStatus().toString();
                 
-                // Create display fields for this appointment
                 LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
                 displayFields.put("Appointment Timeslot", timeslot);
                 displayFields.put("Patient Name", patientName);
