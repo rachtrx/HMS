@@ -19,6 +19,16 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 public class DoctorMenuCollection {
+
+    public enum UpcomingEventControl {
+        VIEW, VIEW_BUSY, EDIT_BUSY, DEL_BUSY, VIEW_APPT, CANCEL_APPT, RESPOND_APPT
+    }
+
+    /**
+     * Generates the main menu for doctors, providing options relevant to the doctor's main activities.
+     * 
+     * @return A configured main menu for doctor-specific operations, including options for viewing and managing appointments.
+     */
     public static Menu getDoctorMainMenu() {
         return new OptionMenu("Doctor Main Menu", null)
         .setOptionGenerator(OptionGeneratorCollection::generateDoctorMenuOptions)
@@ -26,52 +36,85 @@ public class DoctorMenuCollection {
         .shouldAddMainMenuOption();
     }
 
-    public enum UpcomingEventControl {
-        VIEW, VIEW_BUSY, EDIT_BUSY, DEL_BUSY, VIEW_APPT, CANCEL_APPT, RESPOND_APPT
-    }
-
+    /**
+     * Generates a menu displaying the doctor's schedule, showing upcoming appointments and events.
+     * 
+     * @return A menu for viewing the doctor’s schedule, with options for managing upcoming events.
+     */
     public static Menu getDoctorViewEventsMenu() {
         return new OptionMenu("Doctor Schedule", null)
             .setOptionGenerator(() -> OptionGeneratorCollection.generateUpcomingEventControlOptions(UpcomingEventControl.VIEW))
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption();
     }
+
+    /**
+     * Generates a menu displaying the doctor’s unavailability schedule.
+     * 
+     * @return A menu that shows periods when the doctor is unavailable, allowing the doctor to manage these time slots.
+     */
     public static Menu getDoctorViewUnAvailMenu() {
         return new OptionMenu("Doctor Unavailability", null)
             .setOptionGenerator(() -> OptionGeneratorCollection.generateUpcomingEventControlOptions(UpcomingEventControl.VIEW_BUSY))
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption();
     }
+
+    /**
+     * Generates a menu that allows doctors to edit their unavailability schedule.
+     *
+     * @return A menu for modifying existing periods of unavailability, helping doctors update their schedules.
+     */
     public static Menu getDoctorEditUnAvailMenu() {
         return new OptionMenu("Edit Unavailability", null)
             .setOptionGenerator(() -> OptionGeneratorCollection.generateUpcomingEventControlOptions(UpcomingEventControl.EDIT_BUSY))
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption();
     }
+    
+    /**
+     * Generates a menu that allows doctors to delete periods of unavailability from their schedule.
+     *
+     * @return A menu for removing previously set unavailability periods from the doctor's schedule.
+     */
     public static Menu getDoctorDelUnAvailMenu() {
         return new OptionMenu("Delete Unavailability", null)
             .setOptionGenerator(() -> OptionGeneratorCollection.generateUpcomingEventControlOptions(UpcomingEventControl.DEL_BUSY))
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption();
     }
+    
+    /**
+     * 
+     * @return
+     */
     public static Menu getDoctorViewApptMenu() {
         return new OptionMenu("Upcoming Appointments", null)
             .setOptionGenerator(() -> OptionGeneratorCollection.generateUpcomingEventControlOptions(UpcomingEventControl.VIEW_APPT))
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption();
     }
+    /**
+     * @return
+     */
     public static Menu getDoctorCancelApptMenu() {
         return new OptionMenu("Cancel Appointment", "Select an appointment to cancel: ")
             .setOptionGenerator(() -> OptionGeneratorCollection.generateUpcomingEventControlOptions(UpcomingEventControl.CANCEL_APPT))
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption();
     }
+    /**
+     * @return
+     */
     public static Menu getDoctorHandleApptsMenu() {
         return new OptionMenu("Appointment Requests", "Select an request to respond to: ")
             .setOptionGenerator(() -> OptionGeneratorCollection.generateUpcomingEventControlOptions(UpcomingEventControl.RESPOND_APPT))
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption();
     }
+    /**
+     * @return
+     */
     public static Menu getDoctorHandleApptMenu() {
         OptionMenu menu = new OptionMenu("Manage Appointment", "Accept or Reject Appointment: ");
             menu
@@ -98,10 +141,16 @@ public class DoctorMenuCollection {
         return menu;
     }
 
+    /**
+     * @return
+     */
     public static Menu getSelectPatientViewMenu() {
         return new OptionMenu("All patients under you", null)
         .setOptionGenerator(OptionGeneratorCollection::generatePatientOptions);
     }
+    /**
+     * @return
+     */
     public static Menu getPatientEditMenu() {
         OptionMenu menu = new OptionMenu("Edit Patient Details", "Select a field to edit");
 
@@ -117,6 +166,9 @@ public class DoctorMenuCollection {
         return menu;
     }
     
+    /**
+     * @return
+     */
     public static Menu getDoctorPastApptViewMenu() {
         OptionMenu menu = new OptionMenu("All Past Appointments", null)
             .shouldAddMainMenuOption()
@@ -126,6 +178,9 @@ public class DoctorMenuCollection {
         setDisplayGeneratorForPatient(menu);
         return menu;
     }
+    /**
+     * @return
+     */
     public static Menu getDoctorOutcomesViewMenu() {
         OptionMenu menu = new OptionMenu("All Appointment Outcomes", null)
             .shouldAddMainMenuOption()
@@ -136,6 +191,9 @@ public class DoctorMenuCollection {
         return menu;
     }
 
+    /**
+     * @return
+     */
     public static Menu getDoctorOutcomesAddMenu() {
         OptionMenu menu = new OptionMenu("Add Appointment Outcome", "Select an appointment to add outcome: ")
             .shouldAddMainMenuOption()
@@ -146,10 +204,16 @@ public class DoctorMenuCollection {
         return menu;
     }
 
+    /**
+     * @return
+     */
     public static Menu getDoctorServiceAddMenu() {
         return new OptionMenu("Appointment Service Type", "Select Service Type: ")
             .setOptionGenerator(OptionGeneratorCollection::generateServiceTypeOptions);
     }
+    /**
+     * @return
+     */
     public static Menu getDoctorNotesAddMenu() {
         InputMenu menu = new InputMenu("Consultation Notes", "Enter consultation notes: ");
 
@@ -162,6 +226,9 @@ public class DoctorMenuCollection {
         return menu;
     }
 
+    /**
+     * @return
+     */
     public static Menu getDoctorMedicationAddMenu() {
         OptionMenu menu = new OptionMenu("Select Medication", null);
 
@@ -176,6 +243,9 @@ public class DoctorMenuCollection {
         return menu;
     }
 
+    /**
+     * @return
+     */
     public static Menu getDoctorQuantityAddMenu() {
         InputMenu menu = new InputMenu("Medication Quantity", "Enter medication quantity: ");
         
@@ -219,6 +289,9 @@ public class DoctorMenuCollection {
         return menu;
     }
 
+    /**
+     * @return
+     */
     public static Menu getDoctorOutcomeViewMenu() {
         OptionMenu menu = new OptionMenu("Appointment Outcome", null);
         menu.
@@ -259,6 +332,12 @@ public class DoctorMenuCollection {
         return menu;
     }
 
+    /**
+     * @param menu
+     * @param includeAdd
+     * @param includeEdit
+     * @return
+     */
     private static Menu setOptionGeneratorForPatient(OptionMenu menu, boolean includeAdd, boolean includeEdit) {
         menu.
             setOptionGenerator(() -> {
@@ -274,6 +353,10 @@ public class DoctorMenuCollection {
         return menu;
     }
 
+    /**
+     * @param menu
+     * @return
+     */
     private static Menu setDisplayGeneratorForPatient(OptionMenu menu) {
         menu.
             setDisplayGenerator(() -> {

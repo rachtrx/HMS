@@ -2,18 +2,26 @@ package app.model.user_input.menu_collections;
 
 import app.constants.AppMetadata;
 import app.model.user_input.InputMenu;
-import app.model.user_input.MenuState;
 import app.model.user_input.Menu;
+import app.model.user_input.MenuState;
 import app.model.user_input.OptionMenu;
+import app.model.user_input.menu_collections.MenuCollection.Control;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
-import app.model.user_input.option_collections.OptionGeneratorCollection.Control;
-import app.model.users.Patient;
 import app.service.MenuService;
 import app.service.UserService;
 import java.util.HashMap;
 import java.util.Map;
 
 public class MenuCollection {
+
+    public enum Control {
+        ADD,
+        EDIT,
+        DELETE,
+        APPROVE,
+        REJECT,
+        NONE
+    }
     
     public static Menu getEditMenu() {
         return new InputMenu("Edit Menu", "Enter a new value: ").setParseUserInput(false);

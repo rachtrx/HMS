@@ -4,7 +4,6 @@ import app.constants.exceptions.InvalidTimeslotException;
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentOutcomeRecord;
-import app.model.appointments.Prescription;
 import app.model.appointments.Timeslot;
 import app.model.users.MedicalRecord;
 import app.model.users.Patient;
@@ -28,15 +27,6 @@ import java.util.stream.IntStream;
 * @since 2024-10-17
 */
 public class AppointmentService {
-// public class AppointmentService extends Service {
-
-    // private AppointmentParse appointmentParse;
-    // public static ArrayList<Appointment> appointments;
-
-    // TODO: change all past pending appointments to cancelled on application load
-    // static {}
-
-    private static Prescription currentPrescription;
 
     public static List<Appointment> getAllAppointments() {
         List<Appointment> appointments = UserService.getAllUsers()
@@ -107,19 +97,6 @@ public class AppointmentService {
     private boolean userIdMatches(Patient patient, Appointment appointment) {
         return appointment.getPatientId() == UserService.getCurrentUser().getUserId();
     }
-
-    // private Appointment (int appointmentId) throws ItemNotFoundException, UserNotFound {
-    //     Optional<Appointment> result = this.getAppointments()
-    //         .stream()
-    //         .filter(appointment -> appointment.getId() == appointmentId)
-    //         .findFirst();
-    //     if (result.isPresent()) {
-    //         return result.get();
-    //     }
-    //     throw new ItemNotFoundException(
-    //         String.format("No appointment with ID %d exists", appointmentId)
-    //     );
-    // }
 
     // TODO: requires testing
     public static Map<Doctor, List<Timeslot>> getAvailableAppointmentSlotsByDoctor(LocalDateTime date) {

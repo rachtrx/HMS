@@ -17,6 +17,7 @@ import app.model.user_input.FunctionalInterfaces.NextAction;
 import app.model.user_input.MenuState;
 import app.model.user_input.Option;
 import app.model.user_input.Option.OptionType;
+import app.model.user_input.menu_collections.MenuCollection.Control;
 import app.model.user_input.menu_collections.DoctorMenuCollection.UpcomingEventControl;
 import app.model.users.Patient;
 import app.model.users.staff.Admin;
@@ -52,15 +53,6 @@ import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 public class OptionGeneratorCollection {
-
-    public enum Control {
-        ADD,
-        EDIT,
-        DELETE,
-        APPROVE,
-        REJECT,
-        NONE
-    }
 
     public static List<Option> generateConfirmOptions(NextAction<Exception> nextAction, MenuState nextState, MenuState exitState) {
         // Define options for confirmation

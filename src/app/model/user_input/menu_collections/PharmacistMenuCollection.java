@@ -1,28 +1,18 @@
 package app.model.user_input.menu_collections;
 
 import app.model.appointments.Appointment;
-import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.Prescription;
 import app.model.appointments.Prescription.PrescriptionStatus;
 import app.model.inventory.Medication;
-import app.model.user_input.FunctionalInterfaces;
-
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.stream.Collectors;
-
-import javax.swing.text.html.Option;
-
-import app.model.user_input.FunctionalInterfaces.NextAction;
 import app.model.user_input.InputMenu;
-import app.model.user_input.MenuState;
 import app.model.user_input.Menu;
+import app.model.user_input.MenuState;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.service.AppointmentService;
 import app.service.MedicationService;
+import java.util.List;
+import java.util.stream.Collectors;
 
 public class PharmacistMenuCollection {
     public static Menu getPharmacistMainMenu() {
