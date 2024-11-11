@@ -1,6 +1,9 @@
 package app.model.appointments;
 
 import app.model.Builder;
+import app.model.appointments.Appointment.AppointmentStatus;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
 public class AppointmentBuilder extends Builder<Appointment> {
@@ -33,6 +36,10 @@ public class AppointmentBuilder extends Builder<Appointment> {
     
     @Override
     public Appointment deserialize() throws Exception {
-        return new Appointment(eventRow, apptRow, this.outcomeRecord);
+        Appointment a = new Appointment(eventRow, apptRow, this.outcomeRecord);
+        if (a.getTimeslot().isBefore(LocalDateTime.now()) && a.getAppointmentStatus() == AppointmentStatus.PENDING) {
+            a.setAppointmentStatus(AppointmentStatus.CANCELLED);
+        }
+        return a;
     }
 }
