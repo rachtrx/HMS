@@ -24,6 +24,11 @@ public enum MenuState {
     LANDING(MenuCollection::getLandingMenu),
     LOGIN_USERNAME(MenuCollection::getLoginUsernameMenu),
     LOGIN_PASSWORD(MenuCollection::getLoginPasswordMenu),
+    TIMESLOT_SELECTION_TYPE(MenuCollection::getTimeSlotSelectionMenu), // 
+    INPUT_APPOINTMENT_YEAR(MenuCollection::getInputAppointmentYearMenu),
+    INPUT_APPOINTMENT_MONTH(MenuCollection::getInputAppointmentMonthMenu),
+    INPUT_APPOINTMENT_DAY(MenuCollection::getInputAppointmentDayMenu),
+    INPUT_APPOINTMENT_HOUR(MenuCollection::getInputAppointmentHourMenu),
 
     // PATIENT
     PATIENT_MAIN_MENU(PatientMenuCollection::getPatientMainMenu),
@@ -31,11 +36,7 @@ public enum MenuState {
     PATIENT_EDIT_MEDICAL_RECORD(PatientMenuCollection::getPatientEditMedicalRecordMenu),
     PATIENT_VIEW_AVAIL_APPOINTMENTS(PatientMenuCollection::getPatientViewAvailAppointmentsMenu),
     PATIENT_VIEW_CONFIRMED_APPOINTMENTS(PatientMenuCollection::getPatientViewConfirmedAppointmentsMenu),
-    TIMESLOT_SELECTION_TYPE(PatientMenuCollection::getTimeSlotSelectionMenu), // 
-    INPUT_APPOINTMENT_YEAR(PatientMenuCollection::getInputAppointmentYearMenu),
-    INPUT_APPOINTMENT_MONTH(PatientMenuCollection::getInputAppointmentMonthMenu),
-    INPUT_APPOINTMENT_DAY(PatientMenuCollection::getInputAppointmentDayMenu),
-    INPUT_APPOINTMENT_HOUR(PatientMenuCollection::getInputAppointmentHourMenu),
+    
     INPUT_APPOINTMENT_DOCTOR(PatientMenuCollection::getInputAppointmentDoctorMenu),
     PATIENT_RESCHEDULE_SELECTION(PatientMenuCollection::getPatientRescheduleSelectionMenu),
     PATIENT_CANCEL_SELECTION(PatientMenuCollection::getPatientCancelSelectionMenu),
