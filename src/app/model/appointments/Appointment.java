@@ -133,6 +133,7 @@ public class Appointment extends DoctorEvent {
 
     public void cancel() {
         this.setAppointmentStatus(AppointmentStatus.CANCELLED);
+        System.out.println("Old Appointment successfully cancelled");
     }
 
     public void confirm() {

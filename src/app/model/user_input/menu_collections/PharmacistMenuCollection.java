@@ -20,7 +20,7 @@ public class PharmacistMenuCollection {
     public static Menu getPharmacistMainMenu() {
         return new OptionMenu("Select Option", "Choose an option")
             .setOptionGenerator(OptionGeneratorCollection::generatePharmacistMenuOptions)
-            .shouldAddLogoutOptions().shouldAddMainMenuOption();
+            .shouldAddLogoutOptions();
     }
 
     public static Menu getPharmacistViewOutcomeRecordsMenu() {
@@ -130,7 +130,8 @@ public class PharmacistMenuCollection {
     
                 MedicationService.submitReplenishRequest(medication.getId(), quantity);
                 return null;
-            }).setRequiresConfirmation(true);
+            }).setRequiresConfirmation(true)
+            .setExitMenuState(MenuState.PHARMACIST_ADD_COUNT);
     
         return menu;
     }

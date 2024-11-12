@@ -81,6 +81,7 @@ public class OptionGeneratorCollection {
             OptionType.UNNUMBERED,
             Map.of("Select", "Y", "Action", "Confirm"))
             .setNextMenuState(nextState)
+            .setExitMenuState(exitState)
             .setNextAction(nextAction);
     
         Option noOption = new Option(
@@ -95,6 +96,18 @@ public class OptionGeneratorCollection {
         return Arrays.asList(yesOption, noOption);
     }
 
+    /**
+     * Generates a list of options for logging out or exiting the application, often appended to existing option menus.
+     * <p>
+     * The generated options include:
+     * <ul>
+     *   <li>Logout Option ("LO"): Logs the user out and navigates back to the login screen.</li>
+     *   <li>Exit Option ("E"): Exits the application, throwing an <code>ExitApplication</code> exception.</li>
+     * </ul>
+     * Each option is unnumbered and provides a concise selection pattern for easy access.
+     *
+     * @return A list containing logout and exit options.
+     */
     public static List<Option> generateLogoutAndExitOptions() {
         List<Option> options = new ArrayList<>();
 
@@ -124,16 +137,16 @@ public class OptionGeneratorCollection {
     }
 
     /**
-     * Generates a list of options for logging out or exiting the application, often appended to existing option menus.
+     * Generates an option for returning to the main menu, often appended to existing option menus.
      * <p>
-     * The generated options include:
+     * The generated option allows users to select "Main Menu" or "M" to navigate 
+     * back to their respective main menu state.
      * <ul>
-     *   <li>Logout Option ("LO"): Logs the user out and navigates back to the login screen.</li>
-     *   <li>Exit Option ("E"): Exits the application, throwing an <code>ExitApplication</code> exception.</li>
+     *   <li>Main Menu Option ("M"): Navigates back to the main menu for the current user.</li>
      * </ul>
-     * Each option is unnumbered and provides a concise selection pattern for easy access.
+     * Additional options can be added to this list if needed.
      *
-     * @return A list containing logout and exit options.
+     * @return A list containing the main menu option.
      */
     public static List<Option> generateMainMenuOption() {
         List<Option> options = new ArrayList<>();
@@ -154,19 +167,44 @@ public class OptionGeneratorCollection {
     }
 
     /**
-     * Generates an option for returning to the main menu, often appended to existing option menus.
+     * Generates an option for users to reset their password.
      * <p>
-     * The generated option allows users to select "Main Menu" or "M" to navigate 
-     * back to their respective main menu state.
+     * This option allows users to navigate to the password reset process, which leads
+     * to the {@link MenuState#LOGIN_PASSWORD} state for further password-related actions.
+     * The option is designed as a numbered choice, making it easily selectable in a menu.
+     * 
+     * @return An <code>Option</code> object configured for the password reset action, with
+     *         a transition to the login password menu state.
+     */
+    public static Option generateResetPasswordOption() {
+        return new Option(
+            "reset( )?(password( )?)?", 
+            OptionType.NUMBERED,
+            new LinkedHashMap<>() {{
+                put("Action", "Reset Password");
+            }}
+        ).setNextMenuState(MenuState.LOGIN_PASSWORD);
+    }
+
+    // SECTION PATIENT MAIN MENU
+    /**
+     * Generates a list of menu options for patients, allowing them to view and manage
+     * their medical records and appointments.
+     * <p>
+     * The generated options cover various actions for patient interaction, including:
      * <ul>
-     *   <li>Main Menu Option ("M"): Navigates back to the main menu for the current user.</li>
+     *   <li>Viewing and editing medical records</li>
+     *   <li>Viewing available appointments and scheduling new ones</li>
+     *   <li>Rescheduling, canceling, and viewing scheduled appointments</li>
+     *   <li>Viewing historical appointment outcomes</li>
      * </ul>
-     * Additional options can be added to this list if needed.
+     * Each option sets the appropriate {@link MenuState} to handle user navigation.
      *
-     * @return A list containing the main menu option.
+     * @return A list of <code>Option</code> objects, each representing a different patient action
+     *         with necessary configurations for menu navigation.
      */
     public static List<Option> generatePatientMenuOptions() {
-        return new ArrayList<>(List.of(
+        List<Option> options = new ArrayList<>(List.of(
             new Option(
                     "(view( )?)?medical(( )?record)?", 
                     OptionType.NUMBERED,
@@ -239,6 +277,10 @@ public class OptionGeneratorCollection {
                     }}
                 ).setNextMenuState(MenuState.PATIENT_VIEW_OUTCOMES)
         ));
+
+        options.add(generateResetPasswordOption());
+
+        return options;
     }
 
     /**
@@ -263,7 +305,6 @@ public class OptionGeneratorCollection {
             p.setBloodType((String) formData.get("input"));
             return formData;
         })
-        .setExitMenuState(MenuState.getUserMainMenuState())
         .setEditRedirect(true);
     }
     
@@ -289,7 +330,6 @@ public class OptionGeneratorCollection {
             patient.setMobileNumber((String) formData.get("input"));
             return null;
         })
-        .setExitMenuState(MenuState.getUserMainMenuState())
         .setEditRedirect(true);
     }
     
@@ -315,7 +355,6 @@ public class OptionGeneratorCollection {
             patient.setHomeNumber((String) formData.get("input"));
             return null;
         })
-        .setExitMenuState(MenuState.getUserMainMenuState())
         .setEditRedirect(true);
     }
     
@@ -340,7 +379,6 @@ public class OptionGeneratorCollection {
             patient.setEmail((String) formData.get("input"));
             return null;
         }).setNextMenuState(MenuState.PATIENT_VIEW_MEDICAL_RECORD)
-        .setExitMenuState(MenuState.getUserMainMenuState())
         .setEditRedirect(true);
     }
     
@@ -410,7 +448,7 @@ public class OptionGeneratorCollection {
     }
 
     /**
-     * Generates a list of options for displaying or editing appointments. This method provides a detailed view of each
+     * Generates a list of options for displaying or editing appointments on the Patient Menu. This method provides a detailed view of each
      * appointment, including appointment timeslot, patient and doctor names, status, and (if available) additional outcome
      * details such as service type and consultation notes.
      * <p>
@@ -489,12 +527,23 @@ public class OptionGeneratorCollection {
             ).setNextAction((formValues) -> {
                 return new HashMap<>();
             }).setNextMenuState(MenuState.PATIENT_VIEW_OUTCOMES));
+            options.add(new Option(
+                "edit( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "edit");
+                    put("Action", "Edit Medical Record");
+                }}
+            ).setNextAction((formValues) -> {
+                return new HashMap<>();
+            }).setNextMenuState(MenuState.PATIENT_EDIT_MEDICAL_RECORD));
         }
         
 
         return options;
     }
 
+    // TODO
     public static List<Option> generateAvailableTimeslotOptionsByDate(Doctor doctor) {
         // Get all available timeslots for the doctor over the next month
         List<Timeslot> availableSlots = AppointmentService.getAvailableAppointmentSlotsForDoctorNextMonth(doctor);
@@ -543,17 +592,6 @@ public class OptionGeneratorCollection {
                 );
             })
             .collect(Collectors.toList());
-
-        options.add(new Option(
-            "B( )?",
-            OptionType.UNNUMBERED,
-            new LinkedHashMap<>() {{
-                put("Select", "B");
-                put("Action", "Back");
-            }}
-        ).setNextAction((formValues) -> {
-            return new HashMap<>();
-        }).setNextMenuState(MenuState.PATIENT_VIEW_AVAIL_APPOINTMENTS));
 
         options.add(new Option(
             "view( )?",
@@ -863,6 +901,7 @@ public class OptionGeneratorCollection {
                             throw new IllegalArgumentException("An event already exists at this timeslot");
                         }
 
+                        // Check if edit busy date
                         if (newFormValues != null && newFormValues.containsKey("originalDateTime")) {
                             LocalDateTime originalDateTime = DateTimeUtil.parseShortDateTime(
                                 (String) newFormValues.get("originalDateTime")
@@ -891,7 +930,7 @@ public class OptionGeneratorCollection {
             .collect(Collectors.toList());
     }
 
-    /** // TODO
+    /** 
      * Generates a list of options for selecting an available doctor for a patient’s appointment, 
      * either to schedule a new appointment or reschedule an existing one.
      * <p>
@@ -921,11 +960,12 @@ public class OptionGeneratorCollection {
                     option.setNextMenuState(MenuState.getUserMainMenuState())
                         .setNextAction((formData) -> {
                             if (formData.get("appointment") != null) {
-                                AppointmentService.rescheduleAppointment(
+                                Appointment appointment = (Appointment) formData.get("appointment");
+                                appointment.cancel();
+                                AppointmentService.scheduleAppointment(
                                     ((Patient) UserService.getCurrentUser()).getRoleId(),
                                     doctor.getRoleId(),
-                                    selectedDateTime,
-                                    (Appointment) formData.get("appointment")
+                                    selectedDateTime
                                 );
                             } else {
                                 AppointmentService.scheduleAppointment(
@@ -936,6 +976,7 @@ public class OptionGeneratorCollection {
                             }
                             return formData;
                         })
+                        .setExitMenuState(MenuState.INPUT_DOCTOR)
                         .setRequiresConfirmation(true);
                     
                 } else {
@@ -973,6 +1014,7 @@ public class OptionGeneratorCollection {
                     new LinkedHashMap<>() {{
                         put("DateTime", DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
                         put("Doctor", UserService.findUserByIdAndType(appointment.getDoctorId(), Doctor.class, true).getName());
+                        put("Status", appointment.getAppointmentStatus().toString());
                     }}
                 );
 
@@ -985,9 +1027,10 @@ public class OptionGeneratorCollection {
                 } else { // IMPT Control.DELETE = cancel appt
                     option.setNextMenuState(MenuState.PATIENT_MAIN_MENU)
                     .setNextAction((formValues) -> {
-                        AppointmentService.cancelAppointment(appointment);
+                        appointment.cancel();
                         return formValues;
                     })
+                    .setExitMenuState(MenuState.PATIENT_CANCEL_SELECTION)
                     .setRequiresConfirmation(true);
                 }
 
@@ -995,6 +1038,623 @@ public class OptionGeneratorCollection {
             })
             .collect(Collectors.toList());
     }
+
+    // SECTION DOCTOR MAIN MENU
+    /**
+     * Generates a list of menu options for doctors, enabling them to manage patient records, 
+     * view and update their schedule, and handle appointment requests.
+     * <p>
+     * This menu provides the following options:
+     * <ul>
+     *   <li><b>View Patient's Medical Record:</b> Navigate to a menu for viewing past patients' medical records.</li>
+     *   <li><b>Update Patient's Medical Record:</b> Access a menu to update information in a patient’s medical record.</li>
+     *   <li><b>View Personal Schedule:</b> View upcoming scheduled events and appointments.</li>
+     *   <li><b>Manage Availability:</b> Adjust availability by setting or removing unavailability periods.</li>
+     *   <li><b>Accept or Decline Appointment Requests:</b> Review and manage appointment requests from patients.</li>
+     *   <li><b>Cancel Upcoming Appointments:</b> Cancel scheduled appointments that are yet to occur.</li>
+     *   <li><b>Record Appointment Outcome:</b> Enter outcomes of past appointments, updating the patient’s record with consultation details.</li>
+     * </ul>
+     * Each option transitions the doctor to the appropriate menu state for managing the selected task.
+     *
+     * @return A list of <code>Option</code> representing the various administrative and clinical tasks available to doctors.
+     */
+    public static List<Option> generateDoctorMenuOptions() {
+        List<Option> options = new ArrayList<>(List.of(
+            new Option(
+                    "view( )?(patient(\\'s)?( )?)?(medical( )?)?record", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "View Patient's Medical Record");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_PATIENTS),
+    
+            new Option(
+                    "(edit( )?)?(patient( )?('s)?)?(medical( )?)?record", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "Update Patient's Medical Record");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_EDIT_PAST_PATIENT),
+    
+            new Option(
+                    "(view( )?)?(personal( )?)?schedule", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "View Personal Schedule");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_EVENTS),
+    
+            new Option(
+                    "(manage( )?)?Availability", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "Manage Availability");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY),
+    
+            new Option(
+                    "accept|decline|(appointment)?( )?requests", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "Accept or Decline Appointment Requests");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENTS),
+    
+            new Option(
+                    "cancel|upcoming", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "Cancel Upcoming Appointments");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_CANCEL_UPCOMING_APPOINTMENTS),
+    
+            new Option(
+                    "record|outcome", 
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Action", "Record Appointment Outcome");
+                    }}
+                ).setNextMenuState(MenuState.DOCTOR_ADD_RECORDS)
+        ));
+
+        options.add(generateResetPasswordOption());
+        return options;
+    }
+
+    /**
+     * Generates a list of options for doctors to view patients under their care, enabling further 
+     * actions or navigation related to each patient.
+     * <p>
+     * This method retrieves all unique patients associated with the current doctor’s appointments, 
+     * displaying basic details for each patient. Doctors can:
+     * <ul>
+     *   <li>See the patient’s name and ID.</li>
+     *   <li>Select a patient to navigate to the past appointments view for that patient.</li>
+     * </ul>
+     * Each selected option adds the patient to the form data, allowing the doctor to view past appointments upon selection.
+     *
+     * @return A list of <code>Option</code> representing each patient under the doctor’s care, with actions to view their past appointments.
+     */
+    public static List<Option> generatePatientOptions() {
+        Set<Integer> patientIds = ((Doctor) UserService.getCurrentUser()).getAppointments().stream()
+            .map(Appointment::getPatientId)
+            .collect(Collectors.toSet());
+        List<Option> userOptions = patientIds.stream()
+            .map(patientId -> UserService.findUserByIdAndType(patientId, Patient.class, true))
+            .filter(Objects::nonNull)
+            .map(patient -> new Option(
+                patient.getName(),
+                OptionType.NUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Name", patient.getName());
+                    put("Patient ID", "P" + patient.getRoleId());
+                }}
+            ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_APPOINTMENTS)
+                .setNextAction(formValues -> new HashMap<String, Object>() {{
+                    put("patient", patient);
+                }}))
+            .collect(Collectors.toList());
+        return userOptions;
+    }
+
+    /**
+     * Generates a list of options for doctors to manage upcoming events and appointments, with actions 
+     * tailored to the specified control type. This menu supports viewing, adding, editing, and deleting 
+     * busy timeslots, as well as managing appointment requests.
+     * <p>
+     * This method enables the following actions based on the <code>control</code> parameter:
+     * <ul>
+     *   <li><b>View Busy Timeslots:</b> Display times where the doctor is marked as unavailable.</li>
+     *   <li><b>Manage Appointments:</b> Show upcoming appointments, with options to cancel or respond to requests.</li>
+     *   <li><b>Edit Busy Timeslots:</b> Allows editing specific busy timeslots, useful for adjusting the doctor’s schedule.</li>
+     *   <li><b>Delete Busy Timeslots:</b> Enables removing selected times where the doctor is marked as busy.</li>
+     *   <li><b>Add Busy Timeslot:</b> Option to set a new busy timeslot for unavailability.</li>
+     *   <li><b>Reset Filters:</b> Allows toggling views between busy timeslots and appointments, and displaying both.</li>
+     * </ul>
+     * Each option transitions the user to an appropriate menu state for handling further actions.
+     *
+     * @param control Specifies the type of control action to generate options for, such as viewing, editing, or deleting busy timeslots, or managing appointments.
+     * @return A list of <code>Option</code> for managing upcoming events based on the specified control type, including actions for viewing, modifying, and responding to events or appointments.
+     */
+    public static List<Option> generateUpcomingEventControlOptions(UpcomingEventControl control) {
+        EnumSet<UpcomingEventControl> busyControls = EnumSet.of(
+            UpcomingEventControl.VIEW_BUSY,
+            UpcomingEventControl.EDIT_BUSY,
+            UpcomingEventControl.DEL_BUSY
+        );
+
+        EnumSet<UpcomingEventControl> apptControls = EnumSet.of(
+            UpcomingEventControl.VIEW_APPT,
+            UpcomingEventControl.CANCEL_APPT,
+            UpcomingEventControl.RESPOND_APPT
+        );
+
+        EnumSet<UpcomingEventControl> viewControls = EnumSet.of(
+            UpcomingEventControl.VIEW_BUSY,
+            UpcomingEventControl.VIEW_APPT,
+            UpcomingEventControl.VIEW
+        );
+
+        Doctor doctor = (Doctor) UserService.getCurrentUser();
+
+        List<Option> options = doctor.getDoctorEvents()
+            .stream()
+            .filter(event -> event.getTimeslot().isAfter(LocalDateTime.now()))
+            .filter(event -> busyControls.contains(control) ? !event.isAppointment() : true)
+            .filter(event -> apptControls.contains(control) ? event.isAppointment() : true)
+            .filter(event -> control == UpcomingEventControl.CANCEL_APPT ? ((Appointment) event).getAppointmentStatus() == AppointmentStatus.CONFIRMED : true)
+            .filter(event -> control == UpcomingEventControl.RESPOND_APPT ? ((Appointment) event).getAppointmentStatus() == AppointmentStatus.PENDING : true)
+            .sorted(Comparator.comparing(DoctorEvent::getTimeslot))
+            .map(event -> {
+                String eventTime = DateTimeUtil.printLongDateTime(event.getTimeslot());
+    
+                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
+                displayFields.put("Event Type", event.isAppointment() ? "Appointment" : "Event");
+                displayFields.put("Timeslot", eventTime);
+                displayFields.put("Status", event.isAppointment() ? ((Appointment) event).getAppointmentStatus().toString() : "Confirmed");
+                
+                if (!busyControls.contains(control)) {
+                    displayFields.put("Patient", event.isAppointment() ? 
+                    UserService.findUserByIdAndType(((Appointment) event).getPatientId(), Patient.class, true).getName() : 
+                    "N/A");
+                }
+                
+                Option option = new Option(
+                    eventTime,
+                    viewControls.contains(control) ? OptionType.DISPLAY : OptionType.NUMBERED,
+                    displayFields
+                );
+
+                if (control == UpcomingEventControl.EDIT_BUSY) {
+                    option.setNextAction(formValues -> {
+                        if (formValues == null) {
+                            formValues = new HashMap<>();
+                        }
+                        formValues.put(
+                            "originalDateTime",
+                            DateTimeUtil.printShortDateTime(event.getTimeslot())
+                        );
+                        return formValues;
+                    }).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE);
+                }
+
+                if (control == UpcomingEventControl.DEL_BUSY) {
+                    option.setNextAction(formValues -> {
+                        doctor.deleteDoctorEvent(event);
+                        return null;
+                    }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY);
+                }
+
+                if (control == UpcomingEventControl.CANCEL_APPT) {
+                    option.setNextAction(formValues -> {
+                        ((Appointment) event).cancel();
+                        return null;
+                    }).setRequiresConfirmation(true)
+                    .setExitMenuState(MenuState.DOCTOR_CANCEL_UPCOMING_APPOINTMENTS);
+                }
+
+                if (control == UpcomingEventControl.RESPOND_APPT) {
+                    option.setNextAction(formValues -> {
+                        formValues.put("appointment", event);
+                        return formValues;
+                    }).setNextMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENT);
+                }
+                return option;
+            }).collect(Collectors.toList());
+
+        if (busyControls.contains(control)) {
+            options.add(new Option(
+                "add( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "add");
+                    put("Action", "Add Busy Timeslot");
+                }}
+            ).setNextAction((formValues) -> {
+                return null;
+            }).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE));
+        }
+
+        if (control != UpcomingEventControl.VIEW) {
+            options.add(new Option(
+                "reset( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "reset");
+                    put("Action", "Reset filters");
+                }}
+            ).setNextAction((formValues) -> {
+                return null;
+            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_EVENTS));
+        } else {
+            options.add(new Option(
+                "busy( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "busy");
+                    put("Action", "Show Busy Dates Only");
+                }}
+            ).setNextAction((formValues) -> {
+                return null;
+            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY));
+            options.add(new Option(
+                "appt( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "appt");
+                    put("Action", "Show Appointments Only");
+                }}
+            ).setNextAction((formValues) -> {
+                return null;
+            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_APPOINTMENTS));
+        }
+
+        if (control == UpcomingEventControl.VIEW_BUSY) {
+            options.add(new Option(
+                "edit( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "edit");
+                    put("Action", "Edit Busy Timeslot");
+                }}
+            ).setNextAction((formValues) -> {
+                return formValues;
+            }).setNextMenuState(MenuState.DOCTOR_EDIT_UPCOMING_UNAVAILABILITY));
+            
+            options.add(new Option(
+                "del( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "del");
+                    put("Action", "Delete Busy Timeslot");
+                }}
+            ).setNextAction((formValues) -> {
+                return formValues;
+            }).setNextMenuState(MenuState.DOCTOR_DELETE_UPCOMING_UNAVAILABILITY));
+        } else if (control == UpcomingEventControl.VIEW_APPT) {
+            options.add(new Option(
+                "cancel( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "cancel");
+                    put("Action", "Cancel Appointment");
+                }}
+            ).setNextAction((formValues) -> {
+                return formValues;
+            }).setNextMenuState(MenuState.DOCTOR_CANCEL_UPCOMING_APPOINTMENTS));
+            
+            options.add(new Option(
+                "rsvp( )?",
+                Option.OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "rsvp");
+                    put("Action", "Respond to appointment request");
+                }}
+            ).setNextAction((formValues) -> {
+                return formValues;
+            }).setNextMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENTS));
+        }
+
+        return options;
+    }
+
+    /**
+     * Generates options for doctors to respond to appointment requests, allowing them to either 
+     * accept or reject each request.
+     * <p>
+     * This method provides the following options:
+     * <ul>
+     *   <li><b>Accept Appointment:</b> Confirms the selected appointment, setting its status to confirmed.</li>
+     *   <li><b>Reject Appointment:</b> Cancels the selected appointment, marking it as rejected.</li>
+     * </ul>
+     * Each option:
+     * <ul>
+     *   <li>Validates the presence of an appointment object in <code>formValues</code>.</li>
+     *   <li>Transitions to the upcoming appointments view after completion.</li>
+     *   <li>Requires confirmation before proceeding with the action.</li>
+     * </ul>
+     *
+     * @return A list of <code>Option</code> representing actions to accept or reject an appointment request.
+     * @throws IllegalArgumentException If the appointment is not found in <code>formValues</code>.
+     */
+    public static List<Option> generateAcceptRejectOptions() {
+        return List.of(
+            new Option(
+                "Accept Appointment",
+                OptionType.NUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Action", "Accept");
+                }}
+            ).setNextAction(formValues -> {
+                Appointment appointment = null;
+                if (formValues != null && formValues.containsKey("appointment")) {
+                    appointment = (Appointment) formValues.get("appointment");
+                } else throw new IllegalArgumentException("Appointment not found");
+                appointment.confirm();
+                return null;
+            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_APPOINTMENTS)
+            .setExitMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENTS)
+            .setRequiresConfirmation(true),
+    
+            new Option(
+                "Reject Appointment",
+                Option.OptionType.NUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Action", "Reject");
+                }}
+            ).setNextAction(formValues -> {
+                Appointment appointment = null;
+                if (formValues != null && formValues.containsKey("appointment")) {
+                    appointment = (Appointment) formValues.get("appointment");
+                } else throw new IllegalArgumentException("Appointment not found");
+                appointment.cancel();
+                return null;
+            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_APPOINTMENTS)
+            .setExitMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENTS)
+            .setRequiresConfirmation(true)
+        );
+    }
+    
+    /**
+     * Generates a list of options for doctors to view, add, and manage past appointment outcomes, 
+     * allowing toggling between completed and pending outcomes.
+     * <p>
+     * This method enables doctors to:
+     * <ul>
+     *   <li><b>View Appointments:</b> View past confirmed or completed appointments for a specific patient or all patients under their care.</li>
+     *   <li><b>Toggle Outcomes:</b> Switch between viewing appointments with existing outcomes and those without, allowing the doctor to manage outcomes as needed.</li>
+     *   <li><b>Add Outcomes:</b> Navigate to add a service type and consultation notes for appointments without existing outcomes.</li>
+     *   <li><b>View Completed Outcomes:</b> Access appointments that have recorded outcomes for review and editing.</li>
+     *   <li><b>Edit Patient Details:</b> Access options to edit the patient’s personal information.</li>
+     *   <li><b>Reset Filters:</b> Reset view filters to show all past appointments regardless of outcome status.</li>
+     * </ul>
+     * 
+     * Depending on the flags <code>showNullOutcomes</code> and <code>showNonNullOutcomes</code>, the doctor can:
+     * <ul>
+     *   <li><b>Show Pending Outcomes:</b> View appointments without outcomes, navigating to add details if needed.</li>
+     *   <li><b>Show Completed Outcomes:</b> Access appointments with recorded outcomes, allowing for review and potential updates.</li>
+     * </ul>
+     *
+     * @param p The patient to filter appointments by, or <code>null</code> to include all patients.
+     * @param showNullOutcomes Flag to display appointments without outcomes (pending).
+     * @param showNonNullOutcomes Flag to display appointments with outcomes (completed).
+     * @return A list of <code>Option</code> representing the past appointments, with actions to view, add, or toggle outcomes.
+     */
+    public static List<Option> generateSelectDoctorPastAppointmentOptions(
+            Patient p, 
+            boolean showNullOutcomes,
+            boolean showNonNullOutcomes
+        ) {
+        if (!showNullOutcomes && !showNonNullOutcomes) System.err.println("Warning: Not showing any outcomes");
+        List<Option> options = AppointmentService
+            .getAllAppointments()
+            .stream()
+            .filter(appointment ->
+                appointment.getDoctorId() == UserService.getCurrentUser().getRoleId() &&
+                (appointment.getAppointmentStatus() == AppointmentStatus.CONFIRMED ||
+                appointment.getAppointmentStatus() == AppointmentStatus.COMPLETED)
+            )
+            .filter(appointment -> p != null ? appointment.getPatientId() == p.getRoleId() : true)
+            .filter(appointment -> !showNonNullOutcomes ? appointment.getAppointmentOutcome() == null : true)
+            .filter(appointment -> !showNullOutcomes ? appointment.getAppointmentOutcome() != null : true)
+            .sorted(Comparator.comparing(Appointment::getTimeslot).reversed())
+            .map(appointment -> {
+                Patient patient = UserService.findUserByIdAndType(
+                    appointment.getPatientId(),
+                    Patient.class,
+                    true
+                );
+    
+                String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
+                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
+    
+                displayFields.put("Timeslot", timeslot);
+                if (patient != null) {
+                    displayFields.put("Patient", patient.getName());
+                } else {
+                    displayFields.put("Patient", "Error not found");
+                }
+                displayFields.put("Outcome Added", String.valueOf(appointment.getAppointmentOutcome() != null));
+    
+                Option option = new Option(
+                    timeslot,
+                    showNullOutcomes && showNonNullOutcomes ? OptionType.DISPLAY : OptionType.NUMBERED,
+                    displayFields
+                ).setNextAction(formValues -> {
+                    return new HashMap<>() {{
+                        put("appointment", Integer.toString(appointment.getAppointmentId()));
+                    }};
+                });
+
+                if(showNullOutcomes && !showNonNullOutcomes) {
+                    option.setNextAction(formValues -> {
+                        formValues.put("patient", patient);
+                        formValues.put("appointment", appointment);
+                        return formValues;
+                    }).setNextMenuState(MenuState.DOCTOR_ADD_SERVICE_TYPE);
+                } else if (!showNullOutcomes && showNonNullOutcomes) {
+                    option.setNextAction(formValues -> {
+                        formValues.put("patient", patient);
+                        formValues.put("appointment", appointment);
+                        return formValues;
+                    }).setNextMenuState(MenuState.VIEW_RECORD);
+                }
+                return option;
+            })
+            .collect(Collectors.toList());
+
+        if (p != null) {
+            options.add(new Option(
+                "edit( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "edit");
+                    put("Action", "Edit User Details");
+                }}
+            ).setNextMenuState(MenuState.DOCTOR_EDIT_PAST_PATIENT)
+            .setNextAction(formValues -> {
+                return formValues;
+            }));
+        }
+    
+        if (p != null || !showNullOutcomes || !showNonNullOutcomes) {
+            options.add(new Option(
+                "reset( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "reset");
+                    put("Action", "Reset Filters");
+                }}
+            ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_APPOINTMENTS)
+            .setNextAction(formValues -> {
+                formValues.remove("patient");
+                return formValues;
+            }));
+        }
+
+        if (showNullOutcomes) {
+            options.add(new Option(
+                "view( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "view");
+                    put("Action", "View completed outcomes");
+                }}
+            )
+            .setNextMenuState(MenuState.DOCTOR_VIEW_RECORDS));
+            
+        }
+
+        if (showNonNullOutcomes) {
+            options.add(new Option(
+                "add( )?",
+                OptionType.UNNUMBERED,
+                new LinkedHashMap<>() {{
+                    put("Select", "add");
+                    put("Action", "Manage pending outcomes");
+                }}
+            ).setNextMenuState(MenuState.DOCTOR_ADD_RECORDS));
+        }
+        return options;
+    }
+
+    /**
+     * Generates options to display and manage medication orders within an existing outcome record.
+     * <p>
+     * This method serves both doctors and patients, enabling:
+     * <ul>
+     *   <li><b>Viewing Medication Orders:</b> Displays each medication order associated with the prescription, showing fields such as order ID, medication ID, prescription ID, and quantity.</li>
+     *   <li><b>Doctor Actions:</b> Adds an option for doctors to add a new medication order to the existing prescription of the selected outcome record.</li>
+     *   <li><b>Patient Navigation:</b> Provides patients with an option to view other outcome records, facilitating a comprehensive review.</li>
+     * </ul>
+     * Depending on the role of the user, different options and next menu states are presented:
+     * <ul>
+     *   <li>If the user is a doctor, an "Add Medication" option is included, navigating to the add-medication workflow.</li>
+     *   <li>If the user is a patient, a "View Another Outcome" option is included, allowing the patient to continue viewing related outcomes.</li>
+     * </ul>
+     *
+     * @param prescription The prescription object containing medication orders linked to an outcome record.
+     * @return A list of <code>Option</code>, each representing a medication order, along with role-specific actions for adding or viewing.
+     */
+    public static List<Option> generateAddMedicationOptions(Prescription prescription) {
+        List<Option> options = prescription.getMedicationOrders().stream()
+            .map(order -> {
+                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
+                displayFields.put("Order ID", String.valueOf(order.getId()));
+                displayFields.put("Medication ID", String.valueOf(order.getMedicationId()));
+                displayFields.put("Prescription ID", String.valueOf(order.getPrescriptionId()));
+                displayFields.put("Quantity", String.valueOf(order.getQuantity()));
+
+                return new Option(
+                    "Order " + order.getId(),
+                    OptionType.DISPLAY,
+                    displayFields
+                );
+            })
+            .collect(Collectors.toList());
+        
+        if (UserService.getCurrentUser().getClass() == Doctor.class) {
+            options.add(
+                new Option(
+                    "add( )?",
+                    OptionType.UNNUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Select", "add");
+                        put("Action", "Add Medication");
+                    }}
+                ).setNextAction(formValues -> {
+                    return formValues;
+                }).
+                setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
+            );
+        } else { // PATIENT
+            options.add(
+                new Option(
+                    "view( )?",
+                    OptionType.UNNUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Select", "view");
+                        put("Action", "View Another Outcome");
+                    }}
+                ).setNextAction(formValues -> {
+                    return formValues;
+                }).
+                setNextMenuState(MenuState.PATIENT_VIEW_OUTCOMES)
+            );
+        }
+        
+        return options;
+    }
+
+    /**
+     * Generates a list of options for selecting a service type when starting to add a new outcome record 
+     * to an appointment. This option generator is used exclusively by doctors to define the service type 
+     * for a specific appointment outcome.
+     * <p>
+     * The options allow:
+     * <ul>
+     *   <li>Displaying available service types as numbered options for selection.</li>
+     *   <li>Saving the selected service type in form data with the key <code>"serviceType"</code>.</li>
+     *   <li>Navigating to the <code>DOCTOR_ADD_MEDICATION</code> menu state after selecting a service type, 
+     *       where additional details can be specified.</li>
+     * </ul>
+     * 
+     * @return A list of <code>Option</code> representing each available service type for adding to an outcome record.
+     */
+    public static List<Option> generateServiceTypeOptions() {
+        return Stream.of(ServiceType.values())
+            .map(serviceType -> new Option(
+                    serviceType.toString(),
+                    OptionType.NUMBERED,
+                    new LinkedHashMap<>() {{
+                        put("Service Type", serviceType.toString());
+                    }}
+                ).setNextAction(formValues -> {
+                    formValues.put("serviceType", serviceType.toString());
+                    return formValues;
+                }).setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
+            ).collect(Collectors.toList());
+        }
 
     /**
      * Generates a list of menu options for pharmacists, providing quick access to their primary functions.
@@ -1010,7 +1670,7 @@ public class OptionGeneratorCollection {
      * @return A list of <code>Option</code> representing the pharmacist's main menu actions, each linked to its appropriate menu state.
      */
     public static List<Option> generatePharmacistMenuOptions() {
-        return new ArrayList<>(List.of(
+        List<Option> options = new ArrayList<>(List.of(
             new Option(
                     "(view( )?)?outcomes(s)?", 
                     OptionType.NUMBERED,
@@ -1042,6 +1702,9 @@ public class OptionGeneratorCollection {
                     }}
                 ).setNextMenuState(MenuState.VIEW_INVENTORY)
         ));
+
+        options.add(generateResetPasswordOption());
+        return options;
     }
 
     /**
@@ -1332,7 +1995,7 @@ public class OptionGeneratorCollection {
      * @return A list of <code>Option</code> representing the main menu actions available to administrators.
      */
     public static List<Option> generateAdminMainMenuOptions() {
-        return new ArrayList<>(List.of(
+        List<Option> options = new ArrayList<>(List.of(
             new Option(
                 "(view( )?)?user(s)?",
                 OptionType.NUMBERED,
@@ -1377,6 +2040,9 @@ public class OptionGeneratorCollection {
                 }}
             ).setNextMenuState(MenuState.ADMIN_VIEW_REQUEST)
         ));
+
+        options.add(generateResetPasswordOption());
+        return options;
     }
 
     /**
@@ -1471,6 +2137,7 @@ public class OptionGeneratorCollection {
                     UserService.deleteStaff(staff);
                     return formValues;
                 }).setRequiresConfirmation(true)
+                .setExitMenuState(MenuState.ADMIN_SELECT_USER_DELETE)
                 .setNextMenuState(MenuState.ADMIN_VIEW_USERS);
             } else {
                 option.setNextAction((formValues) -> {
@@ -1934,614 +2601,4 @@ public class OptionGeneratorCollection {
     
         return options;
     }
-
-    /**
-     * Generates a list of menu options for doctors, enabling them to manage patient records, 
-     * view and update their schedule, and handle appointment requests.
-     * <p>
-     * This menu provides the following options:
-     * <ul>
-     *   <li><b>View Patient's Medical Record:</b> Navigate to a menu for viewing past patients' medical records.</li>
-     *   <li><b>Update Patient's Medical Record:</b> Access a menu to update information in a patient’s medical record.</li>
-     *   <li><b>View Personal Schedule:</b> View upcoming scheduled events and appointments.</li>
-     *   <li><b>Manage Availability:</b> Adjust availability by setting or removing unavailability periods.</li>
-     *   <li><b>Accept or Decline Appointment Requests:</b> Review and manage appointment requests from patients.</li>
-     *   <li><b>Cancel Upcoming Appointments:</b> Cancel scheduled appointments that are yet to occur.</li>
-     *   <li><b>Record Appointment Outcome:</b> Enter outcomes of past appointments, updating the patient’s record with consultation details.</li>
-     * </ul>
-     * Each option transitions the doctor to the appropriate menu state for managing the selected task.
-     *
-     * @return A list of <code>Option</code> representing the various administrative and clinical tasks available to doctors.
-     */
-    public static List<Option> generateDoctorMenuOptions() {
-        return new ArrayList<>(List.of(
-            new Option(
-                    "view( )?(patient(\\'s)?( )?)?(medical( )?)?record", 
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Action", "View Patient's Medical Record");
-                    }}
-                ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_PATIENTS),
-    
-            new Option(
-                    "(edit( )?)?(patient( )?('s)?)?(medical( )?)?record", 
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Action", "Update Patient's Medical Record");
-                    }}
-                ).setNextMenuState(MenuState.DOCTOR_EDIT_PAST_PATIENT),
-    
-            new Option(
-                    "(view( )?)?(personal( )?)?schedule", 
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Action", "View Personal Schedule");
-                    }}
-                ).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_EVENTS),
-    
-            new Option(
-                    "(manage( )?)?Availability", 
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Action", "Manage Availability");
-                    }}
-                ).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY),
-    
-            new Option(
-                    "accept|decline|(appointment)?( )?requests", 
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Action", "Accept or Decline Appointment Requests");
-                    }}
-                ).setNextMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENTS),
-    
-            new Option(
-                    "cancel|upcoming", 
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Action", "Cancel Upcoming Appointments");
-                    }}
-                ).setNextMenuState(MenuState.DOCTOR_CANCEL_UPCOMING_APPOINTMENTS),
-    
-            new Option(
-                    "record|outcome", 
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Action", "Record Appointment Outcome");
-                    }}
-                ).setNextMenuState(MenuState.DOCTOR_ADD_RECORDS)
-        ));
-    }
-
-    /**
-     * Generates a list of options for doctors to view patients under their care, enabling further 
-     * actions or navigation related to each patient.
-     * <p>
-     * This method retrieves all unique patients associated with the current doctor’s appointments, 
-     * displaying basic details for each patient. Doctors can:
-     * <ul>
-     *   <li>See the patient’s name and ID.</li>
-     *   <li>Select a patient to navigate to the past appointments view for that patient.</li>
-     * </ul>
-     * Each selected option adds the patient to the form data, allowing the doctor to view past appointments upon selection.
-     *
-     * @return A list of <code>Option</code> representing each patient under the doctor’s care, with actions to view their past appointments.
-     */
-    public static List<Option> generatePatientOptions() {
-        Set<Integer> patientIds = ((Doctor) UserService.getCurrentUser()).getAppointments().stream()
-            .map(Appointment::getPatientId)
-            .collect(Collectors.toSet());
-        List<Option> userOptions = patientIds.stream()
-            .map(patientId -> UserService.findUserByIdAndType(patientId, Patient.class, true))
-            .filter(Objects::nonNull)
-            .map(patient -> new Option(
-                patient.getName(),
-                OptionType.NUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Name", patient.getName());
-                    put("Patient ID", "P" + patient.getRoleId());
-                }}
-            ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_APPOINTMENTS)
-                .setNextAction(formValues -> new HashMap<String, Object>() {{
-                    put("patient", patient);
-                }}))
-            .collect(Collectors.toList());
-        return userOptions;
-    }
-
-    /**
-     * Generates a list of options for doctors to manage upcoming events and appointments, with actions 
-     * tailored to the specified control type. This menu supports viewing, adding, editing, and deleting 
-     * busy timeslots, as well as managing appointment requests.
-     * <p>
-     * This method enables the following actions based on the <code>control</code> parameter:
-     * <ul>
-     *   <li><b>View Busy Timeslots:</b> Display times where the doctor is marked as unavailable.</li>
-     *   <li><b>Manage Appointments:</b> Show upcoming appointments, with options to cancel or respond to requests.</li>
-     *   <li><b>Edit Busy Timeslots:</b> Allows editing specific busy timeslots, useful for adjusting the doctor’s schedule.</li>
-     *   <li><b>Delete Busy Timeslots:</b> Enables removing selected times where the doctor is marked as busy.</li>
-     *   <li><b>Add Busy Timeslot:</b> Option to set a new busy timeslot for unavailability.</li>
-     *   <li><b>Reset Filters:</b> Allows toggling views between busy timeslots and appointments, and displaying both.</li>
-     * </ul>
-     * Each option transitions the user to an appropriate menu state for handling further actions.
-     *
-     * @param control Specifies the type of control action to generate options for, such as viewing, editing, or deleting busy timeslots, or managing appointments.
-     * @return A list of <code>Option</code> for managing upcoming events based on the specified control type, including actions for viewing, modifying, and responding to events or appointments.
-     */
-    public static List<Option> generateUpcomingEventControlOptions(UpcomingEventControl control) {
-        EnumSet<UpcomingEventControl> busyControls = EnumSet.of(
-            UpcomingEventControl.VIEW_BUSY,
-            UpcomingEventControl.EDIT_BUSY,
-            UpcomingEventControl.DEL_BUSY
-        );
-
-        EnumSet<UpcomingEventControl> apptControls = EnumSet.of(
-            UpcomingEventControl.VIEW_APPT,
-            UpcomingEventControl.CANCEL_APPT,
-            UpcomingEventControl.RESPOND_APPT
-        );
-
-        EnumSet<UpcomingEventControl> viewControls = EnumSet.of(
-            UpcomingEventControl.VIEW_BUSY,
-            UpcomingEventControl.VIEW_APPT,
-            UpcomingEventControl.VIEW
-        );
-
-        Doctor doctor = (Doctor) UserService.getCurrentUser();
-
-        List<Option> options = doctor.getDoctorEvents()
-            .stream()
-            .filter(event -> event.getTimeslot().isAfter(LocalDateTime.now()))
-            .filter(event -> busyControls.contains(control) ? !event.isAppointment() : true)
-            .filter(event -> apptControls.contains(control) ? event.isAppointment() : true)
-            .filter(event -> control == UpcomingEventControl.CANCEL_APPT ? ((Appointment) event).getAppointmentStatus() == AppointmentStatus.CONFIRMED : true)
-            .filter(event -> control == UpcomingEventControl.RESPOND_APPT ? ((Appointment) event).getAppointmentStatus() == AppointmentStatus.PENDING : true)
-            .sorted(Comparator.comparing(DoctorEvent::getTimeslot))
-            .map(event -> {
-                String eventTime = DateTimeUtil.printLongDateTime(event.getTimeslot());
-    
-                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
-                displayFields.put("Event Type", event.isAppointment() ? "Appointment" : "Event");
-                displayFields.put("Timeslot", eventTime);
-                displayFields.put("Status", event.isAppointment() ? ((Appointment) event).getAppointmentStatus().toString() : "Confirmed");
-                
-                if (!busyControls.contains(control)) {
-                    displayFields.put("Patient", event.isAppointment() ? 
-                    UserService.findUserByIdAndType(((Appointment) event).getPatientId(), Patient.class, true).getName() : 
-                    "N/A");
-                }
-                
-                Option option = new Option(
-                    eventTime,
-                    viewControls.contains(control) ? OptionType.DISPLAY : OptionType.NUMBERED,
-                    displayFields
-                );
-
-                if (control == UpcomingEventControl.EDIT_BUSY) {
-                    option.setNextAction(formValues -> {
-                        if (formValues == null) {
-                            formValues = new HashMap<>();
-                        }
-                        formValues.put(
-                            "originalDateTime",
-                            DateTimeUtil.printShortDateTime(event.getTimeslot())
-                        );
-                        return formValues;
-                    }).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE);
-                }
-
-                if (control == UpcomingEventControl.DEL_BUSY) {
-                    option.setNextAction(formValues -> {
-                        doctor.deleteDoctorEvent(event);
-                        return null;
-                    }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY);
-                }
-
-                if (control == UpcomingEventControl.CANCEL_APPT) {
-                    option.setNextAction(formValues -> {
-                        ((Appointment) event).cancel();
-                        return null;
-                    }).setRequiresConfirmation(true);
-                }
-
-                if (control == UpcomingEventControl.RESPOND_APPT) {
-                    option.setNextAction(formValues -> {
-                        formValues.put("appointment", event);
-                        return formValues;
-                    }).setNextMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENT);
-                }
-                return option;
-            }).collect(Collectors.toList());
-
-        if (busyControls.contains(control)) {
-            options.add(new Option(
-                "add( )?",
-                Option.OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "add");
-                    put("Action", "Add Busy Timeslot");
-                }}
-            ).setNextAction((formValues) -> {
-                return null;
-            }).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE));
-        }
-
-        if (control != UpcomingEventControl.VIEW) {
-            options.add(new Option(
-                "reset( )?",
-                Option.OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "reset");
-                    put("Action", "Reset filters");
-                }}
-            ).setNextAction((formValues) -> {
-                return null;
-            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_EVENTS));
-        } else {
-            options.add(new Option(
-                "busy( )?",
-                Option.OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "busy");
-                    put("Action", "Show Busy Dates Only");
-                }}
-            ).setNextAction((formValues) -> {
-                return null;
-            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_UNAVAILABILITY));
-            options.add(new Option(
-                "appt( )?",
-                Option.OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "appt");
-                    put("Action", "Show Appointments Only");
-                }}
-            ).setNextAction((formValues) -> {
-                return null;
-            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_APPOINTMENTS));
-        }
-
-        if (control == UpcomingEventControl.VIEW_BUSY) {
-            options.add(new Option(
-                "edit( )?",
-                Option.OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "edit");
-                    put("Action", "Edit Busy Timeslot");
-                }}
-            ).setNextAction((formValues) -> {
-                return formValues;
-            }).setNextMenuState(MenuState.DOCTOR_EDIT_UPCOMING_UNAVAILABILITY));
-            
-            options.add(new Option(
-                "del( )?",
-                Option.OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "del");
-                    put("Action", "Delete Busy Timeslot");
-                }}
-            ).setNextAction((formValues) -> {
-                return formValues;
-            }).setNextMenuState(MenuState.DOCTOR_DELETE_UPCOMING_UNAVAILABILITY));
-        } else if (control == UpcomingEventControl.VIEW_APPT) {
-            options.add(new Option(
-                "cancel( )?",
-                Option.OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "cancel");
-                    put("Action", "Cancel Appointment");
-                }}
-            ).setNextAction((formValues) -> {
-                return formValues;
-            }).setNextMenuState(MenuState.DOCTOR_CANCEL_UPCOMING_APPOINTMENTS));
-            
-            options.add(new Option(
-                "rsvp( )?",
-                Option.OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "rsvp");
-                    put("Action", "Respond to appointment request");
-                }}
-            ).setNextAction((formValues) -> {
-                return formValues;
-            }).setNextMenuState(MenuState.DOCTOR_HANDLE_UPCOMING_APPOINTMENTS));
-        }
-
-        return options;
-    }
-
-    /**
-     * Generates options for doctors to respond to appointment requests, allowing them to either 
-     * accept or reject each request.
-     * <p>
-     * This method provides the following options:
-     * <ul>
-     *   <li><b>Accept Appointment:</b> Confirms the selected appointment, setting its status to confirmed.</li>
-     *   <li><b>Reject Appointment:</b> Cancels the selected appointment, marking it as rejected.</li>
-     * </ul>
-     * Each option:
-     * <ul>
-     *   <li>Validates the presence of an appointment object in <code>formValues</code>.</li>
-     *   <li>Transitions to the upcoming appointments view after completion.</li>
-     *   <li>Requires confirmation before proceeding with the action.</li>
-     * </ul>
-     *
-     * @return A list of <code>Option</code> representing actions to accept or reject an appointment request.
-     * @throws IllegalArgumentException If the appointment is not found in <code>formValues</code>.
-     */
-    public static List<Option> generateAcceptRejectOptions() {
-        return List.of(
-            new Option(
-                "Accept Appointment",
-                OptionType.NUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Action", "Accept");
-                }}
-            ).setNextAction(formValues -> {
-                Appointment appointment = null;
-                if (formValues != null && formValues.containsKey("appointment")) {
-                    appointment = (Appointment) formValues.get("appointment");
-                } else throw new IllegalArgumentException("Appointment not found");
-                appointment.confirm();
-                return null;
-            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_APPOINTMENTS)
-            .setRequiresConfirmation(true),
-    
-            new Option(
-                "Reject Appointment",
-                Option.OptionType.NUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Action", "Reject");
-                }}
-            ).setNextAction(formValues -> {
-                Appointment appointment = null;
-                if (formValues != null && formValues.containsKey("appointment")) {
-                    appointment = (Appointment) formValues.get("appointment");
-                } else throw new IllegalArgumentException("Appointment not found");
-                appointment.cancel();
-                return null;
-            }).setNextMenuState(MenuState.DOCTOR_VIEW_UPCOMING_APPOINTMENTS)
-            .setRequiresConfirmation(true)
-        );
-    }
-    
-    /**
-     * Generates a list of options for doctors to view, add, and manage past appointment outcomes, 
-     * allowing toggling between completed and pending outcomes.
-     * <p>
-     * This method enables doctors to:
-     * <ul>
-     *   <li><b>View Appointments:</b> View past confirmed or completed appointments for a specific patient or all patients under their care.</li>
-     *   <li><b>Toggle Outcomes:</b> Switch between viewing appointments with existing outcomes and those without, allowing the doctor to manage outcomes as needed.</li>
-     *   <li><b>Add Outcomes:</b> Navigate to add a service type and consultation notes for appointments without existing outcomes.</li>
-     *   <li><b>View Completed Outcomes:</b> Access appointments that have recorded outcomes for review and editing.</li>
-     *   <li><b>Edit Patient Details:</b> Access options to edit the patient’s personal information.</li>
-     *   <li><b>Reset Filters:</b> Reset view filters to show all past appointments regardless of outcome status.</li>
-     * </ul>
-     * 
-     * Depending on the flags <code>showNullOutcomes</code> and <code>showNonNullOutcomes</code>, the doctor can:
-     * <ul>
-     *   <li><b>Show Pending Outcomes:</b> View appointments without outcomes, navigating to add details if needed.</li>
-     *   <li><b>Show Completed Outcomes:</b> Access appointments with recorded outcomes, allowing for review and potential updates.</li>
-     * </ul>
-     *
-     * @param p The patient to filter appointments by, or <code>null</code> to include all patients.
-     * @param showNullOutcomes Flag to display appointments without outcomes (pending).
-     * @param showNonNullOutcomes Flag to display appointments with outcomes (completed).
-     * @return A list of <code>Option</code> representing the past appointments, with actions to view, add, or toggle outcomes.
-     */
-    public static List<Option> generateSelectDoctorPastAppointmentOptions(
-            Patient p, 
-            boolean showNullOutcomes,
-            boolean showNonNullOutcomes
-        ) {
-        if (!showNullOutcomes && !showNonNullOutcomes) System.err.println("Warning: Not showing any outcomes");
-        List<Option> options = AppointmentService
-            .getAllAppointments()
-            .stream()
-            .filter(appointment ->
-                appointment.getDoctorId() == UserService.getCurrentUser().getRoleId() &&
-                (appointment.getAppointmentStatus() == AppointmentStatus.CONFIRMED ||
-                appointment.getAppointmentStatus() == AppointmentStatus.COMPLETED)
-            )
-            .filter(appointment -> p != null ? appointment.getPatientId() == p.getRoleId() : true)
-            .filter(appointment -> !showNonNullOutcomes ? appointment.getAppointmentOutcome() == null : true)
-            .filter(appointment -> !showNullOutcomes ? appointment.getAppointmentOutcome() != null : true)
-            .sorted(Comparator.comparing(Appointment::getTimeslot).reversed())
-            .map(appointment -> {
-                Patient patient = UserService.findUserByIdAndType(
-                    appointment.getPatientId(),
-                    Patient.class,
-                    true
-                );
-    
-                String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
-                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
-    
-                displayFields.put("Timeslot", timeslot);
-                if (patient != null) {
-                    displayFields.put("Patient", patient.getName());
-                } else {
-                    displayFields.put("Patient", "Error not found");
-                }
-                displayFields.put("Outcome Added", String.valueOf(appointment.getAppointmentOutcome() != null));
-    
-                Option option = new Option(
-                    timeslot,
-                    showNullOutcomes && showNonNullOutcomes ? OptionType.DISPLAY : OptionType.NUMBERED,
-                    displayFields
-                ).setNextAction(formValues -> {
-                    return new HashMap<>() {{
-                        put("appointment", Integer.toString(appointment.getAppointmentId()));
-                    }};
-                });
-
-                if(showNullOutcomes && !showNonNullOutcomes) {
-                    option.setNextAction(formValues -> {
-                        formValues.put("patient", patient);
-                        formValues.put("appointment", appointment);
-                        return formValues;
-                    }).setNextMenuState(MenuState.DOCTOR_ADD_SERVICE_TYPE);
-                } else if (!showNullOutcomes && showNonNullOutcomes) {
-                    option.setNextAction(formValues -> {
-                        formValues.put("patient", patient);
-                        formValues.put("appointment", appointment);
-                        return formValues;
-                    }).setNextMenuState(MenuState.VIEW_RECORD);
-                }
-                return option;
-            })
-            .collect(Collectors.toList());
-
-        if (p != null) {
-            options.add(new Option(
-                "edit( )?",
-                OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "edit");
-                    put("Action", "Edit User Details");
-                }}
-            ).setNextMenuState(MenuState.DOCTOR_EDIT_PAST_PATIENT)
-            .setNextAction(formValues -> {
-                return formValues;
-            }));
-        }
-    
-        if (p != null || !showNullOutcomes || !showNonNullOutcomes) {
-            options.add(new Option(
-                "reset( )?",
-                OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "reset");
-                    put("Action", "Reset Filters");
-                }}
-            ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_APPOINTMENTS)
-            .setNextAction(formValues -> {
-                formValues.remove("patient");
-                return formValues;
-            }));
-        }
-
-        if (showNullOutcomes) {
-            options.add(new Option(
-                "view( )?",
-                OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "view");
-                    put("Action", "View completed outcomes");
-                }}
-            )
-            .setNextMenuState(MenuState.DOCTOR_VIEW_RECORDS));
-            
-        }
-
-        if (showNonNullOutcomes) {
-            options.add(new Option(
-                "add( )?",
-                OptionType.UNNUMBERED,
-                new LinkedHashMap<>() {{
-                    put("Select", "add");
-                    put("Action", "Manage pending outcomes");
-                }}
-            ).setNextMenuState(MenuState.DOCTOR_ADD_RECORDS));
-        }
-        return options;
-    }
-
-    /**
-     * Generates options to display and manage medication orders within an existing outcome record.
-     * <p>
-     * This method serves both doctors and patients, enabling:
-     * <ul>
-     *   <li><b>Viewing Medication Orders:</b> Displays each medication order associated with the prescription, showing fields such as order ID, medication ID, prescription ID, and quantity.</li>
-     *   <li><b>Doctor Actions:</b> Adds an option for doctors to add a new medication order to the existing prescription of the selected outcome record.</li>
-     *   <li><b>Patient Navigation:</b> Provides patients with an option to view other outcome records, facilitating a comprehensive review.</li>
-     * </ul>
-     * Depending on the role of the user, different options and next menu states are presented:
-     * <ul>
-     *   <li>If the user is a doctor, an "Add Medication" option is included, navigating to the add-medication workflow.</li>
-     *   <li>If the user is a patient, a "View Another Outcome" option is included, allowing the patient to continue viewing related outcomes.</li>
-     * </ul>
-     *
-     * @param prescription The prescription object containing medication orders linked to an outcome record.
-     * @return A list of <code>Option</code>, each representing a medication order, along with role-specific actions for adding or viewing.
-     */
-    public static List<Option> generateAddMedicationOptions(Prescription prescription) {
-        List<Option> options = prescription.getMedicationOrders().stream()
-            .map(order -> {
-                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
-                displayFields.put("Order ID", String.valueOf(order.getId()));
-                displayFields.put("Medication ID", String.valueOf(order.getMedicationId()));
-                displayFields.put("Prescription ID", String.valueOf(order.getPrescriptionId()));
-                displayFields.put("Quantity", String.valueOf(order.getQuantity()));
-
-                return new Option(
-                    "Order " + order.getId(),
-                    OptionType.DISPLAY,
-                    displayFields
-                );
-            })
-            .collect(Collectors.toList());
-        
-        if (UserService.getCurrentUser().getClass() == Doctor.class) {
-            options.add(
-                new Option(
-                    "add( )?",
-                    OptionType.UNNUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Select", "add");
-                        put("Action", "Add Medication");
-                    }}
-                ).setNextAction(formValues -> {
-                    return formValues;
-                }).
-                setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
-            );
-        } else { // PATIENT
-            options.add(
-                new Option(
-                    "view( )?",
-                    OptionType.UNNUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Select", "view");
-                        put("Action", "View Another Outcome");
-                    }}
-                ).setNextAction(formValues -> {
-                    return formValues;
-                }).
-                setNextMenuState(MenuState.PATIENT_VIEW_OUTCOMES)
-            );
-        }
-        
-        return options;
-    }
-
-    /**
-     * Generates a list of options for selecting a service type when starting to add a new outcome record 
-     * to an appointment. This option generator is used exclusively by doctors to define the service type 
-     * for a specific appointment outcome.
-     * <p>
-     * The options allow:
-     * <ul>
-     *   <li>Displaying available service types as numbered options for selection.</li>
-     *   <li>Saving the selected service type in form data with the key <code>"serviceType"</code>.</li>
-     *   <li>Navigating to the <code>DOCTOR_ADD_MEDICATION</code> menu state after selecting a service type, 
-     *       where additional details can be specified.</li>
-     * </ul>
-     * 
-     * @return A list of <code>Option</code> representing each available service type for adding to an outcome record.
-     */
-    public static List<Option> generateServiceTypeOptions() {
-        return Stream.of(ServiceType.values())
-            .map(serviceType -> new Option(
-                    serviceType.toString(),
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Service Type", serviceType.toString());
-                    }}
-                ).setNextAction(formValues -> {
-                    formValues.put("serviceType", serviceType.toString());
-                    return formValues;
-                }).setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
-            ).collect(Collectors.toList());
-        }
 }

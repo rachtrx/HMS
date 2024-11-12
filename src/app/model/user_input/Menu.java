@@ -112,26 +112,13 @@ public abstract class Menu {
             
             return nextMenuState;
         } catch (IllegalArgumentException | InvalidCharacterException | InvalidTimeslotException | NonNegativeException | MissingCharacterException | InvalidPhoneNumberException | InvalidLengthException e) {
-            e.printStackTrace();
-            System.out.println("Value not found, please enter a new value");
-            if(this.getMenuState() == MenuState.EDIT) {
-                if (((InputMenu) this).getInput().getExitMenuState() != null) return ((InputMenu) this).getInput().getExitMenuState();
-                return this.getPreviousMenu().getMenuState();
-            }
+            // e.printStackTrace();
+            System.out.println(e.getMessage());
             if(field != null && field.getExitMenuState() != null) return field.getExitMenuState();
+            if(this.getMenuState() == MenuState.EDIT || this.getMenuState() == MenuState.CONFIRM) return this.getPreviousMenu().getMenuState();
             return this.getMenuState();
             // return MenuState.getUserMainMenuState();
         } catch (Exception e) {
-            e.printStackTrace();
-            if (this.menuState.equals(MenuState.CONFIRM)) {
-                MenuService.setCurrentMenu(
-                    field == null || field.getExitMenuState() == null ?
-                        MenuState.getUserMainMenuState() :
-                        field.getExitMenuState()
-                );
-                throw e;
-            }
-
             System.out.println("Something went wrong. Please contact your administrator and try again.");
             System.out.println("Exiting application...");
             throw new ExitApplication();

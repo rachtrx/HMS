@@ -83,6 +83,7 @@ public class MenuCollection {
                         UserService.login((String) formData.get("username"), password);
                     } else {
                         UserService.getCurrentUser().setPassword(password);
+                        System.out.println("Password Reset Successfully!");
                     }
                     return null;
                 } catch (Exception e) {

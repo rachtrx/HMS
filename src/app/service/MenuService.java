@@ -19,6 +19,17 @@ public class MenuService {
     private static Menu currentMenu = MenuState.LANDING.getMenu(new HashMap<>());
 
     public static void handleUserInput(String userInput) throws Exception {
+
+        if (userInput.equalsIgnoreCase("\\b") && MenuService.currentMenu.getMenuState() != MenuState.CONFIRM) {
+            Menu prevMenu = MenuService.currentMenu.getPreviousMenu();
+            prevMenu = (prevMenu != null && 
+                        (prevMenu.getMenuState() == MenuState.EDIT || prevMenu.getMenuState() == MenuState.CONFIRM))
+                        ? prevMenu.getPreviousMenu()
+                        : prevMenu;
+            MenuService.currentMenu = (prevMenu != null) ? prevMenu : MenuService.currentMenu;
+            return;
+        }
+
         MenuState oldMenuState = MenuService.currentMenu.getMenuState();
         MenuState menuState = MenuService.currentMenu.handleUserInput(userInput);
         if (oldMenuState == menuState) return;

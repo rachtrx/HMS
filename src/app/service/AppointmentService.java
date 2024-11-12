@@ -218,20 +218,6 @@ public class AppointmentService {
         System.out.println("Appointment successfully scheduled");
     }
 
-    public static void cancelAppointment(
-        Appointment oldAppointment
-    ) throws Exception {
-        oldAppointment.cancel();
-        System.out.println("Old Appointment successfully cancelled");
-    }
-
-    public static void rescheduleAppointment(
-        int patientId, int doctorId, LocalDateTime timeslot, Appointment oldAppointment
-    ) throws Exception {
-        cancelAppointment(oldAppointment);
-        scheduleAppointment(patientId, doctorId, timeslot);
-    }
-
     // public void confirmAppointment(int appointmentId) throws ItemNotFoundException, UserNotFound {
     //     Appointment appointment = this.findAppointmentById(appointmentId);
     //     appointment.confirm();

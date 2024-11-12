@@ -25,11 +25,11 @@ public class PatientMenuCollection {
     public static Menu getPatientMainMenu() {
         return new OptionMenu("Select Option", "Choose an option")
             .setOptionGenerator(OptionGeneratorCollection::generatePatientMenuOptions)
-            .shouldAddLogoutOptions().shouldAddMainMenuOption();
+            .shouldAddLogoutOptions();
     }
 
     public static Menu getPatientViewMedicalRecordMenu() {
-        OptionMenu menu = new OptionMenu("Select Patient To Edit Medical Record", "Enter 'M' or 'MenuState' to return to the main menu.");
+        OptionMenu menu = new OptionMenu("Your Medical Record", "Enter 'M' or 'MenuState' to return to the main menu.");
 
         Patient patient = (Patient) UserService.getCurrentUser();
         

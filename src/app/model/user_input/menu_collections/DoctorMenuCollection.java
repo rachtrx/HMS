@@ -33,8 +33,7 @@ public class DoctorMenuCollection {
     public static Menu getDoctorMainMenu() {
         return new OptionMenu("Doctor Main Menu", null)
         .setOptionGenerator(OptionGeneratorCollection::generateDoctorMenuOptions)
-        .shouldAddLogoutOptions()
-        .shouldAddMainMenuOption();
+        .shouldAddLogoutOptions();
     }
 
     /**

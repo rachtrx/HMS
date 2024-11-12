@@ -14,8 +14,13 @@ import app.model.users.staff.Doctor;
 import app.model.users.staff.Pharmacist;
 import app.service.MenuService;
 import app.service.UserService;
+
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 public enum MenuState {
 
@@ -105,12 +110,27 @@ public enum MenuState {
     ADMIN_EDIT_MEDICATION(AdminMenuCollection::getAdminEditMedicationMenu),
     ADMIN_VIEW_REQUEST(AdminMenuCollection::getAdminViewRequestMenu),
     APPROVE_REPLENISH_REQUEST(AdminMenuCollection::getApproveReplenishRequestMenu),
-    REJECT_REPLENISH_REQUEST(AdminMenuCollection::getRejectReplenishRequestMenu);    
+    REJECT_REPLENISH_REQUEST(AdminMenuCollection::getRejectReplenishRequestMenu);
 
+    private static final Map<Class<?>, MenuState> USER_MENU_MAP = Map.of(
+        Patient.class, MenuState.PATIENT_MAIN_MENU,
+        Doctor.class, MenuState.DOCTOR_MAIN_MENU,
+        Pharmacist.class, MenuState.PHARMACIST_MAIN_MENU,
+        Admin.class, MenuState.ADMIN_MAIN_MENU
+    );
+
+    public static final Set<MenuState> RESET_MENUS = Stream.concat(
+        USER_MENU_MAP.values().stream(),
+        Stream.of(MenuState.LOGIN_USERNAME, MenuState.LANDING)
+    ).collect(Collectors.toSet());
     private final Supplier<Menu> menuProvider;
 
     MenuState(Supplier<Menu> menuProvider) {
         this.menuProvider = menuProvider;
+    }
+
+    public boolean isResetMenu() {
+        return RESET_MENUS.contains(this);
     }
 
     public Menu getMenu(Map<String, Object> formValues) {
@@ -154,6 +174,8 @@ public enum MenuState {
                 menu.setLabel("Please enter your password");
                 ((InputMenu) menu).getInput().setExitMenuState(MenuState.LOGIN_USERNAME);
             };
+        } else if (RESET_MENUS.contains(this)) {
+            menu.setPreviousMenu(null);
         }
         return menu.setFormData(formValues);
     }
@@ -168,11 +190,4 @@ public enum MenuState {
             return MenuState.LOGIN_USERNAME; // Return Menu instance instead of enum
         }
     }
-
-    private static final Map<Class<?>, MenuState> USER_MENU_MAP = Map.of(
-        Patient.class, MenuState.PATIENT_MAIN_MENU,
-        Doctor.class, MenuState.DOCTOR_MAIN_MENU,
-        Pharmacist.class, MenuState.PHARMACIST_MAIN_MENU,
-        Admin.class, MenuState.ADMIN_MAIN_MENU
-    );
 }

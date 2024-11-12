@@ -31,6 +31,10 @@ public class InputMenu extends Menu {
         if (!(this.label == null || this.label.length() < 1)) {
             System.out.print("\n" + this.label + " ");
         }
+
+        if (!this.menuState.isResetMenu() && this.menuState != MenuState.CONFIRM) {
+            System.err.println("(or enter '\\b' to go back) ");
+        }
     }
 
     @Override

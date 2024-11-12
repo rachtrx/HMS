@@ -100,6 +100,10 @@ public class OptionMenu extends Menu {
             
         }
         this.optionTable.printTable();
+
+        if (!this.menuState.isResetMenu() && this.menuState != MenuState.CONFIRM) {
+            System.err.println("(or enter '\\b' to go back) ");
+        }
     }
 
     private Menu addOptions(List<Option> options) {

@@ -34,7 +34,7 @@ public class AdminMenuCollection {
     public static Menu getAdminMainMenu() {
         return new OptionMenu("Admin Main Menu", null)
             .setOptionGenerator(OptionGeneratorCollection::generateAdminMainMenuOptions)
-            .shouldAddLogoutOptions().shouldAddMainMenuOption();
+            .shouldAddLogoutOptions();
     }
     public static Menu getAdminViewAppointmentsMenu() {
         return new OptionMenu("All Appointments", null)
