@@ -1,3 +1,5 @@
+![Cover Page](./img/HMSCover.jpg)
+
 **Hospital Management System(HMS)** is a Java console application built using Object Oriented Principles. It allows for efficient access to hospital data by various stakeholders, such as doctors, pharmacists and patients. The system consists of various functions, such as management of hospital operations - patient management, staff management, appointment scheduling, and billing. The system is designed to be scalable as it closely follows the SOLID Principles.
 
 
