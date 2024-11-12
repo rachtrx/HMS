@@ -3,7 +3,7 @@ package app.model.appointments;
 import app.constants.exceptions.InvalidTimeslotException;
 import app.db.DatabaseManager;
 import app.model.ISerializable;
-import app.utils.DateTimeUtil;
+import app.utils.DateTimeUtils;
 import app.utils.LoggerUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -39,7 +39,7 @@ public class DoctorEvent implements ISerializable {
         // LoggerUtils.info(String.join(", ", row));
         this.id = Integer.parseInt(row.get(0));
         this.doctorId = Integer.parseInt(row.get(1));
-        this.timeslot = new Timeslot(DateTimeUtil.parseShortDateTime(row.get(2)));
+        this.timeslot = new Timeslot(DateTimeUtils.parseShortDateTime(row.get(2)));
         DoctorEvent.setUuid(Math.max(DoctorEvent.uuid, this.id+1));
         // LoggerUtils.info(String.valueOf(DoctorEvent.uuid));
     }
@@ -53,7 +53,7 @@ public class DoctorEvent implements ISerializable {
         List<String> row = new ArrayList<>();
         row.add(String.valueOf(this.getId()));
         row.add(String.valueOf(this.getDoctorId())); // doctor event id
-        row.add(String.valueOf(DateTimeUtil.printShortDateTime(this.getTimeslot())));
+        row.add(String.valueOf(DateTimeUtils.printShortDateTime(this.getTimeslot())));
         return row;
     }
 

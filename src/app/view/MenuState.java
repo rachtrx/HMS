@@ -1,20 +1,21 @@
-package app.model.user_input;
+package app.view;
 
 
+import app.controller.MenuService;
+import app.controller.UserService;
 import app.db.DatabaseManager;
-import app.model.user_input.FunctionalInterfaces.NextAction;
-import app.model.user_input.menu_collections.AdminMenuCollection;
-import app.model.user_input.menu_collections.DoctorMenuCollection;
-import app.model.user_input.menu_collections.MenuCollection;
-import app.model.user_input.menu_collections.PatientMenuCollection;
-import app.model.user_input.menu_collections.PharmacistMenuCollection;
-import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.users.Patient;
 import app.model.users.staff.Admin;
 import app.model.users.staff.Doctor;
 import app.model.users.staff.Pharmacist;
-import app.service.MenuService;
-import app.service.UserService;
+import app.view.FunctionalInterfaces.NextAction;
+import app.view.menu_collections.AdminMenuCollection;
+import app.view.menu_collections.DoctorMenuCollection;
+import app.view.menu_collections.MenuCollection;
+import app.view.menu_collections.PatientMenuCollection;
+import app.view.menu_collections.PharmacistMenuCollection;
+import app.view.option_collections.OptionGeneratorCollection;
+
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;

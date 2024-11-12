@@ -1,4 +1,4 @@
-package app.model.user_input;
+package app.view;
 
 import app.constants.exceptions.ExitApplication;
 import app.constants.exceptions.InvalidCharacterException;
@@ -7,9 +7,10 @@ import app.constants.exceptions.InvalidPhoneNumberException;
 import app.constants.exceptions.InvalidTimeslotException;
 import app.constants.exceptions.MissingCharacterException;
 import app.constants.exceptions.NonNegativeException;
-import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
-import app.service.MenuService;
+import app.controller.MenuService;
 import app.utils.LoggerUtils;
+import app.view.FunctionalInterfaces.DisplayGenerator;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.IntStream;

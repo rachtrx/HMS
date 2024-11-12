@@ -51,7 +51,6 @@ public class Appointment extends DoctorEvent {
 
     private static int appointmentUuid = 1;
     private final int appointmentId;
-    public final String filename = "src/resources/Appointment_List.csv";
 
     public static void setAppointmentUuid(int value) {
         appointmentUuid = value;

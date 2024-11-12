@@ -1,7 +1,7 @@
 package app.model.appointments;
 
 import app.constants.exceptions.InvalidTimeslotException;
-import app.utils.DateTimeUtil;
+import app.utils.DateTimeUtils;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 
@@ -52,6 +52,6 @@ public class Timeslot {
 
     @Override
     public String toString() {
-        return DateTimeUtil.printShortDateTime(timeslotDateTime);
+        return DateTimeUtils.printShortDateTime(timeslotDateTime);
     }
 }

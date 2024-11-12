@@ -1,4 +1,4 @@
-package app.service;
+package app.controller;
 
 import app.model.inventory.Medication;
 import app.model.inventory.Request;

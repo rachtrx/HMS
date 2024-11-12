@@ -1,6 +1,6 @@
-package app.model.user_input;
+package app.view;
 
-import app.model.user_input.FunctionalInterfaces.NextAction;
+import app.view.FunctionalInterfaces.NextAction;
 
 public class Input {
 

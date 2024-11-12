@@ -1,6 +1,6 @@
 package app.utils;
 
-import app.utils.DateTimeUtil.DateConditions;
+import app.utils.DateTimeUtils.DateConditions;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -14,7 +14,7 @@ import java.time.format.DateTimeParseException;
 * @version 1.0
 * @since 2024-10-18
 */
-public class DateTimeUtil {
+public class DateTimeUtils {
 
     private static final DateTimeFormatter DATE_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter DATETIME_FORMAT = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm:ss");
@@ -121,7 +121,7 @@ public class DateTimeUtil {
         ) {
             throw new IllegalArgumentException(String.format(
                 "Date must be earlier than or equal to %s",
-                DateTimeUtil.printLongDateTime(originalDate)
+                DateTimeUtils.printLongDateTime(originalDate)
             ));
         } else if (
             criteria == DateConditions.PAST &&
@@ -129,7 +129,7 @@ public class DateTimeUtil {
         ) {
             throw new IllegalArgumentException(String.format(
                 "Date must be earlier than %s",
-                DateTimeUtil.printLongDateTime(originalDate)
+                DateTimeUtils.printLongDateTime(originalDate)
             ));
         } else if (
             criteria == DateConditions.FUTURE_OR_PRESENT &&
@@ -137,7 +137,7 @@ public class DateTimeUtil {
         ) {
             throw new IllegalArgumentException(String.format(
                 "Date must be later than or equal to %s",
-                DateTimeUtil.printLongDateTime(originalDate)
+                DateTimeUtils.printLongDateTime(originalDate)
             ));
         } else if (
             criteria == DateConditions.FUTURE &&
@@ -145,7 +145,7 @@ public class DateTimeUtil {
         ) {
             throw new IllegalArgumentException(String.format(
                 "Date must be later than %s",
-                DateTimeUtil.printLongDateTime(originalDate)
+                DateTimeUtils.printLongDateTime(originalDate)
             ));
         }
     }

@@ -1,8 +1,8 @@
 package app;
 
 import app.constants.exceptions.ExitApplication;
+import app.controller.MenuService;
 import app.db.DatabaseManager;
-import app.service.MenuService;
 import app.utils.LoggerUtils;
 import java.util.NoSuchElementException;
 import java.util.Scanner;

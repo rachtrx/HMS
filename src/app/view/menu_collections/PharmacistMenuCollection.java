@@ -1,17 +1,18 @@
-package app.model.user_input.menu_collections;
+package app.view.menu_collections;
 
+import app.controller.AppointmentService;
+import app.controller.MedicationService;
 import app.model.appointments.Appointment;
 import app.model.appointments.Prescription;
 import app.model.appointments.Prescription.PrescriptionStatus;
 import app.model.inventory.Medication;
-import app.model.user_input.InputMenu;
-import app.model.user_input.Menu;
-import app.model.user_input.MenuState;
-import app.model.user_input.OptionMenu;
-import app.model.user_input.menu_collections.MenuCollection.Control;
-import app.model.user_input.option_collections.OptionGeneratorCollection;
-import app.service.AppointmentService;
-import app.service.MedicationService;
+import app.view.InputMenu;
+import app.view.Menu;
+import app.view.MenuState;
+import app.view.OptionMenu;
+import app.view.menu_collections.MenuCollection.Control;
+import app.view.option_collections.OptionGeneratorCollection;
+
 import java.util.List;
 import java.util.stream.Collectors;
 

@@ -1,4 +1,4 @@
-package app.model.user_input;
+package app.view;
 
 import java.util.*;
 import java.util.regex.Matcher;

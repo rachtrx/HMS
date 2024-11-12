@@ -1,4 +1,4 @@
-package app.model.user_input;
+package app.view;
 
 import java.util.List;
 import java.util.Map;

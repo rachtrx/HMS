@@ -2,12 +2,12 @@ package app.model.users.user_credentials;
 
 import app.constants.exceptions.InvalidLengthException;
 import app.constants.exceptions.InvalidPhoneNumberException;
+import app.model.users.user_credentials.validators.IntegerValidator;
+import app.model.users.user_credentials.validators.StringValidator;
+
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.HashMap;
-
-import app.model.validators.IntegerValidator;
-import app.model.validators.StringValidator;
 import java.util.stream.Collectors;
 
 /**

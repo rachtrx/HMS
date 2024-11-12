@@ -1,4 +1,4 @@
-package app.service;
+package app.controller;
 
 import app.db.DatabaseManager;
 import app.model.users.User;

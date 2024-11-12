@@ -1,4 +1,4 @@
-package app.service;
+package app.controller;
 
 import app.constants.exceptions.InvalidTimeslotException;
 import app.model.appointments.Appointment;

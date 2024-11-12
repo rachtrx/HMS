@@ -1,7 +1,6 @@
-package app.model.user_input;
+package app.view;
 
-import app.db.DatabaseManager;
-import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
+import app.view.FunctionalInterfaces.DisplayGenerator;
 
 public class InputMenu extends Menu {
     

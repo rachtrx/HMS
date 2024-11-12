@@ -3,8 +3,8 @@ package app.model.users.user_credentials;
 import app.constants.exceptions.InvalidCharacterException;
 import app.constants.exceptions.InvalidLengthException;
 import app.constants.exceptions.MissingCharacterException;
-import app.model.validators.IntegerValidator;
-import app.model.validators.StringValidator;
+import app.model.users.user_credentials.validators.IntegerValidator;
+import app.model.users.user_credentials.validators.StringValidator;
 import app.utils.LoggerUtils;
 
 /**

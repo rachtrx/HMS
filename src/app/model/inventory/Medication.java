@@ -1,9 +1,9 @@
 package app.model.inventory;
 
 import app.constants.exceptions.NonNegativeException;
+import app.controller.MedicationService;
 import app.db.DatabaseManager;
 import app.model.ISerializable;
-import app.service.MedicationService;
 import app.utils.LoggerUtils;
 import java.util.ArrayList;
 import java.util.List;

@@ -1,13 +1,10 @@
-package app.model.user_input.menu_collections;
+package app.view.menu_collections;
 
+import app.controller.AppointmentService;
+import app.controller.UserService;
+import app.controller.UserService.SortFilter;
 import app.model.appointments.Appointment;
 import app.model.inventory.Medication;
-import app.model.user_input.InputMenu;
-import app.model.user_input.Menu;
-import app.model.user_input.MenuState;
-import app.model.user_input.OptionMenu;
-import app.model.user_input.menu_collections.MenuCollection.Control;
-import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.users.Patient;
 import app.model.users.User;
 import app.model.users.staff.Admin;
@@ -17,10 +14,14 @@ import app.model.users.staff.Staff;
 import app.model.users.user_credentials.Email;
 import app.model.users.user_credentials.PhoneNumber;
 import app.model.users.user_credentials.Username;
-import app.service.AppointmentService;
-import app.service.UserService;
-import app.service.UserService.SortFilter;
-import app.utils.DateTimeUtil;
+import app.utils.DateTimeUtils;
+import app.view.InputMenu;
+import app.view.Menu;
+import app.view.MenuState;
+import app.view.OptionMenu;
+import app.view.menu_collections.MenuCollection.Control;
+import app.view.option_collections.OptionGeneratorCollection;
+
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -140,7 +141,7 @@ public class AdminMenuCollection {
                 String input = (String) menu.getFormData().get("input");
                 String role = (String) formValues.get("role");
 
-                LocalDate dob = DateTimeUtil.parseShortDate(input);
+                LocalDate dob = DateTimeUtils.parseShortDate(input);
                 try {
                     if (dob.isAfter(LocalDate.now())) {
                         throw new IllegalArgumentException("Date of Birth cannot be in the future.");

@@ -1,14 +1,11 @@
-package app.service;
+package app.controller;
 
 import app.constants.exceptions.ExitApplication;
-import app.db.DatabaseManager;
-import app.model.user_input.MenuState;
-import app.model.user_input.Menu;
-import app.model.user_input.MenuState;
 import app.model.users.User;
 import app.utils.LoggerUtils;
+import app.view.Menu;
+import app.view.MenuState;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 
 /**

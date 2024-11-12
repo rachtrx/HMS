@@ -1,16 +1,17 @@
-package app.model.user_input.menu_collections;
+package app.view.menu_collections;
 
 import app.constants.AppMetadata;
-import app.model.user_input.InputMenu;
-import app.model.user_input.Menu;
-import app.model.user_input.MenuState;
-import app.model.user_input.OptionMenu;
-import app.model.user_input.menu_collections.MenuCollection.Control;
-import app.model.user_input.option_collections.OptionGeneratorCollection;
+import app.controller.MenuService;
+import app.controller.UserService;
 import app.model.users.User;
 import app.model.users.user_credentials.Password;
-import app.service.MenuService;
-import app.service.UserService;
+import app.view.InputMenu;
+import app.view.Menu;
+import app.view.MenuState;
+import app.view.OptionMenu;
+import app.view.menu_collections.MenuCollection.Control;
+import app.view.option_collections.OptionGeneratorCollection;
+
 import java.util.HashMap;
 import java.util.Map;
 import java.util.ResourceBundle;

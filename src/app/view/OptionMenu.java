@@ -1,9 +1,10 @@
-package app.model.user_input;
+package app.view;
 
-import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
-import app.model.user_input.FunctionalInterfaces.OptionGenerator;
-import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.utils.LoggerUtils;
+import app.view.FunctionalInterfaces.DisplayGenerator;
+import app.view.FunctionalInterfaces.OptionGenerator;
+import app.view.option_collections.OptionGeneratorCollection;
+
 import java.util.ArrayList;
 import java.util.List;
 

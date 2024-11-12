@@ -1,21 +1,22 @@
-package app.model.user_input.menu_collections;
+package app.view.menu_collections;
 
+import app.controller.MedicationService;
+import app.controller.UserService;
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.Prescription;
 import app.model.inventory.Medication;
 import app.model.inventory.MedicationOrder;
-import app.model.user_input.InputMenu;
-import app.model.user_input.Menu;
-import app.model.user_input.MenuState;
-import app.model.user_input.OptionMenu;
-import app.model.user_input.menu_collections.MenuCollection.Control;
-import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.users.Patient;
-import app.service.MedicationService;
-import app.service.UserService;
-import app.utils.DateTimeUtil;
+import app.utils.DateTimeUtils;
+import app.view.InputMenu;
+import app.view.Menu;
+import app.view.MenuState;
+import app.view.OptionMenu;
+import app.view.menu_collections.MenuCollection.Control;
+import app.view.option_collections.OptionGeneratorCollection;
+
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -140,7 +141,7 @@ public class DoctorMenuCollection {
                     .orElse(null);
                 if(p == null) throw new IllegalArgumentException("Patient not found");
                 System.out.println(p);
-                System.out.println("Timeslot: " + DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
+                System.out.println("Timeslot: " + DateTimeUtils.printLongDateTime(appointment.getTimeslot()));
                 System.out.println("Status: " + appointment.getAppointmentStatus());
                 if (appointment.getAppointmentOutcome() != null) System.out.println(appointment.getAppointmentOutcome());
             })
@@ -325,7 +326,7 @@ public class DoctorMenuCollection {
                 System.out.println(p);
                 System.out.println();
                 System.out.println("Appointment Details: ");
-                System.out.println(DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
+                System.out.println(DateTimeUtils.printLongDateTime(appointment.getTimeslot()));
                 System.out.println("Appointment Status: " + appointment.getAppointmentStatus());
                 System.out.println(appointment.getAppointmentOutcome());
             })

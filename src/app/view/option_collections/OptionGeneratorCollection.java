@@ -1,8 +1,12 @@
-package app.model.user_input.option_collections;
+package app.view.option_collections;
 
 import app.constants.BloodType;
 import app.constants.Gender;
 import app.constants.exceptions.ExitApplication;
+import app.controller.AppointmentService;
+import app.controller.MedicationService;
+import app.controller.UserService;
+import app.controller.UserService.SortFilter;
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.AppointmentOutcomeRecord;
@@ -13,23 +17,20 @@ import app.model.appointments.Prescription.PrescriptionStatus;
 import app.model.appointments.Timeslot;
 import app.model.inventory.Medication;
 import app.model.inventory.Request;
-import app.model.user_input.FunctionalInterfaces.NextAction;
-import app.model.user_input.MenuState;
-import app.model.user_input.Option;
-import app.model.user_input.Option.OptionType;
-import app.model.user_input.menu_collections.MenuCollection.Control;
-import app.model.user_input.menu_collections.DoctorMenuCollection.UpcomingEventControl;
 import app.model.users.Patient;
 import app.model.users.User;
 import app.model.users.staff.Admin;
 import app.model.users.staff.Doctor;
 import app.model.users.staff.Pharmacist;
 import app.model.users.staff.Staff;
-import app.service.AppointmentService;
-import app.service.MedicationService;
-import app.service.UserService;
-import app.service.UserService.SortFilter;
-import app.utils.DateTimeUtil;
+import app.utils.DateTimeUtils;
+import app.view.MenuState;
+import app.view.Option;
+import app.view.FunctionalInterfaces.NextAction;
+import app.view.Option.OptionType;
+import app.view.menu_collections.DoctorMenuCollection.UpcomingEventControl;
+import app.view.menu_collections.MenuCollection.Control;
+
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -235,10 +236,10 @@ public class OptionGeneratorCollection {
                     }}
                 ).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE)
                 .setNextAction((formData) -> new HashMap<String, Object>() {{
-                        put("yearValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
-                        put("monthValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
-                        put("dayValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
-                        put("hourValidator", DateTimeUtil.DateConditions.FUTURE.toString());
+                        put("yearValidator", DateTimeUtils.DateConditions.FUTURE_OR_PRESENT.toString());
+                        put("monthValidator", DateTimeUtils.DateConditions.FUTURE_OR_PRESENT.toString());
+                        put("dayValidator", DateTimeUtils.DateConditions.FUTURE_OR_PRESENT.toString());
+                        put("hourValidator", DateTimeUtils.DateConditions.FUTURE.toString());
                     }}
                 ),
             new Option(
@@ -249,10 +250,10 @@ public class OptionGeneratorCollection {
                     }}
                 ).setNextMenuState(MenuState.PATIENT_RESCHEDULE_SELECTION)
                 .setNextAction((formData) -> new HashMap<String, Object>() {{
-                        put("yearValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
-                        put("monthValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
-                        put("dayValidator", DateTimeUtil.DateConditions.FUTURE_OR_PRESENT.toString());
-                        put("hourValidator", DateTimeUtil.DateConditions.FUTURE.toString());
+                        put("yearValidator", DateTimeUtils.DateConditions.FUTURE_OR_PRESENT.toString());
+                        put("monthValidator", DateTimeUtils.DateConditions.FUTURE_OR_PRESENT.toString());
+                        put("dayValidator", DateTimeUtils.DateConditions.FUTURE_OR_PRESENT.toString());
+                        put("hourValidator", DateTimeUtils.DateConditions.FUTURE.toString());
                     }}
                 ),
             new Option(
@@ -492,7 +493,7 @@ public class OptionGeneratorCollection {
             .mapToObj(appointmentIndex -> {
                 Appointment appointment = appointments.get(appointmentIndex);
                 
-                String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
+                String timeslot = DateTimeUtils.printLongDateTime(appointment.getTimeslot());
                 String patientName = UserService
                     .findUserByIdAndType(appointment.getPatientId(), Patient.class, true)
                     .getName();
@@ -669,7 +670,7 @@ public class OptionGeneratorCollection {
             // Populate availability for each timeslot with ticks and crosses
             uniqueTimeslots.forEach(timeslot -> {
                 String availability = timeslots.stream().anyMatch(t -> t.getTimeSlot().equals(timeslot)) ? "✓" : "✗";
-                displayFields.put(DateTimeUtil.printShortestDateTime(timeslot), availability);
+                displayFields.put(DateTimeUtils.printShortestDateTime(timeslot), availability);
             });
 
             // Create an Option for each doctor with their timeslot availability
@@ -919,7 +920,7 @@ public class OptionGeneratorCollection {
 
                         // Check if edit busy date
                         if (newFormValues != null && newFormValues.containsKey("originalDateTime")) {
-                            LocalDateTime originalDateTime = DateTimeUtil.parseShortDateTime(
+                            LocalDateTime originalDateTime = DateTimeUtils.parseShortDateTime(
                                 (String) newFormValues.get("originalDateTime")
                             );
                             d.deleteDoctorEvent(originalDateTime);
@@ -930,7 +931,7 @@ public class OptionGeneratorCollection {
                         );
                         System.out.println(String.format(
                             "New event created at %s",
-                            DateTimeUtil.printLongDateTime(selectedBusyDateTime)
+                            DateTimeUtils.printLongDateTime(selectedBusyDateTime)
                         ));
 
                         if (newFormValues != null) newFormValues.remove("originalDateTime");
@@ -1024,10 +1025,10 @@ public class OptionGeneratorCollection {
             .<Option>map(appointment -> {
                 
                 Option option = new Option(
-                    DateTimeUtil.printShortDateTime(appointment.getTimeslot()), 
+                    DateTimeUtils.printShortDateTime(appointment.getTimeslot()), 
                     OptionType.NUMBERED,
                     new LinkedHashMap<>() {{
-                        put("DateTime", DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
+                        put("DateTime", DateTimeUtils.printLongDateTime(appointment.getTimeslot()));
                         put("Doctor", UserService.findUserByIdAndType(appointment.getDoctorId(), Doctor.class, true).getName());
                         put("Status", appointment.getAppointmentStatus().toString());
                     }}
@@ -1216,7 +1217,7 @@ public class OptionGeneratorCollection {
                 ((Appointment) event).getAppointmentStatus() == AppointmentStatus.CONFIRMED : true)
             .filter(event -> control == UpcomingEventControl.RESPOND_APPT ? ((Appointment) event).getAppointmentStatus() == AppointmentStatus.PENDING : true)
             .map(event -> {
-                String eventTime = DateTimeUtil.printLongDateTime(event.getTimeslot());
+                String eventTime = DateTimeUtils.printLongDateTime(event.getTimeslot());
     
                 LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
                 displayFields.put("Event Type", event.isAppointment() ? "Appointment" : "Event");
@@ -1242,7 +1243,7 @@ public class OptionGeneratorCollection {
                         }
                         formValues.put(
                             "originalDateTime",
-                            DateTimeUtil.printShortDateTime(event.getTimeslot())
+                            DateTimeUtils.printShortDateTime(event.getTimeslot())
                         );
                         return formValues;
                     }).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE);
@@ -1490,7 +1491,7 @@ public class OptionGeneratorCollection {
                     true
                 );
     
-                String timeslot = DateTimeUtil.printLongDateTime(appointment.getTimeslot());
+                String timeslot = DateTimeUtils.printLongDateTime(appointment.getTimeslot());
                 LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
     
                 displayFields.put("Timeslot", timeslot);
@@ -2093,7 +2094,7 @@ public class OptionGeneratorCollection {
             OptionType.DISPLAY,
             new LinkedHashMap<>() {{
                 put("Appointment ID", String.valueOf(appointment.getAppointmentId()));
-                put("Timeslot", DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
+                put("Timeslot", DateTimeUtils.printLongDateTime(appointment.getTimeslot()));
                 String patientName = UserService.findUserByIdAndType(appointment.getPatientId(), Patient.class, true).getName();
                 put("Patient Name", patientName);
                 Doctor doctor = UserService.findUserByIdAndType(appointment.getDoctorId(), Doctor.class, true);

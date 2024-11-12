@@ -1,5 +1,8 @@
 package app.db;
 
+import app.controller.MedicationService;
+import app.controller.UserService;
+import app.model.ISerializable;
 import app.model.appointments.Appointment;
 import app.model.appointments.AppointmentBuilder;
 import app.model.appointments.AppointmentOutcomeBuilder;
@@ -23,8 +26,7 @@ import app.model.users.staff.Pharmacist;
 import app.model.users.staff.Staff;
 import app.model.users.staff.StaffBuilder;
 import app.model.users.staff.StaffBuilder.Role;
-import app.service.MedicationService;
-import app.service.UserService;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -288,7 +290,7 @@ public class DatabaseManager {
         return users;
     }
 
-    public static void processRow(Object o, BiConsumer<Table, List<String>> rowProcessor) {
+    public static void processRow(ISerializable o, BiConsumer<Table, List<String>> rowProcessor) {
         if (o instanceof Patient p) {
             PatientBuilder pBuilder = new PatientBuilder(p);
             pBuilder.buildRow();
@@ -344,17 +346,17 @@ public class DatabaseManager {
         }
     }
 
-    public static void add(Object o) {
+    public static void add(ISerializable o) {
         processRow(o, Table::addRow);
         changed = true;
     }
     
-    public static void update(Object o) {
+    public static void update(ISerializable o) {
         processRow(o, Table::updateRow);
         changed = true;
     }
 
-    public static void delete(Object o) {
+    public static void delete(ISerializable o) {
         processRow(o, Table::deleteRow);
         changed = true;
     }

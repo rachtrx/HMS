@@ -1,17 +1,18 @@
-package app.model.user_input.menu_collections;
+package app.view.menu_collections;
 
+import app.controller.AppointmentService;
+import app.controller.UserService;
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.Timeslot;
-import app.model.user_input.Menu;
-import app.model.user_input.OptionMenu;
-import app.model.user_input.menu_collections.MenuCollection.Control;
-import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.model.users.Patient;
 import app.model.users.staff.Doctor;
-import app.service.AppointmentService;
-import app.service.UserService;
-import app.utils.DateTimeUtil;
+import app.utils.DateTimeUtils;
+import app.view.Menu;
+import app.view.OptionMenu;
+import app.view.menu_collections.MenuCollection.Control;
+import app.view.option_collections.OptionGeneratorCollection;
+
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -93,10 +94,10 @@ public class PatientMenuCollection {
                 LocalDateTime now = LocalDateTime.now();
                 if (now.toLocalTime().isAfter(Timeslot.lastSlotStartTime)) {
                     System.out.println("Timeslots for " + 
-                        DateTimeUtil.printLongDate(now.toLocalDate()));
+                        DateTimeUtils.printLongDate(now.toLocalDate()));
                 } else {
                     System.out.println("Timeslots for " + 
-                        DateTimeUtil.printLongDate(now.plusDays(1).toLocalDate()));
+                        DateTimeUtils.printLongDate(now.plusDays(1).toLocalDate()));
                 }
             })
             .setOptionGenerator(() -> {
