@@ -133,6 +133,7 @@ public enum MenuState {
         return RESET_MENUS.contains(this);
     }
 
+    @SuppressWarnings({"unchecked", "rawtypes"})
     public Menu getMenu(Map<String, Object> formValues) {
 
         // Add in any middleware here
