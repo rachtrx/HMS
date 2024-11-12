@@ -11,7 +11,7 @@ public class App {
 	private static Scanner scanner = new Scanner(System.in);
 
 	private static void exitApplication() {
-		// MenuService.clearScreen();
+		MenuService.clearScreen();
 		System.out.println(new ExitApplication().getMessage());
 		App.scanner.close();
 		try {

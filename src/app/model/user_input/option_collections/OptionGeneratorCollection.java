@@ -304,7 +304,7 @@ public class OptionGeneratorCollection {
         ).setNextAction((formData) -> {
             p.setBloodType((String) formData.get("input"));
             return formData;
-        })
+        }) // next menu set in generateEditPatientDetailsOptions
         .setEditRedirect(true);
     }
     
@@ -329,7 +329,7 @@ public class OptionGeneratorCollection {
         ).setNextAction((formData) -> {
             patient.setMobileNumber((String) formData.get("input"));
             return null;
-        })
+        }) // next menu set in generateEditPatientDetailsOptions
         .setEditRedirect(true);
     }
     
@@ -354,7 +354,7 @@ public class OptionGeneratorCollection {
         ).setNextAction((formData) -> {
             patient.setHomeNumber((String) formData.get("input"));
             return null;
-        })
+        }) // next menu set in generateEditPatientDetailsOptions
         .setEditRedirect(true);
     }
     
@@ -378,7 +378,7 @@ public class OptionGeneratorCollection {
         ).setNextAction((formData) -> {
             patient.setEmail((String) formData.get("input"));
             return null;
-        }).setNextMenuState(MenuState.PATIENT_VIEW_MEDICAL_RECORD)
+        }) // next menu set in generateEditPatientDetailsOptions
         .setEditRedirect(true);
     }
     
@@ -397,7 +397,7 @@ public class OptionGeneratorCollection {
                 put("Action", "Edit Appointments");
             }}
         ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_APPOINTMENTS)
-            .setNextAction((formData) -> formData);
+        .setNextAction((formData) -> formData);
     }
 
     /**
@@ -433,7 +433,7 @@ public class OptionGeneratorCollection {
         boolean isDoctor = UserService.getCurrentUser().getClass() == Doctor.class;
         MenuState nextMenuState = isDoctor ? 
             MenuState.DOCTOR_EDIT_PAST_PATIENT : 
-            MenuState.PATIENT_VIEW_MEDICAL_RECORD;
+            MenuState.PATIENT_EDIT_MEDICAL_RECORD;
 
         if (UserService.getCurrentUser().getClass() == Doctor.class) {
             options.add(OptionGeneratorCollection.getEditBloodTypeOption(p).setNextMenuState(nextMenuState));
@@ -443,6 +443,17 @@ public class OptionGeneratorCollection {
         options.add(OptionGeneratorCollection.getEditMobileNumberOption(p).setNextMenuState(nextMenuState));
         options.add(OptionGeneratorCollection.getEditHomeNumberOption(p).setNextMenuState(nextMenuState));
         options.add(OptionGeneratorCollection.getEditEmailOption(p).setNextMenuState(nextMenuState));
+
+        if (!isDoctor) {
+            options.add(new Option(
+                "view",
+                OptionType.UNNUMBERED,
+                Map.of("Select", "LO", "Action", "Logout")
+            ).setNextAction((formData) -> {
+                UserService.logout();
+                return null;
+            }).setNextMenuState(MenuState.LOGIN_USERNAME));
+        }
 
         return options;
     }
@@ -1061,21 +1072,12 @@ public class OptionGeneratorCollection {
     public static List<Option> generateDoctorMenuOptions() {
         List<Option> options = new ArrayList<>(List.of(
             new Option(
-                    "view( )?(patient(\\'s)?( )?)?(medical( )?)?record", 
+                    "select( )?(patient(\\'s)?( )?)?(manage( )?)?", 
                     OptionType.NUMBERED,
                     new LinkedHashMap<>() {{
-                        put("Action", "View Patient's Medical Record");
+                        put("Action", "Select a patient to manage");
                     }}
                 ).setNextMenuState(MenuState.DOCTOR_VIEW_PAST_PATIENTS),
-    
-            new Option(
-                    "(edit( )?)?(patient( )?('s)?)?(medical( )?)?record", 
-                    OptionType.NUMBERED,
-                    new LinkedHashMap<>() {{
-                        put("Action", "Update Patient's Medical Record");
-                    }}
-                ).setNextMenuState(MenuState.DOCTOR_EDIT_PAST_PATIENT),
-    
             new Option(
                     "(view( )?)?(personal( )?)?schedule", 
                     OptionType.NUMBERED,
@@ -2000,7 +2002,7 @@ public class OptionGeneratorCollection {
                 "(view( )?)?user(s)?",
                 OptionType.NUMBERED,
                 new LinkedHashMap<>() {{
-                    put("Action", "View Users");
+                    put("Action", "View Staff");
                 }}
             ).setNextAction((formValues) -> new HashMap<>(){{
                 put("filter", SortFilter.ROLE);
@@ -2428,10 +2430,10 @@ public class OptionGeneratorCollection {
                 gender.name(),
                 OptionType.NUMBERED,
                 new LinkedHashMap<>() {{
-                    put("Blood Type", gender.name());
+                    put("Blood Type", gender.toString());
                 }}
             ).setNextAction((formValues) -> {
-                formValues.put("gender", gender.name());
+                formValues.put("gender", gender.toString());
                 return formValues;
             }).setNextMenuState(MenuState.ADMIN_ADD_DOB))
             .collect(Collectors.toList());
@@ -2457,12 +2459,12 @@ public class OptionGeneratorCollection {
                 bloodType.name(),
                 Option.OptionType.NUMBERED,
                 new LinkedHashMap<>() {{
-                    put("Blood Type", bloodType.name());
+                    put("Blood Type", bloodType.toString());
                 }}
             ).setNextAction((formValues) -> {
-                String input = bloodType.name();
+                String input = bloodType.toString();
                 Patient.create(
-                    (String) formValues.get("userName"),
+                    (String) formValues.get("username"),
                     (String) formValues.get("name"),
                     (String) formValues.get("gender"),
                     (String) formValues.get("dob"),

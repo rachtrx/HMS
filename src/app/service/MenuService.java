@@ -1,11 +1,14 @@
 package app.service;
 
 import app.constants.exceptions.ExitApplication;
+import app.db.DatabaseManager;
 import app.model.user_input.MenuState;
 import app.model.user_input.Menu;
 import app.model.user_input.MenuState;
 import app.model.users.User;
 import app.utils.LoggerUtils;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 
 /**
@@ -19,18 +22,22 @@ public class MenuService {
     private static Menu currentMenu = MenuState.LANDING.getMenu(new HashMap<>());
 
     public static void handleUserInput(String userInput) throws Exception {
+        MenuState oldMenuState = MenuService.currentMenu.getMenuState();
 
-        if (userInput.equalsIgnoreCase("\\b") && MenuService.currentMenu.getMenuState() != MenuState.CONFIRM) {
+        if (userInput.equalsIgnoreCase("\\q") && oldMenuState != MenuState.CONFIRM) {
             Menu prevMenu = MenuService.currentMenu.getPreviousMenu();
-            prevMenu = (prevMenu != null && 
-                        (prevMenu.getMenuState() == MenuState.EDIT || prevMenu.getMenuState() == MenuState.CONFIRM))
-                        ? prevMenu.getPreviousMenu()
-                        : prevMenu;
+        
+            while (prevMenu != null && 
+                   (prevMenu.getMenuState() == oldMenuState || 
+                    prevMenu.getMenuState() == MenuState.EDIT || 
+                    prevMenu.getMenuState() == MenuState.CONFIRM)) {
+                prevMenu = prevMenu.getPreviousMenu();
+            }
+        
             MenuService.currentMenu = (prevMenu != null) ? prevMenu : MenuService.currentMenu;
             return;
         }
 
-        MenuState oldMenuState = MenuService.currentMenu.getMenuState();
         MenuState menuState = MenuService.currentMenu.handleUserInput(userInput);
         if (oldMenuState == menuState) return;
         setCurrentMenu(menuState);
@@ -45,15 +52,12 @@ public class MenuService {
         if (newMenuState == null) {
             if (UserService.getCurrentUser() != null && UserService.getCurrentUser().getPassword().equals(User.DEFAULTPASSWORD)) {
                 newMenuState = MenuState.LOGIN_PASSWORD;
-            } else {
+            } else if (UserService.getCurrentUser() != null) {
                 newMenuState = MenuState.getUserMainMenuState();
             }
             if (newMenuState == null) throw new ExitApplication();
         }
-        Menu newMenu = newMenuState.getMenu(MenuService.currentMenu.getFormData());
-        MenuService.currentMenu.setNextMenu(newMenu);
-        newMenu.setPreviousMenu(MenuService.currentMenu);
-        MenuService.currentMenu = newMenu;
+        MenuService.currentMenu = newMenuState.getMenu(MenuService.currentMenu.getFormData());
     }
 
     public static void clearScreen() {

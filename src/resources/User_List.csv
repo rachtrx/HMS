@@ -2,10 +2,11 @@ User ID,Username,Password,Name,Gender
 1,user_a,Easy2Type!!,Alice Brown,Female,14/05/1980
 2,user_b,Easy2Type!,Bob Stone,Male,22/11/1975
 3,user_c,Easy2Type!,Charlie White,Male,08/07/2002
-4,sarah_lee,Easy2Type!,Sarah Lee,Female,14/03/2010
+4,sarah_lee,Easy2Type!!,Sarah Lee,Female,14/03/2010
 5,john_smith,Easy2Type!,John Smith,Male,18/09/1975
 6,emily_clarke,Easy2Type!,Emily Clarke,Female,25/02/2000
-7,mark_lee,Easy2Type!,Mark Lee,Male,02/05/1985
+7,mark_lee,Easy2Type!!,Mark Lee,Male,02/05/1985
 8,grace_tan,Easy2Type!,Grace Tan,Female,12/07/2001
 9,john_lee,Easy2Type!,John Lee,Non-Binary,16/08/2003
 10,james_tan,Easy2Type!,James Tan,Male,13/09/1998
+11,jared_toh,Easy2Type!,Jared Toh,Male,13/04/1999

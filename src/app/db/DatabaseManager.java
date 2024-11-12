@@ -33,7 +33,8 @@ import java.util.function.BiConsumer;
 
 public class DatabaseManager {
 
-    public static Map<String, Table> tables = new HashMap<>();
+    private static final Map<String, Table> tables = new HashMap<>();
+    private static boolean changed = false;
 
     public static Table getTableByConfig(TableConfig tableConfig) {
         return tables.get(tableConfig.getTableName());
@@ -343,19 +344,30 @@ public class DatabaseManager {
 
     public static void add(Object o) {
         processRow(o, Table::addRow);
+        changed = true;
     }
     
     public static void update(Object o) {
         processRow(o, Table::updateRow);
+        changed = true;
     }
 
     public static void delete(Object o) {
         processRow(o, Table::deleteRow);
+        changed = true;
     }
 
     public static void stop() throws Exception {
         for (Table t : tables.values()) {
             t.writeToCsv();
         }
+    }
+
+    public static boolean isChanged() {
+        return changed;
+    }
+
+    public static void setChanged(boolean changed) {
+        DatabaseManager.changed = changed;
     }
 }

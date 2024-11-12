@@ -148,11 +148,12 @@ public class DoctorMenuCollection {
         return new OptionMenu("All patients under you", null)
         .setOptionGenerator(OptionGeneratorCollection::generatePatientOptions);
     }
+
     /**
      * @return
      */
     public static Menu getPatientEditMenu() {
-        OptionMenu menu = new OptionMenu("Edit Patient Details", "Select a field to edit");
+        OptionMenu menu = new OptionMenu("Select a patient to edit", null);
 
         menu.setOptionGenerator(() -> {
             Map<String, Object> formValues = menu.getFormData();

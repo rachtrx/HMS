@@ -26,6 +26,8 @@ public abstract class Menu {
     protected DisplayGenerator displayGenerator;
     protected Map<String, Object> formData = new HashMap<>();
     protected Boolean parseUserInput = true;
+    protected Boolean changed = true;
+
     protected MenuState menuState;
 
     private Menu nextMenu;
@@ -119,6 +121,7 @@ public abstract class Menu {
             return this.getMenuState();
             // return MenuState.getUserMainMenuState();
         } catch (Exception e) {
+            // e.printStackTrace();
             System.out.println("Something went wrong. Please contact your administrator and try again.");
             System.out.println("Exiting application...");
             throw new ExitApplication();
@@ -137,7 +140,16 @@ public abstract class Menu {
         return previousMenu;
     }
 
-    public void setPreviousMenu(Menu previousMenu) {
+    public Menu setPreviousMenu(Menu previousMenu) {
         this.previousMenu = previousMenu;
+        return this;
+    }
+
+    public Boolean isChanged() {
+        return changed == true;
+    }
+
+    public void setChanged(Boolean changed) {
+        this.changed = changed;
     }
 }

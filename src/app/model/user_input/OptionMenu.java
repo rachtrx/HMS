@@ -1,5 +1,6 @@
 package app.model.user_input;
 
+import app.db.DatabaseManager;
 import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
 import app.model.user_input.FunctionalInterfaces.OptionGenerator;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
@@ -101,8 +102,8 @@ public class OptionMenu extends Menu {
         }
         this.optionTable.printTable();
 
-        if (!this.menuState.isResetMenu() && this.menuState != MenuState.CONFIRM) {
-            System.err.println("(or enter '\\b' to go back) ");
+        if (!this.menuState.isResetMenu() && this.menuState != MenuState.CONFIRM && !this.changed) {
+            System.err.println("(or enter '\\q' to go back) ");
         }
     }
 

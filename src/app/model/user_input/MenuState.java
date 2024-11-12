@@ -1,6 +1,7 @@
 package app.model.user_input;
 
 
+import app.db.DatabaseManager;
 import app.model.user_input.FunctionalInterfaces.NextAction;
 import app.model.user_input.menu_collections.AdminMenuCollection;
 import app.model.user_input.menu_collections.DoctorMenuCollection;
@@ -15,6 +16,7 @@ import app.model.users.staff.Pharmacist;
 import app.service.MenuService;
 import app.service.UserService;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
@@ -138,7 +140,7 @@ public enum MenuState {
 
         // Add in any middleware here
 
-        Menu menu = menuProvider.get().setMenuState(this);
+        Menu menu = menuProvider.get();
 
         if(menu == null) {
             System.out.println("No Menu Found for" + this);
@@ -174,11 +176,16 @@ public enum MenuState {
             } else {
                 menu.setLabel("Please enter your password");
                 ((InputMenu) menu).getInput().setExitMenuState(MenuState.LOGIN_USERNAME);
-            };
-        } else if (RESET_MENUS.contains(this)) {
-            menu.setPreviousMenu(null);
+            }
         }
-        return menu.setFormData(formValues);
+
+        if (!this.isResetMenu() && !DatabaseManager.isChanged()) {
+            menu.setPreviousMenu(MenuService.getCurrentMenu());
+            menu.setChanged(false);
+        } else DatabaseManager.setChanged(false);
+        
+        if (!this.isResetMenu()) menu.setFormData(formValues);
+        return menu.setMenuState(this);
     }
 
     public static MenuState getUserMainMenuState() {
