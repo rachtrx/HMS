@@ -12,6 +12,9 @@ public class OptionTable {
     private final Map<String, Integer> numberedColumnConfig = new LinkedHashMap<>();  // Dynamic column widths
     private final Map<String, Integer> displayColumnConfig = new LinkedHashMap<>();
 
+    public static final String RESET = "\u001B[0m";
+    public static final String RED = "\u001B[31m";
+
     public OptionTable(List<Option> options) {
         options.forEach(option -> {
             switch (option.getOptionType()) {
@@ -40,7 +43,7 @@ public class OptionTable {
     // Print a header based on the column config and display flag
     private void printHeader(Map<String, Integer> columnConfig, boolean isDisplay) {
         if (!isDisplay) {
-            System.out.printf("%-8s", "Select");
+            System.out.printf(RED + "%-8s" + RESET, "Select");
         }
         columnConfig.forEach((header, width) -> System.out.printf("%-" + width + "s", header));
         System.out.println();
@@ -50,7 +53,7 @@ public class OptionTable {
     // Print a row based on display fields, index, and display flag
     private void printRow(Map<String, String> displayFields, int index, Map<String, Integer> columnConfig, boolean isDisplay) {
         if (!isDisplay) {
-            System.out.printf("%-8d", index);
+            System.out.printf(RED + "%-8d" + RESET, index);
         }
         columnConfig.forEach((header, width) -> {
             String cellText = displayFields.getOrDefault(header, "");
@@ -83,10 +86,10 @@ public class OptionTable {
     // Print all UNNUMBERED options in a simple table
     private void printUnNumberedOptions() {
         if (!unNumberedOptions.isEmpty()) {
-            System.out.printf("%-8s%-20s%n", "Select", "Action");
+            System.out.printf(RED + "%-8s" + RESET + "%-20s%n", "Select", "Action");
             System.out.println("=".repeat(28));
             for (Option option : unNumberedOptions) {
-                System.out.printf("%-8s%-20s%n",
+                System.out.printf(RED + "%-8s" + RESET + "%-20s%n",
                     option.getDisplayFields().getOrDefault("Select", ""),
                     option.getDisplayFields().getOrDefault("Action", ""));
             }

@@ -1,11 +1,9 @@
 package app.model.user_input;
 
-import app.db.DatabaseManager;
 import app.model.user_input.FunctionalInterfaces.DisplayGenerator;
 import app.model.user_input.FunctionalInterfaces.OptionGenerator;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.utils.LoggerUtils;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -39,8 +37,8 @@ public class OptionMenu extends Menu {
         int totalMatches = matches.size();
         
         if (totalMatches < 1 || totalMatches > 1) {
-            System.out.println("No option match found" + totalMatches); // TODO: REMOVE
-            throw new IllegalArgumentException("No match found for the selected input.");
+            // System.out.println("No option match found" + totalMatches); // TODO: REMOVE
+            throw new IllegalArgumentException("No match found for the selected input.\n");
         } else {
             return matches.get(0);
         }
@@ -51,7 +49,7 @@ public class OptionMenu extends Menu {
 
         try {
             this.options = optionGenerator.apply();
-            LoggerUtils.info("GETTING OPTIONS");
+            // LoggerUtils.info("GETTING OPTIONS");
         } catch (Exception e) {
             System.out.println("No Options Found");
         }
@@ -73,14 +71,14 @@ public class OptionMenu extends Menu {
         // }
 
         if (!(this.title == null || this.title.length() < 1)) {
-            System.out.println(this.title);
+            System.out.println(this.title + "\n");
             Menu.printLineBreak(50);
         }
 
         if (!(this.label == null || this.label.length() < 1)) {
-            System.out.print("\n" + this.label + "\n");
+            System.out.print(this.label + "\n");
         } else if (!this.optionTable.getNumberedOptions(true).isEmpty()) {
-            System.out.println("Please select an option:");
+            System.out.println("Please select an option:\n");
             // switch (this.displayMode) {
             //     case NO_MATCH_FOUND -> System.out.println("No option matched your selection. Please try again:");
             //     case MULTIPLE_MATCHES_FOUND -> System.out.println("Please be more specific:");

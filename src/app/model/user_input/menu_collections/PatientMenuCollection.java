@@ -3,9 +3,7 @@ package app.model.user_input.menu_collections;
 import app.model.appointments.Appointment;
 import app.model.appointments.Appointment.AppointmentStatus;
 import app.model.appointments.Timeslot;
-import app.model.user_input.InputMenu;
 import app.model.user_input.Menu;
-import app.model.user_input.MenuState;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.menu_collections.MenuCollection.Control;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
@@ -13,6 +11,7 @@ import app.model.users.Patient;
 import app.model.users.staff.Doctor;
 import app.service.AppointmentService;
 import app.service.UserService;
+import app.utils.DateTimeUtil;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -23,7 +22,7 @@ import java.util.stream.Collectors;
 public class PatientMenuCollection {
 
     public static Menu getPatientMainMenu() {
-        return new OptionMenu("Select Option", "Choose an option")
+        return new OptionMenu("Patient Main Menu", null)
             .setOptionGenerator(OptionGeneratorCollection::generatePatientMenuOptions)
             .shouldAddLogoutOptions();
     }
@@ -89,24 +88,36 @@ public class PatientMenuCollection {
     }
 
     public static Menu getPatientViewAvailAppointmentsMenu() {
-        return new OptionMenu("Available Appointments Today", null)
+        return new OptionMenu("Available Appointments", null)
+            .setDisplayGenerator(() -> {
+                LocalDateTime now = LocalDateTime.now();
+                if (now.toLocalTime().isAfter(Timeslot.lastSlotStartTime)) {
+                    System.out.println("Timeslots for " + 
+                        DateTimeUtil.printLongDateTime(LocalDateTime.of(now.toLocalDate(), now.toLocalTime())));
+                } else {
+                    System.out.println("Timeslots for " + 
+                        DateTimeUtil.printLongDateTime(LocalDateTime.of(now.plusDays(1).toLocalDate(), LocalTime.of(0, 0))));
+                }
+            })
             .setOptionGenerator(() -> {
-                Map<Doctor, List<Timeslot>> timeslotsByDoctor = AppointmentService.getAvailableAppointmentSlotsByDoctor(LocalDateTime.now());
+                LocalDateTime now = LocalDateTime.now();
+                Map<Doctor, List<Timeslot>> timeslotsByDoctor;
     
-                // Get tomorrow's timeslots if hospital is closed today
-                if (timeslotsByDoctor.isEmpty()) {
+                if (now.toLocalTime().isAfter(Timeslot.lastSlotStartTime)) {
+                    // If so, get timeslots for tomorrow
                     timeslotsByDoctor = AppointmentService.getAvailableAppointmentSlotsByDoctor(
-                        LocalDateTime.of(LocalDateTime.now().plusDays(1).toLocalDate(), 
-                        LocalTime.of(0, 0))
+                        LocalDateTime.of(now.plusDays(1).toLocalDate(), LocalTime.of(0, 0))
                     );
+                } else {
+                    timeslotsByDoctor = AppointmentService.getAvailableAppointmentSlotsByDoctor(now);
                 }
     
                 if (!timeslotsByDoctor.isEmpty()) {
                     return OptionGeneratorCollection.generateAvailableTimeslotOptions(timeslotsByDoctor);
                 } else {
                     System.out.println("No available timeslots for today and tomorrow.");
-                    return new ArrayList<>();  // Return an empty list as required
-                }     
+                    return new ArrayList<>();
+                }
             })
             .shouldAddMainMenuOption().shouldAddLogoutOptions();
     }
@@ -222,7 +233,7 @@ public class PatientMenuCollection {
                 .filter(appointment -> appointment.getAppointmentOutcome() != null)
                 .collect(Collectors.toList());
             if (!appointments.isEmpty()) {
-                return OptionGeneratorCollection.generateAppointmentDisplayOptions(appointments, Control.EDIT);
+                return OptionGeneratorCollection.generateAppointmentDisplayOptions(appointments, Control.SELECT);
             } else {
                 System.out.println("No appointment outcomes found. Start scheduling an appointment today.\n");
                 return new ArrayList<>();

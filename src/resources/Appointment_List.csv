@@ -9,7 +9,7 @@ ID,Doctor Event ID,Patient ID,Status
 8,13,1,Cancelled
 9,14,1,Cancelled
 10,15,1,Pending
-11,16,1,Confirmed
+11,16,1,Cancelled
 12,17,12,Pending
 13,18,12,Confirmed
 14,19,11,Pending
@@ -72,3 +72,5 @@ ID,Doctor Event ID,Patient ID,Status
 71,76,21,Pending
 72,77,21,Pending
 73,78,21,Pending
+74,83,1,Pending
+75,84,1,Pending

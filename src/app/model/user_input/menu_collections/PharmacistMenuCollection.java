@@ -13,12 +13,11 @@ import app.model.user_input.option_collections.OptionGeneratorCollection;
 import app.service.AppointmentService;
 import app.service.MedicationService;
 import java.util.List;
-import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class PharmacistMenuCollection {
     public static Menu getPharmacistMainMenu() {
-        return new OptionMenu("Select Option", "Choose an option")
+        return new OptionMenu("Pharmacist Main Menu", null)
             .setOptionGenerator(OptionGeneratorCollection::generatePharmacistMenuOptions)
             .shouldAddLogoutOptions();
     }

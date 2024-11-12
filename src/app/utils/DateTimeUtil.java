@@ -21,7 +21,7 @@ public class DateTimeUtil {
     private static final DateTimeFormatter FULL_DATE_FORMAT = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy");
     private static final DateTimeFormatter FULL_DATETIME_FORMAT = DateTimeFormatter.ofPattern("EEEE, MMMM d, yyyy HH:mm:ss");
 
-    private static final DateTimeFormatter SHORTEST_DATETIME_FORMAT = DateTimeFormatter.ofPattern("EEE, HH:mm");
+    private static final DateTimeFormatter SHORTEST_DATETIME_FORMAT = DateTimeFormatter.ofPattern("HH:mm");
 
     private static final DateTimeFormatter CSV_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
 

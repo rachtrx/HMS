@@ -7,6 +7,7 @@ import app.model.users.AppointmentManager;
 import app.utils.LoggerUtils;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Optional;
@@ -66,7 +67,9 @@ public class Doctor extends Staff implements AppointmentManager {
     }
 
     public List<DoctorEvent> getDoctorEvents() {
-        return doctorEvents;
+        return doctorEvents.stream()
+            .sorted(Comparator.comparing(DoctorEvent::getTimeslot))
+            .collect(Collectors.toList());
     }
 
     public void addDoctorEvent(DoctorEvent e) {
@@ -92,6 +95,7 @@ public class Doctor extends Staff implements AppointmentManager {
         return doctorEvents.stream()
                            .filter(event -> event instanceof Appointment)
                            .map(event -> (Appointment) event)
+                           .sorted(Comparator.comparing(Appointment::getTimeslot))
                            .collect(Collectors.toList());
     }
 

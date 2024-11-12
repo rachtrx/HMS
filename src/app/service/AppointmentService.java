@@ -35,7 +35,7 @@ public class AppointmentService {
             .stream()
             .filter(user -> user instanceof Patient)
             .flatMap(user -> ((Patient) user).getAppointments().stream())
-            .sorted(Comparator.comparing(Appointment::getTimeslot).reversed())
+            .sorted(Comparator.comparing(Appointment::getTimeslot))
             .collect(Collectors.toList());
         return appointments;
     }

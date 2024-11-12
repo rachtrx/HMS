@@ -47,6 +47,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.ResourceBundle;
 import java.util.Set;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -484,6 +485,9 @@ public class OptionGeneratorCollection {
      * depending on the control type.
      */
     public static List<Option> generateAppointmentDisplayOptions(List<Appointment> appointments, Control ctl) {
+        boolean allOutcomesNull = appointments.stream()
+            .allMatch(appointment -> appointment.getAppointmentOutcome() == null);
+            
         List<Option> options = IntStream.range(0, appointments.size())
             .mapToObj(appointmentIndex -> {
                 Appointment appointment = appointments.get(appointmentIndex);
@@ -502,20 +506,21 @@ public class OptionGeneratorCollection {
                 displayFields.put("Doctor Name", doctorName);
                 displayFields.put("Appointment Status", status);
 
-                boolean hasOutcome = appointment.getAppointmentOutcome() != null;
-
-                displayFields.put("Appointment Date", !hasOutcome ? "N/A" : DateTimeUtil.printShortDateTime(appointment.getTimeslot()));
-                displayFields.put("Service Type", !hasOutcome ? "N/A" : appointment.getAppointmentOutcome().getServiceType());
-                displayFields.put("Consultation Notes", !hasOutcome ? "N/A" : appointment.getAppointmentOutcome().getConsultationNotes());
-                displayFields.put("Outcome Added", String.valueOf(hasOutcome));
+                if (!allOutcomesNull) {
+                    boolean hasOutcome = appointment.getAppointmentOutcome() != null;
+                    displayFields.put("Service Type", !hasOutcome ? "N/A" : appointment.getAppointmentOutcome().getServiceType());
+                    displayFields.put("Consultation Notes", !hasOutcome ? "N/A" : appointment.getAppointmentOutcome().getConsultationNotes());
+                    displayFields.put("Outcome Added", String.valueOf(hasOutcome));
+                }
+                
 
                 Option option = new Option(
                     String.format("Appointment #%d", appointmentIndex + 1),
-                    ctl != Control.EDIT ? OptionType.DISPLAY : OptionType.NUMBERED,
+                    ctl != Control.SELECT ? OptionType.DISPLAY : OptionType.NUMBERED,
                     displayFields
                 );
 
-                if (ctl == Control.EDIT) {
+                if (ctl == Control.SELECT) {
                     option.setNextMenuState(MenuState.VIEW_RECORD)
                     .setNextAction(formValues -> {
                         formValues.put("appointment", appointment);
@@ -1205,7 +1210,6 @@ public class OptionGeneratorCollection {
             .filter(event -> apptControls.contains(control) ? event.isAppointment() : true)
             .filter(event -> control == UpcomingEventControl.CANCEL_APPT ? ((Appointment) event).getAppointmentStatus() == AppointmentStatus.CONFIRMED : true)
             .filter(event -> control == UpcomingEventControl.RESPOND_APPT ? ((Appointment) event).getAppointmentStatus() == AppointmentStatus.PENDING : true)
-            .sorted(Comparator.comparing(DoctorEvent::getTimeslot))
             .map(event -> {
                 String eventTime = DateTimeUtil.printLongDateTime(event.getTimeslot());
     
@@ -1581,7 +1585,7 @@ public class OptionGeneratorCollection {
             .map(order -> {
                 LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
                 displayFields.put("Order ID", String.valueOf(order.getId()));
-                displayFields.put("Medication ID", String.valueOf(order.getMedicationId()));
+                displayFields.put("Medication ID", MedicationService.getMedication(order.getMedicationId()).getName());
                 displayFields.put("Prescription ID", String.valueOf(order.getPrescriptionId()));
                 displayFields.put("Quantity", String.valueOf(order.getQuantity()));
 

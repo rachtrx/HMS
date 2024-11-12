@@ -2,15 +2,13 @@ package app.model.users;
 
 import app.constants.BloodType;
 import app.db.DatabaseManager;
-import app.model.ISerializable;
 import app.model.appointments.Appointment;
 import app.model.users.user_credentials.Email;
 import app.model.users.user_credentials.PhoneNumber;
-import app.utils.DateTimeUtil;
 import app.utils.EnumUtils;
 import app.utils.LoggerUtils;
-import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -99,7 +97,10 @@ public class Patient extends User implements AppointmentManager {
 
     @Override
     public List<Appointment> getAppointments() {
-        return this.getMedicalRecord().getAppointments();
+        return this.getMedicalRecord().getAppointments()
+            .stream()
+            .sorted(Comparator.comparing(Appointment::getTimeslot))
+            .collect(Collectors.toList());
     }
 
     @Override
