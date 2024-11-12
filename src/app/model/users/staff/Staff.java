@@ -17,12 +17,11 @@ public abstract class Staff extends User {
 
     public Staff(
         String username,
-        String password, 
         String name, 
         String gender,
         String dateOfBirth
     ) throws Exception {
-        super(username, password, name, gender, dateOfBirth); // General User Information
+        super(username, name, gender, dateOfBirth); // General User Information
         this.staffId = Staff.staffUuid++;
     }
 

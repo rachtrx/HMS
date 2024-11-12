@@ -113,20 +113,6 @@ public class AdminMenuCollection {
                 formValues.put("username", input);
                 return formValues;
             })
-            .setNextMenuState(MenuState.ADMIN_ADD_PASSWORD);
-
-        return menu;
-    }
-    public static Menu getAdminAddPasswordMenu() {
-        InputMenu menu = new InputMenu("Password", "Enter Password").setParseUserInput(false);
-
-        menu.getInput()
-            .setNextAction((formValues) -> {
-                String input = (String) menu.getFormData().get("input");
-                Password p = new Password(input);
-                formValues.put("password", input);
-                return formValues;
-            })
             .setNextMenuState(MenuState.ADMIN_ADD_NAME);
 
         return menu;
@@ -174,15 +160,14 @@ public class AdminMenuCollection {
                 }
 
                 String userName = (String) formValues.get("username");
-                String password = (String) formValues.get("password");
                 String name = (String) formValues.get("name");
                 String gender = (String) formValues.get("gender");
     
                 // Unified handling for Doctor, Pharmacist, and Admin roles
                 User user = switch (role) {
-                    case "Doctor" -> Doctor.create(userName, password, name, gender, input);
-                    case "Pharmacist" -> Pharmacist.create(userName, password, name, gender, input);
-                    case "Admin" -> Admin.create(userName, password, name, gender, input);
+                    case "Doctor" -> Doctor.create(userName, name, gender, input);
+                    case "Pharmacist" -> Pharmacist.create(userName, name, gender, input);
+                    case "Admin" -> Admin.create(userName, name, gender, input);
                     default -> throw new Exception("Type not found!");
                 };
                 

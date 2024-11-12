@@ -15,17 +15,16 @@ public class Pharmacist extends Staff {
 
     private Pharmacist(
         String username, 
-        String password, 
         String name, 
         String gender, 
         String age
     ) throws Exception {
-        super(username, password, name, gender, age);
+        super(username, name, gender, age);
         this.pharmacistId = Pharmacist.pharmacistUuid++;
     }
 
-    public static Pharmacist create(String username, String password, String name, String gender, String age) throws Exception {
-        Pharmacist pharmacist = new Pharmacist(username, password, name, gender, age);
+    public static Pharmacist create(String username, String name, String gender, String age) throws Exception {
+        Pharmacist pharmacist = new Pharmacist(username, name, gender, age);
         DatabaseManager.add(pharmacist);
         LoggerUtils.info("Pharmacist created");
         return pharmacist;

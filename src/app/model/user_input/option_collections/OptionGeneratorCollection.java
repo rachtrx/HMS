@@ -1796,7 +1796,6 @@ public class OptionGeneratorCollection {
                 String input = bloodType.name();
                 Patient.create(
                     (String) formValues.get("userName"),
-                    (String) formValues.get("password"),
                     (String) formValues.get("name"),
                     (String) formValues.get("gender"),
                     (String) formValues.get("dob"),

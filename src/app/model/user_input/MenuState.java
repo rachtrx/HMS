@@ -30,7 +30,7 @@ public enum MenuState {
     INPUT_APPOINTMENT_DAY(MenuCollection::getInputAppointmentDayMenu),
     INPUT_APPOINTMENT_HOUR(MenuCollection::getInputAppointmentHourMenu),
     VIEW_INVENTORY(MenuCollection::getViewInventoryMenu),
-    // CHANGE_PASSWORD(MenuCollection::getChangePasswordMenu),
+    CHANGE_PASSWORD(MenuCollection::getChangePasswordMenu),
 
     // PATIENT
     PATIENT_MAIN_MENU(PatientMenuCollection::getPatientMainMenu),
@@ -91,7 +91,6 @@ public enum MenuState {
     ADMIN_EDIT_USER(AdminMenuCollection::getAdminEditUserMenu),
     ADMIN_ADD_USER_TYPE(AdminMenuCollection::getAdminAddUserTypeMenu),
     ADMIN_ADD_USER_NAME(AdminMenuCollection::getAdminAddUserNameMenu),
-    ADMIN_ADD_PASSWORD(AdminMenuCollection::getAdminAddPasswordMenu),
     ADMIN_ADD_NAME(AdminMenuCollection::getAdminAddNameMenu),
     ADMIN_ADD_GENDER(AdminMenuCollection::getAdminAddGenderMenu),
     ADMIN_ADD_DOB(AdminMenuCollection::getAdminAddDobMenu),
@@ -123,9 +122,7 @@ public enum MenuState {
         if(menu == null) {
             System.out.println("No Menu Found for" + this);
             return MenuService.getCurrentMenu();
-        }
-    
-        if (this == MenuState.EDIT && menu instanceof InputMenu) {
+        } else if (this == MenuState.EDIT && menu instanceof InputMenu) {
             ((InputMenu) menu).getInput()
                 .setNextAction((NextAction) formValues.get("nextAction"))
                 .setNextMenuState((MenuState) formValues.get("nextState"))
@@ -138,9 +135,9 @@ public enum MenuState {
             ));
         } else if (this == MenuState.INPUT_APPOINTMENT_DAY) {
             menu.setLabel(String.format(
-                "Enter a day from %d to %d:",
-                Integer.parseInt((String) formValues.get("startDay")),
-                Integer.parseInt((String) formValues.get("endDay"))
+                "Enter a day from %s to %s:",
+                (String) formValues.get("startDay"),
+                (String) formValues.get("endDay")
             ));
         } else if (this == MenuState.ADMIN_ADD_DOB) {
             if (formValues == null || !formValues.containsKey("role")) {
@@ -149,6 +146,14 @@ public enum MenuState {
                 boolean isPatient = ((String) formValues.get("role")).equals(Patient.class.getSimpleName());
                 ((InputMenu) menu).getInput().setNextMenuState(isPatient ? MenuState.ADMIN_ADD_MOBILE_NO : MenuState.ADMIN_VIEW_USERS);
             }
+        } else if (this == MenuState.LOGIN_PASSWORD) {
+            if (UserService.getCurrentUser() != null) {
+                menu.setLabel("Please enter your new password");
+                ((InputMenu) menu).getInput().setExitMenuState(MenuState.LOGIN_PASSWORD);
+            } else {
+                menu.setLabel("Please enter your password");
+                ((InputMenu) menu).getInput().setExitMenuState(MenuState.LOGIN_USERNAME);
+            };
         }
         return menu.setFormData(formValues);
     }

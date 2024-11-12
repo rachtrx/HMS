@@ -16,17 +16,16 @@ public class Admin extends Staff {
 
     private Admin(
         String username, 
-        String password, 
         String name, 
         String gender, 
         String age
     ) throws Exception {
-        super(username, password, name, gender, age);
+        super(username, name, gender, age);
         this.adminId = Admin.adminUuid++;
     }
 
-    public static Admin create(String username, String password, String name, String gender, String age) throws Exception {
-        Admin admin = new Admin(username, password, name, gender, age);
+    public static Admin create(String username, String name, String gender, String age) throws Exception {
+        Admin admin = new Admin(username, name, gender, age);
         DatabaseManager.add(admin);
         LoggerUtils.info("Admin created");
         return admin;

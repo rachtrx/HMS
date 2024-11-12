@@ -24,18 +24,17 @@ public class Doctor extends Staff implements AppointmentManager {
 
     private Doctor(
         String username, 
-        String password, 
         String name, 
         String gender, 
         String age
     ) throws Exception {
-        super(username, password, name, gender, age);
+        super(username, name, gender, age);
         this.doctorId = Doctor.doctorUuid++;
         this.doctorEvents = new ArrayList<>();
     }
 
-    public static Doctor create(String username, String password, String name, String gender, String age) throws Exception {
-        Doctor doctor = new Doctor(username, password, name, gender, age);
+    public static Doctor create(String username, String name, String gender, String age) throws Exception {
+        Doctor doctor = new Doctor(username, name, gender, age);
         DatabaseManager.add(doctor);
         LoggerUtils.info("Doctor created");
         return doctor;

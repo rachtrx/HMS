@@ -7,6 +7,8 @@ import app.model.user_input.MenuState;
 import app.model.user_input.OptionMenu;
 import app.model.user_input.menu_collections.MenuCollection.Control;
 import app.model.user_input.option_collections.OptionGeneratorCollection;
+import app.model.users.User;
+import app.model.users.user_credentials.Password;
 import app.service.MenuService;
 import app.service.UserService;
 import java.util.HashMap;
@@ -69,7 +71,29 @@ public class MenuCollection {
     }
 
     public static Menu getLoginPasswordMenu() {
-        InputMenu menu = new InputMenu("Login Password Menu", "Please enter your password")
+        InputMenu menu = new InputMenu("Login Password Menu", null)
+            .setParseUserInput(false);
+        menu
+            .getInput()
+            .setNextMenuState(null)
+            .setNextAction((formData) -> {
+                try {
+                    String password = (String) formData.get("input");
+                    if (UserService.getCurrentUser() == null) {
+                        UserService.login((String) formData.get("username"), password);
+                    } else {
+                        UserService.getCurrentUser().setPassword(password);
+                    }
+                    return null;
+                } catch (Exception e) {
+                    throw e;
+                }
+            });
+        return menu;
+    }
+
+    public static Menu getChangePasswordMenu() {
+        InputMenu menu = new InputMenu("Change Password Menu", "Please enter your password")
             .setParseUserInput(false);
         menu
             .getInput()
@@ -85,24 +109,6 @@ public class MenuCollection {
             });
         return menu;
     }
-
-    // public static Menu getChangePasswordMenu() {
-    //     InputMenu menu = new InputMenu("Change Password Menu", "Please enter your password")
-    //         .setParseUserInput(false);
-    //     menu
-    //         .getInput()
-    //         .setNextMenuState(null)
-    //         .setExitMenuState(MenuState.LOGIN_USERNAME)
-    //         .setNextAction((formData) -> {
-    //             try {
-    //                 UserService.login((String) formData.get("username"), (String) formData.get("input"));
-    //                 return null;
-    //             } catch (Exception e) {
-    //                 return null;
-    //             }
-    //         });
-    //     return menu;
-    // }
 
     // The following are shared by Doctors and Patients
     public static Menu getTimeSlotSelectionMenu() {

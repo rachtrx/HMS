@@ -42,7 +42,7 @@ public class UserService {
         return currentUser;
     }
 
-    public static void login(String username, String password) throws Exception {
+    public static void login(String username, String password) throws IllegalArgumentException {
         Optional<User> findUser = UserService.users.stream()
             .filter(user -> (
                 user.getUsername().equals(username) &&

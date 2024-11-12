@@ -27,6 +27,7 @@ public abstract class User implements ISerializable {
     // public abstract void displayUserMenu();
     private static int uuid = 1;
     private final int userId;
+    public static final String DEFAULTPASSWORD = "Easy2Type!";
 
     public static void setUuid(int value) {
         uuid = value;
@@ -46,10 +47,10 @@ public abstract class User implements ISerializable {
      * @param gender
      */
 
-    public User(String username, String password, String name, String gender, String dateOfBirth) throws Exception {
+    public User(String username, String name, String gender, String dateOfBirth) throws Exception {
         this.userId = User.uuid++;
         this.username = new Username(username);
-        this.password = new Password(password);
+        this.password = new Password(DEFAULTPASSWORD);
         this.name = name;
         this.gender = EnumUtils.fromString(Gender.class, gender);
         this.dateOfBirth = DateTimeUtil.parseShortDate(dateOfBirth);
@@ -101,6 +102,7 @@ public abstract class User implements ISerializable {
     }
 
     public void setPassword(String password) throws Exception { // abstract password into its own class? parent class credentials?
+        if (password.equals(DEFAULTPASSWORD)) throw new IllegalArgumentException("Password not allowed!");
         this.password.setPassword(password);
         DatabaseManager.update(this);
     }

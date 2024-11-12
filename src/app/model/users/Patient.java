@@ -32,7 +32,6 @@ public class Patient extends User implements AppointmentManager {
     
     private Patient(
         String username,
-        String password,
         String name,
         String gender,
         String dateOfBirth,
@@ -41,7 +40,7 @@ public class Patient extends User implements AppointmentManager {
         String email,
         String bloodType
     ) throws Exception {
-        super(username, password, name, gender, dateOfBirth);
+        super(username, name, gender, dateOfBirth);
         this.patientId = Patient.patientUuid++;
         this.mobileNumber = new PhoneNumber(mobileNumber);
         this.homeNumber = new PhoneNumber(homeNumber);
@@ -50,8 +49,8 @@ public class Patient extends User implements AppointmentManager {
         this.medicalRecord = new MedicalRecord(this.patientId); // Medical record created upon instantiation of patient
     }
 
-    public static Patient create(String username, String password, String name, String gender, String dateOfBirth, String mobileNumber, String homeNumber, String email, String bloodType) throws Exception {
-        Patient patient = new Patient(username, password, name, gender, dateOfBirth, mobileNumber, homeNumber, email, bloodType);
+    public static Patient create(String username, String name, String gender, String dateOfBirth, String mobileNumber, String homeNumber, String email, String bloodType) throws Exception {
+        Patient patient = new Patient(username, name, gender, dateOfBirth, mobileNumber, homeNumber, email, bloodType);
         DatabaseManager.add(patient);
         LoggerUtils.info("Patient created");
         return patient;

@@ -3,6 +3,8 @@ package app.service;
 import app.constants.exceptions.ExitApplication;
 import app.model.user_input.MenuState;
 import app.model.user_input.Menu;
+import app.model.user_input.MenuState;
+import app.model.users.User;
 import app.utils.LoggerUtils;
 import java.util.HashMap;
 
@@ -30,7 +32,11 @@ public class MenuService {
     public static void setCurrentMenu(MenuState newMenuState) throws ExitApplication{
         LoggerUtils.info("Next Menu State: " + newMenuState);
         if (newMenuState == null) {
-            newMenuState = MenuState.getUserMainMenuState();
+            if (UserService.getCurrentUser() != null && UserService.getCurrentUser().getPassword().equals(User.DEFAULTPASSWORD)) {
+                newMenuState = MenuState.LOGIN_PASSWORD;
+            } else {
+                newMenuState = MenuState.getUserMainMenuState();
+            }
             if (newMenuState == null) throw new ExitApplication();
         }
         Menu newMenu = newMenuState.getMenu(MenuService.currentMenu.getFormData());
