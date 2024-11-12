@@ -226,7 +226,8 @@ public class AdminMenuCollection {
     }
 
     public static Menu getAdminAddMedicationMenu() {
-        InputMenu menu = new InputMenu("New Medication Name", "Enter new medication name");
+        InputMenu menu = new InputMenu("New Medication Name", "Enter new medication name")
+            .setParseUserInput(false);
 
         menu.getInput()
             .setNextAction((formValues) -> {
@@ -258,11 +259,14 @@ public class AdminMenuCollection {
 
         menu.getInput()
             .setNextAction((formValues) -> {
-                String input = (String) menu.getFormData().get("input");
-                formValues.put("stock", input);
+                String lowAlert = (String) formValues.get("input");
+                String stock = (String) formValues.get("stock");
+                String name = (String) formValues.get("name");
+                Medication.create(name, stock, lowAlert);
                 return formValues;
             })
-            .setNextMenuState(MenuState.VIEW_INVENTORY);
+            .setNextMenuState(MenuState.VIEW_INVENTORY)
+            .setRequiresConfirmation(true);
 
         return menu;
     }
@@ -288,21 +292,21 @@ public class AdminMenuCollection {
         return menu;
     }
     public static Menu getAdminViewRequestMenu() {
-        return new OptionMenu("Replenish requests", "Select a request to approve or reject")
+        return new OptionMenu("Replenish requests", "Select an Action")
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption()
             .setOptionGenerator(() -> OptionGeneratorCollection.getRequestOptions(Control.NONE));
         
     }
     public static Menu getApproveReplenishRequestMenu() {
-        return new OptionMenu("Handle request", null)
+        return new OptionMenu("Select a request to approve", null)
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption()
             .setOptionGenerator(() -> OptionGeneratorCollection.getRequestOptions(Control.APPROVE));
     }
 
     public static Menu getRejectReplenishRequestMenu() {
-        return new OptionMenu("Handle request", null)
+        return new OptionMenu("Select a request to reject", null)
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption()
             .setOptionGenerator(() -> OptionGeneratorCollection.getRequestOptions(Control.REJECT));

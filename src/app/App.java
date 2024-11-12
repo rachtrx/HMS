@@ -15,7 +15,9 @@ public class App {
 		System.out.println(new ExitApplication().getMessage());
 		App.scanner.close();
 		try {
+			System.out.println("Saving changes to database...");
 			DatabaseManager.stop();
+			System.out.println("Changes successfully saved.");
 		} catch (Exception e) {
 			System.out.println("Error saving database: " + e.getMessage());
 			// e.printStackTrace();

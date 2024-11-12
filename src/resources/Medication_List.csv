@@ -1,4 +1,6 @@
 ID,Medicine Name,Initial Stock,Low Stock Level Alert
-1,Paracetamol,200,20
+1,Paracetamol,220,20
 2,Ibuprofen,50,10
 3,Amoxicillin,75,15
+4,Atorvastatin,200,70
+5,Lisinopril,50,29

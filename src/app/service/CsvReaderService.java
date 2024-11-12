@@ -41,7 +41,7 @@ public class CsvReaderService {
                 bw.newLine();
             }
         }
-        System.out.println("Data has been written to " + filePath);
+        LoggerUtils.info("Data has been written to " + filePath);
     }
 
     

@@ -987,9 +987,8 @@ public class OptionGeneratorCollection {
                             }
                             return formData;
                         })
-                        .setExitMenuState(MenuState.INPUT_DOCTOR)
+                        .setExitMenuState(MenuState.INPUT_APPOINTMENT_DOCTOR)
                         .setRequiresConfirmation(true);
-                    
                 } else {
                     option.setNextMenuState(MenuState.PATIENT_VIEW_AVAIL_APPOINTMENTS_DOCTOR)
                         .setNextAction(formData -> {
@@ -1961,7 +1960,7 @@ public class OptionGeneratorCollection {
 
         if (user.getClass() == Admin.class && ctl == Control.NONE) {
             options.add(new Option(
-                "ADD( )",
+                "ADD( )?",
                 OptionType.UNNUMBERED,
                 new LinkedHashMap<>() {{
                     put("Select", "ADD");
@@ -2220,7 +2219,7 @@ public class OptionGeneratorCollection {
                 OptionType.UNNUMBERED,
                 new LinkedHashMap<>() {{
                     put("Select", "/5");
-                    put("Action", "Sort Role Asc");
+                    put("Action", "Sort Age Asc");
                 }}
             ).setNextMenuState(MenuState.ADMIN_VIEW_USERS)
             .setNextAction(formValues -> {
@@ -2235,7 +2234,7 @@ public class OptionGeneratorCollection {
                 OptionType.UNNUMBERED,
                 new LinkedHashMap<>() {{
                     put("Select", "/6");
-                    put("Action", "Sort Role Asc");
+                    put("Action", "Sort Age Asc");
                 }}
             ).setNextMenuState(MenuState.ADMIN_VIEW_USERS)
             .setNextAction(formValues -> {
@@ -2560,12 +2559,12 @@ public class OptionGeneratorCollection {
                         option.setNextAction((formValues) -> {
                             MedicationService.approveReplenishRequest(request);
                             return null;
-                        });
+                        }).setNextMenuState(MenuState.VIEW_INVENTORY);
                     } else if (ctl == Control.REJECT) {
                         option.setNextAction((formValues) -> {
                             request.setStatus(Request.Status.REJECTED);
                             return null;
-                        });
+                        }).setNextMenuState(MenuState.VIEW_INVENTORY);
                     }
     
                     return option;

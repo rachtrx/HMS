@@ -3,6 +3,7 @@ package app.model.inventory;
 import app.constants.exceptions.NonNegativeException;
 import app.db.DatabaseManager;
 import app.model.ISerializable;
+import app.service.MedicationService;
 import app.utils.LoggerUtils;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,6 +44,7 @@ public class Medication implements ISerializable {
 
     public static Medication create(String name, String stock, String lowAlertLevel) {
         Medication medication = new Medication(name, stock, lowAlertLevel);
+        MedicationService.addMedication(List.of(medication));
         DatabaseManager.add(medication);
         LoggerUtils.info("Medication created");
         return medication;

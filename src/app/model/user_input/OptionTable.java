@@ -40,7 +40,7 @@ public class OptionTable {
     // Print a header based on the column config and display flag
     private void printHeader(Map<String, Integer> columnConfig, boolean isDisplay) {
         if (!isDisplay) {
-            System.out.printf("%-7s", "Index");
+            System.out.printf("%-8s", "Select");
         }
         columnConfig.forEach((header, width) -> System.out.printf("%-" + width + "s", header));
         System.out.println();
@@ -50,7 +50,7 @@ public class OptionTable {
     // Print a row based on display fields, index, and display flag
     private void printRow(Map<String, String> displayFields, int index, Map<String, Integer> columnConfig, boolean isDisplay) {
         if (!isDisplay) {
-            System.out.printf("%-7d", index);
+            System.out.printf("%-8d", index);
         }
         columnConfig.forEach((header, width) -> {
             String cellText = displayFields.getOrDefault(header, "");

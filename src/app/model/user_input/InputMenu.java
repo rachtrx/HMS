@@ -18,6 +18,7 @@ public class InputMenu extends Menu {
 
     @Override
     public Input getField (String userInput) {
+        if (userInput.equals("") && menuState != MenuState.LANDING) throw new IllegalArgumentException("Please enter a value"); 
         this.formData.put("input", userInput);
         return this.input;
     }

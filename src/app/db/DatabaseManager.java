@@ -215,12 +215,14 @@ public class DatabaseManager {
         for (Row medicationRow : medicationRows) {
             List<Row> requestRows = tables.get(TableConfig.REQUESTS.getTableName()).findAllByVal(medicationRow.getpKey(), 1);
 
-            if (requestRows.isEmpty()) continue; // TODO 
-                List<Request> requests = new ArrayList<>();
+            List<Request> requests = new ArrayList<>();
+            if (!requestRows.isEmpty()) {
                 for (Row requestRow : requestRows) {
                     Request request = new RequestBuilder(requestRow.getData()).buildInstance().getInstance();
                     requests.add(request);
                 }
+            }
+                
             Medication medication = new MedicationBuilder(medicationRow.getData(), requests)
                 .buildInstance()
                 .getInstance();

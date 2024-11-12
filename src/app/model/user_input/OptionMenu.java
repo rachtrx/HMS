@@ -39,7 +39,7 @@ public class OptionMenu extends Menu {
         int totalMatches = matches.size();
         
         if (totalMatches < 1 || totalMatches > 1) {
-            System.out.println("No option match found"); // TODO: REMOVE
+            System.out.println("No option match found" + totalMatches); // TODO: REMOVE
             throw new IllegalArgumentException("No match found for the selected input.");
         } else {
             return matches.get(0);
