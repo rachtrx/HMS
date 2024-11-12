@@ -1458,7 +1458,6 @@ public class OptionGeneratorCollection {
             .filter(appointment -> p != null ? appointment.getPatientId() == p.getRoleId() : true)
             .filter(appointment -> !showNonNullOutcomes ? appointment.getAppointmentOutcome() == null : true)
             .filter(appointment -> !showNullOutcomes ? appointment.getAppointmentOutcome() != null : true)
-            .sorted(Comparator.comparing(Appointment::getTimeslot).reversed())
             .map(appointment -> {
                 Patient patient = UserService.findUserByIdAndType(
                     appointment.getPatientId(),

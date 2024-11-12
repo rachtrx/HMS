@@ -13,6 +13,7 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -34,6 +35,7 @@ public class AppointmentService {
             .stream()
             .filter(user -> user instanceof Patient)
             .flatMap(user -> ((Patient) user).getAppointments().stream())
+            .sorted(Comparator.comparing(Appointment::getTimeslot).reversed())
             .collect(Collectors.toList());
         return appointments;
     }

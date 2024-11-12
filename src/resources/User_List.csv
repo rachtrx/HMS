@@ -1,32 +1,32 @@
 User ID,Username,Password,Name,Gender
-1,user_a,Easy2Type!!!,Alice Brown,Female,14/05/1980
-2,user_b,Easy2Type!,Bob Stone,Male,22/11/1975
-3,user_c,Easy2Type!,Charlie White,Male,08/07/2002
-4,sarah_lee,Easy2Type!!,Sarah Lee,Female,14/03/2010
-5,john_smith,Easy2Type!,John Smith,Male,18/09/1975
-6,emily_clarke,Easy2Type!,Emily Clarke,Female,25/02/2000
-7,mark_lee,Easy2Type!!,Mark Lee,Male,02/05/1985
-8,grace_tan,Easy2Type!,Grace Tan,Female,12/07/2001
-9,john_lee,Easy2Type!,John Lee,Non-Binary,16/08/2003
-10,james_tan,Easy2Type!,James Tan,Male,13/09/1998
-11,jared_toh,Easy2Type!,Jared Toh,Male,13/04/1999
+1,user_a,Patient123!,Alice Brown,Female,14/05/1980
+2,user_b,Patient123!,Bob Stone,Male,22/11/1975
+3,user_c,Patient123!,Charlie White,Male,08/07/2002
+4,sarah_lee,Doctor123!,Sarah Lee,Female,14/03/2010
+5,john_smith,Doctor123!,John Smith,Male,18/09/1975
+6,emily_clarke,Pharm123!,Emily Clarke,Female,25/02/2000
+7,mark_lee,Admin123!,Mark Lee,Male,02/05/1985
+8,grace_tan,Patient123!,Grace Tan,Female,12/07/2001
+9,john_lee,Doctor123!,John Lee,Non-Binary,16/08/2003
+10,james_tan,Doctor123!,James Tan,Male,13/09/1998
+11,jared_toh,Doctor123!,Jared Toh,Male,13/04/1999
 12,victoria_lee,Easy2Type!,Victoria Lee,Male,13/08/1990
-13,jason_tan,Easy2Type!,Jason Tan,Male,24/01/1992
-14,sophia_lim,Easy2Type!,Sophia Lim,Male,05/03/1996
-15,michael_choo,Easy2Type!,Michael Choo,Male,14/07/1993
-16,natalie_wong,Easy2Type!,Natalie Wong,Male,25/12/1998
-17,benjamin_ho,Easy2Type!,Benjamin Ho,Male,02/04/1991
-18,amelia_ng,Easy2Type!,Amelia Ng,Male,11/10/1995
-19,kevin_tay,Easy2Type!,Kevin Tay,Male,09/02/1990
+13,jason_tan,Patient123!,Jason Tan,Male,24/01/1992
+14,sophia_lim,Patient123!,Sophia Lim,Male,05/03/1996
+15,michael_choo,Patient123!,Michael Choo,Male,14/07/1993
+16,natalie_wong,Patient123!,Natalie Wong,Male,25/12/1998
+17,benjamin_ho,Patient123!,Benjamin Ho,Male,02/04/1991
+18,amelia_ng,Patient123!,Amelia Ng,Male,11/10/1995
+19,kevin_tay,Patient123!,Kevin Tay,Male,09/02/1990
 20,olivia_chan,Easy2Type!,Olivia Chan,Male,18/05/1997
-21,daniel_koh,Easy2Type!,Daniel Koh,Male,06/09/1986
-22,chloe_lau,Easy2Type!,Chloe Lau,Male,02/06/1994
-23,ryan_ong,Easy2Type!,Ryan Ong,Male,20/11/1990
-24,grace_lee,Easy2Type!,Grace Lee,Male,15/03/1998
-25,ethan_ho,Easy2Type!,Ethan Ho,Male,30/09/1991
-26,sarah_tan,Easy2Type!,Sarah Tan,Male,25/07/1995
-27,aaron_lim,Easy2Type!,Aaron Lim,Male,09/12/1988
-28,isabelle_chia,Easy2Type!,Isabelle Chia,Male,04/04/1997
+21,daniel_koh,Patient123!,Daniel Koh,Male,06/09/1986
+22,chloe_lau,Patient123!,Chloe Lau,Male,02/06/1994
+23,ryan_ong,Patient123!,Ryan Ong,Male,20/11/1990
+24,grace_lee,Patient123!,Grace Lee,Male,15/03/1998
+25,ethan_ho,Patient123!,Ethan Ho,Male,30/09/1991
+26,sarah_tan,Patient123!,Sarah Tan,Male,25/07/1995
+27,aaron_lim,Patient123!,Aaron Lim,Male,09/12/1988
+28,isabelle_chia,Patient123!,Isabelle Chia,Male,04/04/1997
 29,jacob_loo,Easy2Type!,Jacob Loo,Male,17/08/1992
 30,hannah_ng,Easy2Type!,Hannah Ng,Male,22/10/1993
 31,lucas_tay,Easy2Type!,Lucas Tay,Male,11/01/1996
@@ -70,9 +70,9 @@ User ID,Username,Password,Name,Gender
 69,ava_chen,Easy2Type!,Ava Chen,Female,15/11/1995
 70,james_lee,Easy2Type!,James Lee,Non-Binary,03/05/1987
 71,sophie_tan,Easy2Type!,Sophie Tan,Male,29/12/1991
-72,amelia_goh,Easy2Type!,Easy2Type!!,Non-Binary,22/08/1987
-73,hannah_tan,Easy2Type!,Easy2Type!!,Male,11/09/1985
-74,sophia_ong,Easy2Type!,Easy2Type!!,Male,02/04/1990
+72,amelia_goh,Easy2Type!,Patient123!,Non-Binary,22/08/1987
+73,hannah_tan,Easy2Type!,Patient123!,Male,11/09/1985
+74,sophia_ong,Easy2Type!,Patient123!,Male,02/04/1990
 75,ava_ho,Easy2Type!,Easy2Type!,Male,26/11/1996
 76,benjamin_ng,Easy2Type!,Benjamin Ng,Male,19/03/1986
 77,isabelle_lee,Easy2Type!,Isabelle Lee,Male,07/10/1990
@@ -81,8 +81,8 @@ User ID,Username,Password,Name,Gender
 80,lucas_choo,Easy2Type!,Lucas Choo,Male,01/02/1993
 81,emily_ho,Easy2Type!,Emily Ho,Female,18/08/1985
 82,joel_lim,Easy2Type!,Joel Lim,Male,12/04/2003
-83,amelia_tan,Easy2Type!,Amelia Tan,Female,24/06/1995
-84,noah_ong,Easy2Type!,Noah Ong,Non-Binary,30/01/2000
+83,amelia_tan,Pharm123!,Amelia Tan,Female,24/06/1995
+84,noah_ong,Admin123!,Noah Ong,Non-Binary,30/01/2000
 85,grace_chen,Easy2Type!,Grace Chen,Male,10/08/1988
 86,lucas_tay,Easy2Type!,Lucas Tay,Female,18/11/1992
 87,olivia_lee,Easy2Type!,Olivia Lee,Non-Binary,05/07/2001

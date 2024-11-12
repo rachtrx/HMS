@@ -134,7 +134,7 @@ public class DoctorMenuCollection {
                 System.out.println(p);
                 System.out.println(DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
                 System.out.println(appointment.getAppointmentStatus());
-                System.out.println(appointment.getAppointmentOutcome());
+                if (appointment.getAppointmentOutcome() != null) System.out.println(appointment.getAppointmentOutcome());
             })
             .setOptionGenerator(OptionGeneratorCollection::generateAcceptRejectOptions);
 
