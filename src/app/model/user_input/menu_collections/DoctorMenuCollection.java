@@ -22,7 +22,7 @@ import java.util.stream.Collectors;
 public class DoctorMenuCollection {
 
     public enum UpcomingEventControl {
-        VIEW, VIEW_BUSY, EDIT_BUSY, DEL_BUSY, VIEW_APPT, CANCEL_APPT, RESPOND_APPT
+        VIEW, VIEW_BUSY, EDIT_BUSY, DEL_BUSY, VIEW_APPT, VIEW_CFM_APPT, CANCEL_APPT, RESPOND_APPT
     }
 
     /**
@@ -94,6 +94,14 @@ public class DoctorMenuCollection {
             .shouldAddLogoutOptions()
             .shouldAddMainMenuOption();
     }
+
+    public static Menu getDoctorViewCfmedApptMenu() {
+        return new OptionMenu("Upcoming Appointments", null)
+            .setOptionGenerator(() -> OptionGeneratorCollection.generateUpcomingEventControlOptions(UpcomingEventControl.VIEW_CFM_APPT))
+            .shouldAddLogoutOptions()
+            .shouldAddMainMenuOption();
+    }
+
     /**
      * @return
      */
@@ -132,8 +140,8 @@ public class DoctorMenuCollection {
                     .orElse(null);
                 if(p == null) throw new IllegalArgumentException("Patient not found");
                 System.out.println(p);
-                System.out.println(DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
-                System.out.println(appointment.getAppointmentStatus());
+                System.out.println("Timeslot: " + DateTimeUtil.printLongDateTime(appointment.getTimeslot()));
+                System.out.println("Status: " + appointment.getAppointmentStatus());
                 if (appointment.getAppointmentOutcome() != null) System.out.println(appointment.getAppointmentOutcome());
             })
             .setOptionGenerator(OptionGeneratorCollection::generateAcceptRejectOptions);

@@ -3,11 +3,11 @@ ID,Doctor Event ID,Patient ID,Status
 2,3,2,Completed
 3,4,1,Completed
 4,5,1,Completed
-5,6,1,Cancelled
-6,7,1,Cancelled
-7,8,1,Cancelled
-8,13,1,Cancelled
-9,14,1,Cancelled
+5,6,1,Confirmed
+6,7,1,Confirmed
+7,8,1,Confirmed
+8,13,1,Confirmed
+9,14,1,Confirmed
 10,15,1,Pending
 11,16,1,Cancelled
 12,17,12,Pending

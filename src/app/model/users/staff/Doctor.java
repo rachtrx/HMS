@@ -68,8 +68,8 @@ public class Doctor extends Staff implements AppointmentManager {
 
     public List<DoctorEvent> getDoctorEvents() {
         return doctorEvents.stream()
-            .sorted(Comparator.comparing(DoctorEvent::getTimeslot))
-            .collect(Collectors.toList());
+        .sorted(Comparator.comparing(DoctorEvent::getTimeslot))
+        .collect(Collectors.toList());
     }
 
     public void addDoctorEvent(DoctorEvent e) {

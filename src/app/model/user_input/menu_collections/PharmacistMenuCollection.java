@@ -38,8 +38,6 @@ public class PharmacistMenuCollection {
                         }
                     })
                     .collect(Collectors.toList());
-                if(appointments.isEmpty()) System.out.println("Empty Appointments");
-                else System.out.println(appointments);
                 return OptionGeneratorCollection.generatePharmacistViewOutcomeOptions(appointments, hideCompleted);
             }).shouldAddLogoutOptions()
             .shouldAddMainMenuOption();
@@ -48,7 +46,7 @@ public class PharmacistMenuCollection {
     }
 
     public static Menu getPharmacistUpdateOutcomesMenu() {
-        OptionMenu menu = new OptionMenu("Update Outcomes", "");
+        OptionMenu menu = new OptionMenu("Update Presciption", "");
             
         menu.setOptionGenerator(() -> {
             List<Appointment> appointments = AppointmentService.getAllAppointments().stream()

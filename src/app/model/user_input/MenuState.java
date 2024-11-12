@@ -15,9 +15,6 @@ import app.model.users.staff.Doctor;
 import app.model.users.staff.Pharmacist;
 import app.service.MenuService;
 import app.service.UserService;
-
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.function.Supplier;
@@ -63,6 +60,7 @@ public enum MenuState {
     DOCTOR_DELETE_UPCOMING_UNAVAILABILITY(DoctorMenuCollection::getDoctorDelUnAvailMenu),
     
     DOCTOR_VIEW_UPCOMING_APPOINTMENTS(DoctorMenuCollection::getDoctorViewApptMenu),
+    DOCTOR_VIEW_CONFIRMED_APPOINTMENTS(DoctorMenuCollection::getDoctorViewCfmedApptMenu),
     DOCTOR_CANCEL_UPCOMING_APPOINTMENTS(DoctorMenuCollection::getDoctorCancelApptMenu),
     DOCTOR_HANDLE_UPCOMING_APPOINTMENTS(DoctorMenuCollection::getDoctorHandleApptsMenu),
     DOCTOR_HANDLE_UPCOMING_APPOINTMENT(DoctorMenuCollection::getDoctorHandleApptMenu), // choose accept or reject

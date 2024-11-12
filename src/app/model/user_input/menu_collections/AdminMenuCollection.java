@@ -15,7 +15,6 @@ import app.model.users.staff.Doctor;
 import app.model.users.staff.Pharmacist;
 import app.model.users.staff.Staff;
 import app.model.users.user_credentials.Email;
-import app.model.users.user_credentials.Password;
 import app.model.users.user_credentials.PhoneNumber;
 import app.model.users.user_credentials.Username;
 import app.service.AppointmentService;
@@ -26,7 +25,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.ResourceBundle;
 import java.util.stream.Collectors;
 
 public class AdminMenuCollection {
@@ -48,7 +46,7 @@ public class AdminMenuCollection {
                     System.out.println("No appointments scheduled.\n");
                     return new ArrayList<>();
                 }
-            });
+            }).shouldAddLogoutOptions().shouldAddMainMenuOption();
     }
     public static Menu getAdminViewUsersMenu() {
         OptionMenu menu = new OptionMenu("All Staff", null);
@@ -94,11 +92,10 @@ public class AdminMenuCollection {
             if (formValues == null || !formValues.containsKey("user")) throw new IllegalArgumentException("Staff not found");
             Staff staff = (Staff) formValues.get("user");
             return OptionGeneratorCollection.generateUserFieldsEditOptions(staff);
-        });
+        }).shouldAddMainMenuOption();
         return menu;
     }
     public static Menu getAdminAddUserTypeMenu() {
-        System.out.println("Creating user type menu");
         return new OptionMenu("User roles", "Select a role").setOptionGenerator(
             OptionGeneratorCollection::getRoleOptions
         ).shouldAddMainMenuOption();

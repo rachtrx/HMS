@@ -93,10 +93,10 @@ public class PatientMenuCollection {
                 LocalDateTime now = LocalDateTime.now();
                 if (now.toLocalTime().isAfter(Timeslot.lastSlotStartTime)) {
                     System.out.println("Timeslots for " + 
-                        DateTimeUtil.printLongDateTime(LocalDateTime.of(now.toLocalDate(), now.toLocalTime())));
+                        DateTimeUtil.printLongDate(now.toLocalDate()));
                 } else {
                     System.out.println("Timeslots for " + 
-                        DateTimeUtil.printLongDateTime(LocalDateTime.of(now.plusDays(1).toLocalDate(), LocalTime.of(0, 0))));
+                        DateTimeUtil.printLongDate(now.plusDays(1).toLocalDate()));
                 }
             })
             .setOptionGenerator(() -> {

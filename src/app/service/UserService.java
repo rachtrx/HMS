@@ -1,12 +1,9 @@
 package app.service;
 
 import app.db.DatabaseManager;
-import app.model.user_input.OptionTable;
 import app.model.users.User;
 import app.model.users.staff.Staff;
 import app.utils.LoggerUtils;
-import java.time.LocalDate;
-import java.time.Period;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
@@ -61,8 +58,8 @@ public class UserService {
     
     public static User findUser(String username, String password) {
         for (User user : users) {
-            System.out.println(user.getPassword());
-            System.out.println(password);
+            // System.out.println(user.getPassword());
+            // System.out.println(password);
             if (user.getUsername().equals(username) && user.getPassword().equals(password)) {
                 return user;
             }
@@ -112,7 +109,7 @@ public class UserService {
     public static List<Staff> getSortedUsers(SortFilter sortBy, boolean ascending) {
         if (users.isEmpty()) {
             System.out.println("No users found");
-            return null;
+            return new ArrayList<>();
         }
 
         // Sort users based on the specified field

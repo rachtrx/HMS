@@ -252,7 +252,7 @@ public class DatabaseManager {
                     Row staffRow = tables.get(TableConfig.STAFF.getTableName()).findByVal(userRow.getpKey(), 1);
 
                     if (staffRow == null) {
-                        System.out.println("Error");
+                        // System.out.println("Error");
                         continue;
                     }
 

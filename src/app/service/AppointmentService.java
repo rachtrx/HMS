@@ -7,6 +7,7 @@ import app.model.appointments.AppointmentOutcomeRecord;
 import app.model.appointments.Timeslot;
 import app.model.users.MedicalRecord;
 import app.model.users.Patient;
+import app.model.users.staff.Admin;
 import app.model.users.staff.Doctor;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -34,7 +35,12 @@ public class AppointmentService {
         List<Appointment> appointments = UserService.getAllUsers()
             .stream()
             .filter(user -> user instanceof Patient)
-            .flatMap(user -> ((Patient) user).getAppointments().stream())
+            .flatMap(user -> ((Patient) user).getAppointments().stream()
+                .filter(appointment -> 
+                    UserService.getCurrentUser().getClass() != Admin.class ? 
+                        appointment.getAppointmentStatus() != AppointmentStatus.CANCELLED : 
+                        true)
+            )
             .sorted(Comparator.comparing(Appointment::getTimeslot))
             .collect(Collectors.toList());
         return appointments;
@@ -51,12 +57,22 @@ public class AppointmentService {
     
     public static List<Appointment> getAllAppointmentsForPatient(int patientId) {
         Patient patient = UserService.findUserByIdAndType(patientId, Patient.class, true);
-        return patient != null ? patient.getAppointments() : new ArrayList<>();
+        return patient != null ? patient.getAppointments().stream()
+            .filter(appointment -> 
+                UserService.getCurrentUser().getClass() != Admin.class ? 
+                    appointment.getAppointmentStatus() != AppointmentStatus.CANCELLED : 
+                    true)
+            .collect(Collectors.toList()) : new ArrayList<>();
     }
     
     public static List<Appointment> getAllAppointmentsForDoctor(int doctorId) {
         Doctor doctor = UserService.findUserByIdAndType(doctorId, Doctor.class, true);
-        return doctor != null ? doctor.getAppointments() : new ArrayList<>();
+        return doctor != null ? doctor.getAppointments().stream()
+            .filter(appointment -> 
+                UserService.getCurrentUser().getClass() != Admin.class ? 
+                    appointment.getAppointmentStatus() != AppointmentStatus.CANCELLED : 
+                    true)
+            .collect(Collectors.toList()) : new ArrayList<>();
     }
     
     public static MedicalRecord getMedicalRecord(int patientId) {
