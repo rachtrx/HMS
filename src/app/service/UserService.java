@@ -18,11 +18,6 @@ public class UserService {
     private static User currentUser;
     
     private static final List<User> users = new ArrayList<>();
-    // private List<String> roles = Arrays
-    //     .asList(Patient.class, Doctor.class)
-    //     .stream()
-    //     .map(Class::getSimpleName)
-    //     .collect(Collectors.toList());
     
     public static List<User> getAllUsers() {
         return users;

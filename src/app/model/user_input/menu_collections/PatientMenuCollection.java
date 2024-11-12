@@ -60,6 +60,34 @@ public class PatientMenuCollection {
         return menu;
     }
 
+    public static Menu getPatientViewAvailAppointmentsDoctorMenu() {
+        OptionMenu menu = new OptionMenu("Available Appointments for Doctor", null);
+
+        menu
+            .setDisplayGenerator(() -> {
+                Map<String, Object> formValues = menu.getFormData();
+                if (formValues == null || !formValues.containsKey("doctor")) throw new IllegalArgumentException("Doctor not found");
+                Doctor d = (Doctor) formValues.get("doctor");
+                System.out.println("Available Appointments For Next Month for " + d.getName());
+            })
+            .setOptionGenerator(() -> {
+                Map<String, Object> formValues = menu.getFormData();
+                if (formValues == null || !formValues.containsKey("doctor")) throw new IllegalArgumentException("Doctor not found");
+                Doctor d = (Doctor) formValues.get("doctor");
+                List<Timeslot> timeslotsByDoctor = AppointmentService.getAvailableAppointmentSlotsForDoctorNextMonth(d);
+    
+                if (!timeslotsByDoctor.isEmpty()) {
+                    return OptionGeneratorCollection.generateAvailableTimeslotOptionsByDate(d);
+                } else {
+                    System.out.println("No available timeslots for " + d.getName());
+                    return new ArrayList<>();
+                }     
+            })
+            .shouldAddMainMenuOption().shouldAddLogoutOptions();
+
+        return menu;
+    }
+
     public static Menu getPatientViewAvailAppointmentsMenu() {
         return new OptionMenu("Available Appointments Today", null)
             .setOptionGenerator(() -> {
@@ -105,7 +133,24 @@ public class PatientMenuCollection {
         .shouldAddLogoutOptions();
     }
 
-    public static Menu getInputAppointmentDoctorMenu() {
+    public static Menu getDoctorSelectionMenu() {
+        OptionMenu menu = new OptionMenu("Select Doctor", null);
+        menu
+            .setOptionGenerator(() -> {
+                List<Doctor> allDoctors = UserService.getAllUserByType(Doctor.class)
+                    .stream()
+                    .map(user -> (Doctor) user)
+                    .collect(Collectors.toList());
+                if (allDoctors == null || allDoctors.isEmpty()) {
+                    throw new IllegalArgumentException("No doctors available.");
+                }
+                return OptionGeneratorCollection.getInputDoctorOptionGenerator(allDoctors, null);
+            })
+            .shouldAddMainMenuOption();
+        return menu;
+    }
+
+    public static Menu getAppointmentSelectDoctorMenu() {
         OptionMenu menu = new OptionMenu("Select Available Doctor", null);
         menu
             .setOptionGenerator(() -> {
@@ -122,7 +167,7 @@ public class PatientMenuCollection {
                 if (availableDoctors == null || availableDoctors.isEmpty()) {
                     throw new IllegalArgumentException("No doctors available.");
                 }
-                return OptionGeneratorCollection.getInputDoctorOptionGenerator(availableDoctors, p, selectedDateTime);
+                return OptionGeneratorCollection.getInputDoctorOptionGenerator(availableDoctors, selectedDateTime);
             })
             .shouldAddMainMenuOption();
         return menu;

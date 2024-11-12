@@ -80,14 +80,29 @@ public class MenuCollection {
                     UserService.login((String) formData.get("username"), (String) formData.get("input"));
                     return null;
                 } catch (Exception e) {
-                    MenuService.setCurrentMenu(MenuState.LOGIN_USERNAME);
-                    System.out.println((String) formData.get("username"));
-                    System.out.println((String) formData.get("input"));
                     return null;
                 }
             });
         return menu;
     }
+
+    // public static Menu getChangePasswordMenu() {
+    //     InputMenu menu = new InputMenu("Change Password Menu", "Please enter your password")
+    //         .setParseUserInput(false);
+    //     menu
+    //         .getInput()
+    //         .setNextMenuState(null)
+    //         .setExitMenuState(MenuState.LOGIN_USERNAME)
+    //         .setNextAction((formData) -> {
+    //             try {
+    //                 UserService.login((String) formData.get("username"), (String) formData.get("input"));
+    //                 return null;
+    //             } catch (Exception e) {
+    //                 return null;
+    //             }
+    //         });
+    //     return menu;
+    // }
 
     // The following are shared by Doctors and Patients
     public static Menu getTimeSlotSelectionMenu() {

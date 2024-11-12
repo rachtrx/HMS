@@ -12,6 +12,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -94,30 +95,54 @@ public class AppointmentService {
             ).collect(Collectors.toList());
     }
 
-    private boolean userIdMatches(Patient patient, Appointment appointment) {
-        return appointment.getPatientId() == UserService.getCurrentUser().getUserId();
+    public static List<Timeslot> getAvailableAppointmentSlotsForDoctorNextMonth(Doctor doctor) {
+        LocalDateTime startDate = LocalDateTime.now();
+        if (LocalTime.now().isAfter(Timeslot.lastSlotStartTime)) {
+            // Start from tomorrow if today's time has passed the last available slot time
+            startDate = startDate.plusDays(1).with(LocalTime.MIN);
+        }
+        LocalDateTime endDate = startDate.plusDays(30);
+        List<Timeslot> availableSlots = new ArrayList<>();
+    
+        LocalDateTime currentDate = startDate;
+        while (!currentDate.isAfter(endDate)) {
+            Map<Doctor, List<Timeslot>> dailySlotsByDoctor = getAvailableAppointmentSlotsByDoctor(currentDate);
+            List<Timeslot> doctorSlots = dailySlotsByDoctor.getOrDefault(doctor, Collections.emptyList());
+    
+            // Include today with empty slots if no slots are available and it's before the last timeslot time
+            if (currentDate.toLocalDate().equals(startDate.toLocalDate()) &&
+                LocalTime.now().isBefore(Timeslot.lastSlotStartTime) && doctorSlots.isEmpty()) {
+                dailySlotsByDoctor.put(doctor, new ArrayList<>());
+            }
+    
+            availableSlots.addAll(doctorSlots);
+            currentDate = currentDate.plusDays(1);
+        }
+    
+        return availableSlots;
     }
 
     // TODO: requires testing
     public static Map<Doctor, List<Timeslot>> getAvailableAppointmentSlotsByDoctor(LocalDateTime date) {
         LocalDateTime dateTimeNow = LocalDateTime.now();
-        LocalTime currentSlotStartTime = LocalTime.of(dateTimeNow.getHour(), 0);
+        LocalTime startSlotTime;
     
-        // Determine earliest slot time based on current time and provided date
-        if (dateTimeNow.toLocalDate().equals(date.toLocalDate()) && dateTimeNow.getHour() == date.getHour()) {
-            LocalDateTime dateTimeOffset = date.plusHours(1);
-            currentSlotStartTime = LocalTime.of(dateTimeOffset.getHour(), 0);
+        // Apply time restriction only for today's date
+        if (dateTimeNow.toLocalDate().equals(date.toLocalDate())) {
+            LocalTime currentSlotStartTime = LocalTime.of(dateTimeNow.getHour(), 0);
+            startSlotTime = currentSlotStartTime.compareTo(Timeslot.firstSlotStartTime) < 0 ?
+                    Timeslot.firstSlotStartTime : currentSlotStartTime;
+        } else {
+            startSlotTime = Timeslot.firstSlotStartTime;
         }
-        LocalTime earliestSlotTime = currentSlotStartTime.compareTo(Timeslot.firstSlotStartTime) < 0 ?
-                Timeslot.firstSlotStartTime : currentSlotStartTime;
     
         Map<Doctor, List<Timeslot>> availableSlotsByDoctor = new HashMap<>();
     
-        IntStream.range(0, (int) (earliestSlotTime.until(Timeslot.lastSlotStartTime, ChronoUnit.HOURS) /
-                Timeslot.TIMESLOTLENGTHINHOURS))
+        IntStream.range(0, (int) (startSlotTime.until(Timeslot.lastSlotStartTime, ChronoUnit.HOURS) /
+                Timeslot.TIMESLOTLENGTHINHOURS) + 1) // Include last slot
             .forEach(timeslotOffset -> {
                 LocalDateTime slotDateTime = LocalDateTime.of(date.toLocalDate(),
-                        earliestSlotTime.plusHours(timeslotOffset * Timeslot.TIMESLOTLENGTHINHOURS));
+                        startSlotTime.plusHours(timeslotOffset * Timeslot.TIMESLOTLENGTHINHOURS));
                 try {
                     Timeslot timeslot = new Timeslot(slotDateTime);
                     List<Doctor> availableDoctors = AppointmentService.getAvailableDoctorsAtTimeslot(slotDateTime);
@@ -133,6 +158,11 @@ public class AppointmentService {
                     // Ignore invalid timeslot
                 }
             });
+    
+        // Ensure consistency by adding empty lists for fully booked doctors
+        UserService.getAllUserByType(Doctor.class).forEach(doctor ->
+            availableSlotsByDoctor.putIfAbsent((Doctor) doctor, new ArrayList<>())
+        );
     
         return availableSlotsByDoctor;
     }

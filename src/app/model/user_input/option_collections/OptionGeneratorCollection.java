@@ -48,6 +48,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.TreeMap;
 import java.util.TreeSet;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -494,6 +495,91 @@ public class OptionGeneratorCollection {
         return options;
     }
 
+    public static List<Option> generateAvailableTimeslotOptionsByDate(Doctor doctor) {
+        // Get all available timeslots for the doctor over the next month
+        List<Timeslot> availableSlots = AppointmentService.getAvailableAppointmentSlotsForDoctorNextMonth(doctor);
+    
+        // Collect all unique times across dates for column headers
+        Set<LocalTime> uniqueTimes = availableSlots.stream()
+            .map(timeslot -> timeslot.getTimeSlot().toLocalTime())
+            .collect(Collectors.toCollection(TreeSet::new)); // Sorted time
+    
+        // Group timeslots by date with ticks and crosses
+        Map<LocalDate, Map<LocalTime, String>> availabilityByDate = availableSlots.stream()
+            .collect(Collectors.groupingBy(
+                timeslot -> timeslot.getTimeSlot().toLocalDate(),
+                TreeMap::new, // sort date
+                Collectors.toMap(
+                    timeslot -> timeslot.getTimeSlot().toLocalTime(),  // Map time to availability tick
+                    t -> "✓",
+                    (a, b) -> a,
+                    () -> uniqueTimes.stream().collect(Collectors.toMap(time -> time, time -> "✗")) // Default "✗"
+                )
+            ));
+    
+        // Fill in the ticks for available timeslots
+        availableSlots.forEach(timeslot -> {
+            LocalDate date = timeslot.getTimeSlot().toLocalDate();
+            LocalTime time = timeslot.getTimeSlot().toLocalTime();
+            availabilityByDate.get(date).put(time, "✓");
+        });
+    
+        // Create display options with dates as rows and timeslots as columns
+        List<Option> options = availabilityByDate.entrySet().stream()
+            .map(entry -> {
+                LocalDate date = entry.getKey();
+                Map<LocalTime, String> timeslotAvailability = entry.getValue();
+    
+                LinkedHashMap<String, String> displayFields = new LinkedHashMap<>();
+                displayFields.put("Date", date.toString());
+    
+                // Add each timeslot in the row for this date with corresponding tick/cross
+                uniqueTimes.forEach(time -> displayFields.put(time.toString(), timeslotAvailability.getOrDefault(time, "✗")));
+    
+                return new Option(
+                    date.toString(),
+                    Option.OptionType.DISPLAY,
+                    displayFields
+                );
+            })
+            .collect(Collectors.toList());
+
+        options.add(new Option(
+            "B( )?",
+            OptionType.UNNUMBERED,
+            new LinkedHashMap<>() {{
+                put("Select", "B");
+                put("Action", "Back");
+            }}
+        ).setNextAction((formValues) -> {
+            return new HashMap<>();
+        }).setNextMenuState(MenuState.PATIENT_VIEW_AVAIL_APPOINTMENTS));
+
+        options.add(new Option(
+            "view( )?",
+            OptionType.UNNUMBERED,
+            new LinkedHashMap<>() {{
+                put("Select", "view");
+                put("Action", "View Another Doctor");
+            }}
+        ).setNextAction((formValues) -> {
+            return new HashMap<>();
+        }).setNextMenuState(MenuState.INPUT_DOCTOR));
+
+        options.add(new Option(
+            "add",
+            OptionType.UNNUMBERED,
+            new LinkedHashMap<>() {{
+                put("Select", "add");
+                put("Action", "Schedule an Appointment");
+            }}
+        ).setNextAction((formValues) -> {
+            return new HashMap<>();
+        }).setNextMenuState(MenuState.TIMESLOT_SELECTION_TYPE));
+
+        return options;
+    }
+
     /**
      * Generates a list of options displaying available timeslots for each doctor, along with their availability.
      * This list is intended to provide an overview of each doctor's schedule with quick availability indicators 
@@ -539,6 +625,17 @@ public class OptionGeneratorCollection {
                 displayFields
             ));
         });
+
+        options.add(new Option(
+            "view",
+            OptionType.UNNUMBERED,
+            new LinkedHashMap<>() {{
+                put("Select", "view");
+                put("Action", "Select Doctor");
+            }}
+        ).setNextAction((formValues) -> {
+            return new HashMap<>();
+        }).setNextMenuState(MenuState.INPUT_DOCTOR));
 
         options.add(new Option(
             "add",
@@ -794,7 +891,7 @@ public class OptionGeneratorCollection {
             .collect(Collectors.toList());
     }
 
-    /**
+    /** // TODO
      * Generates a list of options for selecting an available doctor for a patient’s appointment, 
      * either to schedule a new appointment or reschedule an existing one.
      * <p>
@@ -806,39 +903,50 @@ public class OptionGeneratorCollection {
      * </ul>
      *
      * @param availableDoctors List of doctors available for the specified date and time.
-     * @param p The patient who is scheduling or rescheduling the appointment.
      * @param selectedDateTime The chosen date and time for the appointment.
      * @return A list of <code>Option</code> representing available doctors, with actions for scheduling or rescheduling.
      */
-    public static List<Option> getInputDoctorOptionGenerator(List<Doctor> availableDoctors, Patient p, LocalDateTime selectedDateTime) {
-        
+    public static List<Option> getInputDoctorOptionGenerator(List<Doctor> availableDoctors, LocalDateTime selectedDateTime) {
         return availableDoctors.stream()
-            .<Option>map(doctor -> new Option( 
+            .<Option>map(doctor -> {
+                Option option = new Option( 
                     doctor.getName(), 
                     OptionType.NUMBERED,
                     new LinkedHashMap<>() {{
                         put("Doctor", doctor.getName());
                     }}
-                )
-                .setNextMenuState(MenuState.getUserMainMenuState())
-                .setNextAction((formData) -> {
-                    if (formData.get("appointment") != null) {
-                        AppointmentService.rescheduleAppointment(
-                            ((Patient) UserService.getCurrentUser()).getRoleId(),
-                            doctor.getRoleId(),
-                            selectedDateTime,
-                            (Appointment) formData.get("appointment")
-                        );
-                    } else {
-                        AppointmentService.scheduleAppointment(
-                            ((Patient) UserService.getCurrentUser()).getRoleId(),
-                            doctor.getRoleId(),
-                            selectedDateTime
-                        );
-                    }
-                    return formData;
-                })
-                .setRequiresConfirmation(true))
+                );
+                
+                if (selectedDateTime != null) {
+                    option.setNextMenuState(MenuState.getUserMainMenuState())
+                        .setNextAction((formData) -> {
+                            if (formData.get("appointment") != null) {
+                                AppointmentService.rescheduleAppointment(
+                                    ((Patient) UserService.getCurrentUser()).getRoleId(),
+                                    doctor.getRoleId(),
+                                    selectedDateTime,
+                                    (Appointment) formData.get("appointment")
+                                );
+                            } else {
+                                AppointmentService.scheduleAppointment(
+                                    ((Patient) UserService.getCurrentUser()).getRoleId(),
+                                    doctor.getRoleId(),
+                                    selectedDateTime
+                                );
+                            }
+                            return formData;
+                        })
+                        .setRequiresConfirmation(true);
+                    
+                } else {
+                    option.setNextMenuState(MenuState.PATIENT_VIEW_AVAIL_APPOINTMENTS_DOCTOR)
+                        .setNextAction(formData -> {
+                            formData.put("doctor", doctor);
+                            return formData;
+                        });
+                }
+                return option;
+            })
             .collect(Collectors.toList());
     }
 
@@ -1997,7 +2105,13 @@ public class OptionGeneratorCollection {
                 displayFields.put("Event Type", event.isAppointment() ? "Appointment" : "Event");
                 displayFields.put("Timeslot", eventTime);
                 displayFields.put("Status", event.isAppointment() ? ((Appointment) event).getAppointmentStatus().toString() : "Confirmed");
-    
+                
+                if (!busyControls.contains(control)) {
+                    displayFields.put("Patient", event.isAppointment() ? 
+                    UserService.findUserByIdAndType(((Appointment) event).getPatientId(), Patient.class, true).getName() : 
+                    "N/A");
+                }
+                
                 Option option = new Option(
                     eventTime,
                     viewControls.contains(control) ? OptionType.DISPLAY : OptionType.NUMBERED,

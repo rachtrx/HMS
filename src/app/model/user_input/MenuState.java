@@ -29,15 +29,19 @@ public enum MenuState {
     INPUT_APPOINTMENT_MONTH(MenuCollection::getInputAppointmentMonthMenu),
     INPUT_APPOINTMENT_DAY(MenuCollection::getInputAppointmentDayMenu),
     INPUT_APPOINTMENT_HOUR(MenuCollection::getInputAppointmentHourMenu),
+    VIEW_INVENTORY(MenuCollection::getViewInventoryMenu),
+    // CHANGE_PASSWORD(MenuCollection::getChangePasswordMenu),
 
     // PATIENT
     PATIENT_MAIN_MENU(PatientMenuCollection::getPatientMainMenu),
     PATIENT_VIEW_MEDICAL_RECORD(PatientMenuCollection::getPatientViewMedicalRecordMenu), // 
     PATIENT_EDIT_MEDICAL_RECORD(PatientMenuCollection::getPatientEditMedicalRecordMenu),
     PATIENT_VIEW_AVAIL_APPOINTMENTS(PatientMenuCollection::getPatientViewAvailAppointmentsMenu),
+    PATIENT_VIEW_AVAIL_APPOINTMENTS_DOCTOR(PatientMenuCollection::getPatientViewAvailAppointmentsDoctorMenu),
     PATIENT_VIEW_CONFIRMED_APPOINTMENTS(PatientMenuCollection::getPatientViewConfirmedAppointmentsMenu),
     
-    INPUT_APPOINTMENT_DOCTOR(PatientMenuCollection::getInputAppointmentDoctorMenu),
+    INPUT_DOCTOR(PatientMenuCollection::getDoctorSelectionMenu),
+    INPUT_APPOINTMENT_DOCTOR(PatientMenuCollection::getAppointmentSelectDoctorMenu),
     PATIENT_RESCHEDULE_SELECTION(PatientMenuCollection::getPatientRescheduleSelectionMenu),
     PATIENT_CANCEL_SELECTION(PatientMenuCollection::getPatientCancelSelectionMenu),
     PATIENT_VIEW_OUTCOMES(PatientMenuCollection::getPatientViewOutcomesMenu),
@@ -102,10 +106,7 @@ public enum MenuState {
     ADMIN_EDIT_MEDICATION(AdminMenuCollection::getAdminEditMedicationMenu),
     ADMIN_VIEW_REQUEST(AdminMenuCollection::getAdminViewRequestMenu),
     APPROVE_REPLENISH_REQUEST(AdminMenuCollection::getApproveReplenishRequestMenu),
-    REJECT_REPLENISH_REQUEST(AdminMenuCollection::getRejectReplenishRequestMenu),
-
-    VIEW_INVENTORY(MenuCollection::getViewInventoryMenu);
-    
+    REJECT_REPLENISH_REQUEST(AdminMenuCollection::getRejectReplenishRequestMenu);    
 
     private final Supplier<Menu> menuProvider;
 

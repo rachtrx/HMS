@@ -33,13 +33,10 @@ public class Timeslot {
     }
 
     private void validateTimeslotDateTime(LocalDateTime timeslotDateTime) throws InvalidTimeslotException {
-        LocalTime desiredTime = LocalTime.of(
-            timeslotDateTime.getHour(),
-            timeslotDateTime.getMinute()
-        );
+        LocalTime desiredTime = timeslotDateTime.toLocalTime();
         if (
             desiredTime.isBefore(Timeslot.firstSlotStartTime) ||
-            desiredTime.isAfter(Timeslot.lastSlotStartTime.plusHours(Timeslot.TIMESLOTLENGTHINHOURS))
+            desiredTime.isAfter(Timeslot.lastSlotStartTime)
         ) {
             throw new InvalidTimeslotException("Timeslot does not exist");
         }
