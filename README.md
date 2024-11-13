@@ -5,7 +5,7 @@
 
 ## Links
 - **[Main Page/Github Repository](https://github.com/rachtrx/HMS)**
-- **[Documentation](https://github.com/rachtrx/HMS/tree/main/doc)**
+- **[Documentation](https://hmsdocs.netlify.app/)**
 - **[Report](https://example.com/report)**
 - **[UML Class Diagram](https://github.com/rachtrx/HMS/tree/main/UMLClassDiagram)**
 - **[All Test Cases](https://github.com/rachtrx/HMS/blob/1168e405297df90b49c501cf3f14195b2cca0608/completetestcases/FullListOfTestCases.pdf)**
