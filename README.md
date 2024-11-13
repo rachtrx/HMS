@@ -7,7 +7,7 @@
 - **[Main Page/Github Repository](https://github.com/rachtrx/HMS)**
 - **[Documentation](https://github.com/rachtrx/HMS/tree/main/doc)**
 - **[Report](https://example.com/report)**
-- **[UML Class Diagram](https://example.com/report)**
+- **[UML Class Diagram](https://github.com/rachtrx/HMS/tree/main/UMLClassDiagram)**
 - **[All Test Cases](https://github.com/rachtrx/HMS/blob/1168e405297df90b49c501cf3f14195b2cca0608/completetestcases/FullListOfTestCases.pdf)**
 
 ## Team Members
@@ -20,9 +20,8 @@
 | Lee Ding Lin                  | [dinglinlee](https://github.com/dinglinlee)          | 
 | Khoo Qian Yee                 | [erinarin034](https://github.com/erinarin034)        |
 
-## New Features
 
-## Key Existing Features
+## Key Features
 
 ### Patient Menu
 - View Medical Record
