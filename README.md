@@ -15,7 +15,7 @@
 | Name                          | GitHub Account                                       |
 |-------------------------------|------------------------------------------------------|
 | Rachmiel Andre Teo Ren Xiang  | [rachtrx](https://github.com/rachtrx)                |            
-| Luke Eng Peng Kee             | [__LEPK__](https://github.com/LEPK02)                |
+| Luke Eng Peng Kee             | `[__LEPK__]`(https://github.com/LEPK02)                |
 | Yeo Boon Ling, Faith          | [Faith](https://github.com/Faith-Yeo)                | 
 | Lee Ding Lin                  | [dinglinlee](https://github.com/dinglinlee)          | 
 | Khoo Qian Yee                 | [erinarin034](https://github.com/erinarin034)        |
