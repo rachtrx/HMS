@@ -8,7 +8,7 @@
 - **[Documentation](https://example.com/documentation)**
 - **[Report](https://example.com/report)**
 - **[UML Class Diagram](https://example.com/report)**
-- **[All Test Cases](https://example.com/report)**
+- **[All Test Cases](https://github.com/rachtrx/HMS/blob/1168e405297df90b49c501cf3f14195b2cca0608/completetestcases/FullListOfTestCases.pdf)**
 
 ## Team Members
 
@@ -71,22 +71,6 @@ This project follows the MVC (Model-View-Controller) architecture to organize co
   
 - **Controller**: Acts as an intermediary between the Model and View layers, handling business logic and user requests.
   - [Controllers](./src/app/controller/): Coordinates the interactions between models and views. For example, controllers process user actions in the View, update Model data accordingly, and direct the View to display the appropriate updates. This layer ensures a smooth flow of data and maintains separation between data processing and user interface.
-
-## SOLID Design Principles
-
-This project is also designed with SOLID principles in mind to ensure modularity, maintainability, and flexibility. Here’s how each principle is applied:
-
-1. **Single Responsibility Principle (SRP)**: Each class in this project has a single responsibility or purpose. For example, `User`, `Appointment`, and `Medication` classes focus solely on managing their respective data and behaviors, while controllers like `UserService` and `AppointmentService` manage the flow between the model and view. This separation ensures that each class is easier to understand, test, and maintain.
-
-2. **Open/Closed Principle (OCP)**: Classes in this project are open for extension but closed for modification. For instance, by using inheritance in builders, controllers, and menu structures, new functionalities can be added by extending existing classes rather than modifying them. This is evident in the `Menu` and `User` classes, where additional menus or users can be added without altering the core code.
-
-3. **Liskov Substitution Principle (LSP)**: Derived classes in this project can replace their base classes without affecting the functionality. For example, `Patient`, `Doctor`, `Pharmacist`, and `Admin` extend the `Staff` class, ensuring that they can be used interchangeably in contexts where `User` is expected, such as for authentication functionality, without breaking the code.
-
-4. **Interface Segregation Principle (ISP)**: This project uses focused interfaces, like `ISerializable` and functional interfaces for callbacks (such as `NextAction` and `DisplayGenerator`), which provide only the specific methods needed by a particular class. This design avoids forcing classes to implement methods they don’t use, keeping the code clean and efficient.
-
-5. **Dependency Inversion Principle (DIP)**: The project adheres to DIP by depending on abstractions rather than concrete implementations. For instance, functional interfaces allow high-level modules, like `Menu` and `Builder`, to depend on abstractions, making the system more flexible and adaptable to change. This principle is also demonstrated in the interaction between `DatabaseManager` and various base models through the use of the `ISerializable` interface.
-
-These principles guide the architecture of the application, making it easier to extend, test, and refactor over time. By adhering to SOLID principles, the project achieves a clean, organized, and robust structure that supports future growth and adaptability.
 
 ## Directory Structure
 ```plaintext
