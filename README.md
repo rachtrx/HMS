@@ -15,7 +15,7 @@
 | Name                          | GitHub Account                                       |
 |-------------------------------|------------------------------------------------------|
 | Rachmiel Andre Teo Ren Xiang  | [rachtrx](https://github.com/rachtrx)                |            
-| Luke Eng Peng Kee             | [__LEPK__](https://github.com/LEPK02)               |
+| Luke Eng Peng Kee             | [__LEPK__](https://github.com/LEPK02)                |
 | Yeo Boon Ling, Faith          | [Faith](https://github.com/Faith-Yeo)                | 
 | Lee Ding Lin                  | [dinglinlee](https://github.com/dinglinlee)          | 
 | Khoo Qian Yee                 | [erinarin034](https://github.com/erinarin034)        |
@@ -117,7 +117,7 @@ src/
 To set up and run this application locally, follow these steps:
 1. Clone this repository:
    ```bash
-   git clone <repository-url>
+   git clone <https://github.com/rachtrx/HMS.git>
 
 2. **Navigate to project directory:**
     ```bash
