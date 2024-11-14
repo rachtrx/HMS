@@ -4,7 +4,6 @@ import app.utils.LoggerUtils;
 import app.view.FunctionalInterfaces.DisplayGenerator;
 import app.view.FunctionalInterfaces.OptionGenerator;
 import app.view.option_collections.OptionGeneratorCollection;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,7 +93,7 @@ public class OptionMenu extends Menu {
                 this.displayGenerator.apply();
                 System.out.println("\n");
             } catch (Exception e) {
-                e.printStackTrace();
+                // e.printStackTrace();
                 System.out.println("Error printing display");
             }
             

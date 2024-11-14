@@ -26,7 +26,6 @@ import app.model.users.staff.Pharmacist;
 import app.model.users.staff.Staff;
 import app.model.users.staff.StaffBuilder;
 import app.model.users.staff.StaffBuilder.Role;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -200,7 +199,7 @@ public class DatabaseManager {
                 patientToApptMap.computeIfAbsent(patientId, k -> new ArrayList<>()).add(appointment); 
             } catch (Exception e) {
                 System.err.println("Error creating Appointment" + e.getMessage());
-                e.printStackTrace();
+                // e.printStackTrace();
             }
         }
 
@@ -284,7 +283,7 @@ public class DatabaseManager {
                 }
             } catch (Exception e) {
                 System.err.println("Error creating User" + e.getMessage());
-                e.printStackTrace();
+                // e.printStackTrace();
             }
         }
         return users;

@@ -1678,7 +1678,7 @@ public class OptionGeneratorCollection {
                 ).setNextAction(formValues -> {
                     formValues.put("serviceType", serviceType.toString());
                     return formValues;
-                }).setNextMenuState(MenuState.DOCTOR_ADD_MEDICATION)
+                }).setNextMenuState(MenuState.DOCTOR_ADD_NOTES)
             ).collect(Collectors.toList());
         }
 
@@ -1759,7 +1759,7 @@ public class OptionGeneratorCollection {
                     put("Doctor", UserService.findUserByIdAndType(appointment.getPatientId(), Patient.class, true).getName());
                     put("Medications", String.valueOf(outcome.getPrescription().getMedicationOrders().size()));
                     put("Prescription Status", outcome.getPrescription().getStatus().toString());
-                    put("Notes", outcome.getConsultationNotes());
+                    put("Notes", outcome.getConsultationNotes() != null ? outcome.getConsultationNotes() : "");
                 }}
             );
             if (isUpdate) option.setNextAction((formValues) -> new HashMap<>() {{

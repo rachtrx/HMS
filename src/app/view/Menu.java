@@ -113,7 +113,7 @@ public abstract class Menu {
             
             return nextMenuState;
         } catch (IllegalArgumentException | InvalidCharacterException | InvalidTimeslotException | NonNegativeException | MissingCharacterException | InvalidPhoneNumberException | InvalidLengthException e) {
-            e.printStackTrace();
+            // e.printStackTrace();
             System.out.println(e.getMessage());
             if(field != null && field.getExitMenuState() != null) return field.getExitMenuState();
             if(this.getMenuState() == MenuState.EDIT || this.getMenuState() == MenuState.CONFIRM) return this.getPreviousMenu().getMenuState();
