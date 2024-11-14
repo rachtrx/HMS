@@ -50,6 +50,8 @@ To set up and run this application locally, follow these steps:
 |82   | joel_lim|  Easy2Type!|  Joel Lim| Male|  
 |86   |lucas_tay|  Easy2Type!|  Lucas Tay| Female|  
 |87     |olivia_lee|  Easy2Type!| Olivia Lee| Non-Binary|  
+
+Can be used to log into the app for testing
   
   
 
