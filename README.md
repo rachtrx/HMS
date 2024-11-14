@@ -53,7 +53,7 @@ To set up and run this application locally, follow these steps:
 
 Can be used to log into the app for testing
   
-##Key Features
+## Key Features
 
 ### Patient Menu
 - View Medical Record
