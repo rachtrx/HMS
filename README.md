@@ -43,14 +43,14 @@ To set up and run this application locally, follow these steps:
     ```bash
     java -cp out app.App
     ```
-## Pre-Configured Users
-| Name                          | GitHub Account                                       |
-|-------------------------------|------------------------------------------------------|
-| Rachmiel Andre Teo Ren Xiang  | [rachtrx](https://github.com/rachtrx)                |            
-| Luke Eng Peng Kee             | [\_\_LEPK\_\_](https://github.com/LEPK02)                |
-| Yeo Boon Ling, Faith          | [Faith](https://github.com/Faith-Yeo)                | 
-| Lee Ding Lin                  | [dinglinlee](https://github.com/dinglinlee)          | 
-| Khoo Qian Yee                 | [erinarin034](https://github.com/erinarin034)        |
+## Pre-Configured Users (Assuming First Time)
+| User ID                        |Username                                      |Password                                     |Name                                         |Gender  
+|-------------------------------|------------------------------------------------------|------------------------------------------------------|------------------------------------------------------|------------------------------------------------------|
+|50    |mia_ong|Easy2Type!|  Mia Ong| Male|             
+|82   | joel_lim|  Easy2Type!|  Joel Lim| Male|  
+|86   |lucas_tay|  Easy2Type!|  Lucas Tay| Female|  
+|87     |olivia_lee|  Easy2Type!| Olivia Lee| Non-Binary|  
+  
   
 
 ### Patient Menu
