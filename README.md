@@ -21,6 +21,29 @@
 | Khoo Qian Yee                 | [erinarin034](https://github.com/erinarin034)        |
 
 
+## Installation
+To set up and run this application locally, follow these steps:
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/rachtrx/HMS.git
+
+2. **Navigate to project directory:**
+    ```bash
+    cd HMS
+    ```
+
+3. **Compile the Java source files:**
+    From the `HMS` directory, run the following to compile and output the `.class` files into an `out` directory.
+    ```bash
+    javac -d out -sourcepath src src/app/App.java
+    ```
+
+4. **Run the App:**
+    After compiling, run the `App` Class.
+    ```bash
+    java -cp out app.App
+    ```
+   
 ## Key Features
 
 ### Patient Menu
@@ -112,26 +135,3 @@ src/
     │   └── StringUtils.java
 └── resources/                # Data files and resources
 ```
-
-## Installation
-To set up and run this application locally, follow these steps:
-1. Clone this repository:
-   ```bash
-   git clone https://github.com/rachtrx/HMS.git
-
-2. **Navigate to project directory:**
-    ```bash
-    cd HMS
-    ```
-
-3. **Compile the Java source files:**
-    From the `HMS` directory, run the following to compile and output the `.class` files into an `out` directory.
-    ```bash
-    javac -d out -sourcepath src src/app/App.java
-    ```
-
-4. **Run the App:**
-    After compiling, run the `App` Class.
-    ```bash
-    java -cp out app.App
-    ```
