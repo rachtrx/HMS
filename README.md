@@ -6,7 +6,7 @@
 ## Links
 - **[Main Page/Github Repository](https://github.com/rachtrx/HMS)**
 - **[Documentation (JavaDoc)](https://hmsdocs.netlify.app/)**
-- **[Report](https://example.com/report)**
+- **[Report](https://github.com/rachtrx/HMS/blob/d4267975e9360503648251011d24b79cd2180052/report/SCS7_1%20Report.pdf)**
 - **[UML Class Diagram](https://github.com/rachtrx/HMS/tree/main/UMLClassDiagram)**
 - **[All Test Cases](https://github.com/rachtrx/HMS/blob/1168e405297df90b49c501cf3f14195b2cca0608/completetestcases/FullListOfTestCases.pdf)**
 
