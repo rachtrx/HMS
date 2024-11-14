@@ -6,8 +6,8 @@
 ## Links
 - **[Main Page/Github Repository](https://github.com/rachtrx/HMS)**
 - **[Documentation (JavaDoc)](https://hmsdocs.netlify.app/)**
-- **[Report](https://github.com/rachtrx/HMS/blob/d4267975e9360503648251011d24b79cd2180052/report/SCS7_1%20Report.pdf)**
-- **[UML Class Diagram](https://github.com/rachtrx/HMS/tree/main/UMLClassDiagram)**
+- **[Report](https://github.com/rachtrx/HMS/blob/8d36714bdb96448ac46c1f0f92c1382731c80d1f/report/SCS7_1%20Report.pdf)**
+- **[UML Class Diagram](https://github.com/rachtrx/HMS/blob/8d36714bdb96448ac46c1f0f92c1382731c80d1f/UMLClassDiagram/HMS.jpg)**
 - **[All Test Cases](https://github.com/rachtrx/HMS/blob/1168e405297df90b49c501cf3f14195b2cca0608/completetestcases/FullListOfTestCases.pdf)**
 
 ## Team Members
