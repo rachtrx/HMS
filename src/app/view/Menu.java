@@ -7,10 +7,8 @@ import app.constants.exceptions.InvalidPhoneNumberException;
 import app.constants.exceptions.InvalidTimeslotException;
 import app.constants.exceptions.MissingCharacterException;
 import app.constants.exceptions.NonNegativeException;
-import app.controller.MenuService;
 import app.utils.LoggerUtils;
 import app.view.FunctionalInterfaces.DisplayGenerator;
-
 import java.util.HashMap;
 import java.util.Map;
 import java.util.stream.IntStream;
@@ -115,7 +113,7 @@ public abstract class Menu {
             
             return nextMenuState;
         } catch (IllegalArgumentException | InvalidCharacterException | InvalidTimeslotException | NonNegativeException | MissingCharacterException | InvalidPhoneNumberException | InvalidLengthException e) {
-            // e.printStackTrace();
+            e.printStackTrace();
             System.out.println(e.getMessage());
             if(field != null && field.getExitMenuState() != null) return field.getExitMenuState();
             if(this.getMenuState() == MenuState.EDIT || this.getMenuState() == MenuState.CONFIRM) return this.getPreviousMenu().getMenuState();

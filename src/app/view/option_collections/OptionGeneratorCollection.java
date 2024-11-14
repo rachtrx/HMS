@@ -1752,7 +1752,7 @@ public class OptionGeneratorCollection {
         .map(appointment -> {
             AppointmentOutcomeRecord outcome = appointment.getAppointmentOutcome();
             Option option = new Option(
-                String.valueOf(appointment.getAppointmentId()), 
+                String.valueOf(appointment.getTimeslot()), 
                 isUpdate ? OptionType.NUMBERED : OptionType.DISPLAY,
                 new LinkedHashMap<>() {{ 
                     put("Patient", UserService.findUserByIdAndType(appointment.getPatientId(), Patient.class, true).getName());

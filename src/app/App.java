@@ -43,13 +43,13 @@ public class App {
 					break;
 				}
 			} catch (ExitApplication | NoSuchElementException | IllegalStateException e) {
-				// e.printStackTrace();
+				e.printStackTrace();
 				App.exitApplication();
 				break;
 			} catch (Exception e) {
 				LoggerUtils.info("Exception Caught!");
 				LoggerUtils.info(e.getMessage() + "\n");
-				// e.printStackTrace();
+				e.printStackTrace();
 
 				System.out.println(e.getMessage());
 				MenuService.getCurrentMenu().display();
