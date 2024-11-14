@@ -44,16 +44,16 @@ To set up and run this application locally, follow these steps:
     java -cp out app.App
     ```
 ## Pre-Configured Users (Assuming First Time)
-| User ID                        |Username                                      |Password                                     |Name                                         |Gender  
-|-------------------------------|------------------------------------------------------|------------------------------------------------------|------------------------------------------------------|------------------------------------------------------|
-|50    |mia_ong|Easy2Type!|  Mia Ong| Male|             
-|82   | joel_lim|  Easy2Type!|  Joel Lim| Male|  
-|86   |lucas_tay|  Easy2Type!|  Lucas Tay| Female|  
-|87     |olivia_lee|  Easy2Type!| Olivia Lee| Non-Binary|  
+| User ID          |Username |Password    |Name    |Gender   |Role|
+|-----------------|---------|----------|--------|-------------|-----|
+|50    |mia_ong|Easy2Type!|  Mia Ong| Male| Patient|               
+|82   | joel_lim|  Easy2Type!|  Joel Lim| Male|  Doctor|  
+|86   |lucas_tay|  Easy2Type!|  Lucas Tay| Female|  Pharmacist|  
+|87     |olivia_lee|  Easy2Type!| Olivia Lee| Non-Binary| Admin|   
 
 Can be used to log into the app for testing
   
-  
+##Key Features
 
 ### Patient Menu
 - View Medical Record
