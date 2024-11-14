@@ -16,7 +16,6 @@ import app.view.MenuState;
 import app.view.OptionMenu;
 import app.view.menu_collections.MenuCollection.Control;
 import app.view.option_collections.OptionGeneratorCollection;
-
 import java.util.Map;
 import java.util.stream.Collectors;
 
