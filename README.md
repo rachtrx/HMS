@@ -43,8 +43,15 @@ To set up and run this application locally, follow these steps:
     ```bash
     java -cp out app.App
     ```
-   
-## Key Features
+## Pre-Configured Users
+| Name                          | GitHub Account                                       |
+|-------------------------------|------------------------------------------------------|
+| Rachmiel Andre Teo Ren Xiang  | [rachtrx](https://github.com/rachtrx)                |            
+| Luke Eng Peng Kee             | [\_\_LEPK\_\_](https://github.com/LEPK02)                |
+| Yeo Boon Ling, Faith          | [Faith](https://github.com/Faith-Yeo)                | 
+| Lee Ding Lin                  | [dinglinlee](https://github.com/dinglinlee)          | 
+| Khoo Qian Yee                 | [erinarin034](https://github.com/erinarin034)        |
+  
 
 ### Patient Menu
 - View Medical Record
