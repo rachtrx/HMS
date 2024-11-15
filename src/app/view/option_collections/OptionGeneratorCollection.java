@@ -2322,7 +2322,7 @@ public class OptionGeneratorCollection {
      * @return A list of <code>Option</code> representing editable fields for the specified staff member.
      */
     public static List<Option> generateUserFieldsEditOptions(Staff staff) {
-        return List.of(
+        return new ArrayList<>(List.of(
             new Option(
                 "username",
                 OptionType.NUMBERED,
@@ -2387,7 +2387,7 @@ public class OptionGeneratorCollection {
                     put("Action", "View all Users");
                 }}
             ).setNextAction((formData) -> formData).setNextMenuState(MenuState.ADMIN_VIEW_USERS)
-        );
+        ));
     }
 
     /**
