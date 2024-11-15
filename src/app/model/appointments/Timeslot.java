@@ -14,7 +14,7 @@ import java.time.LocalTime;
 */
 public class Timeslot {
     public static final LocalTime firstSlotStartTime = LocalTime.of(9, 0);
-    public static final LocalTime lastSlotStartTime = LocalTime.of(16, 0);
+    public static final LocalTime lastSlotStartTime = LocalTime.of(21, 0);
     public static final int TIMESLOTLENGTHINHOURS = 1;
     private LocalDateTime timeslotDateTime;
 
